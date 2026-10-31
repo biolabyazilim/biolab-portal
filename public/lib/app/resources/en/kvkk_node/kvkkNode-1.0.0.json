@@ -1,0 +1,16 @@
+{
+    "PAGE_TITLE":"KVKK menu tree",
+    "BOX_TITLE":"KVKK menu tree",
+    "TREE_INFO":"Click a heading to open its details on the right. Drag a heading onto another one to move it.",
+
+    "NODE_ID":"ID",
+    "PARENT_NODE_ID":"Parent heading",
+    "PARENT_NODE_EMPTY":"Leave empty for a main heading",
+    "NODE_NAME":"Heading",
+    "NODE_DESC":"Description",
+    "NODE_DESC_INFO":"Shown as small grey text next to the heading on the public page",
+    "SORT_NO":"Order",
+    "ACTIVE_FL":"Visible on public page",
+
+    "ERR_NODE_NAME":"Enter a heading."
+}

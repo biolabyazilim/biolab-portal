@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kullanıcı girişi · KVKK</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="../../lib/app/images/brand/biolab-mark.png">
+
+    <link rel="stylesheet" href="../../lib/plugins/fontawesome-free-5.14.0-web/css/all.min.css">
+    <link rel="stylesheet" href="./css/hb.css?v=1.3.1">
+    <link rel="stylesheet" href="../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../lib/app/css/app.css">
+    <link rel="stylesheet" href="../../lib/app/css/plugins.css">
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+<body class="hb-login-page">
+
+<header class="hb-header">
+    <span class="hb-brand">KVKK</span>
+    <span class="hb-brand-sub">· Kişisel verilerin korunması belgeleri</span>
+</header>
+
+<main class="hb-login-main">
+    <form id="loginForm" class="hb-login-card" autocomplete="off" novalidate>
+        <img class="hb-login-logo" src="../../lib/app/images/brand/biolab-logo.png" alt="Biolab Laboratuvarlar Grubu">
+        <span class="font-weight-bold mb-3" style="text-align:center; display: block; font-size: 18px;"><i class="fas fa-user-shield"></i> KVKK Yönetimi</span>
+
+        <label for="loginUsername">Kullanıcı adı</label>
+        <input type="text" id="loginUsername" name="username" autocomplete="username" required autofocus>
+
+        <label for="loginPassword">Şifre</label>
+        <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
+        <small id="capsLockWarning" class="hb-hint" hidden><i class="fas fa-exclamation-triangle"></i> Caps Lock açık</small>
+
+        <div id="loginError" class="hb-alert" role="alert" hidden>
+            <i class="far fa-times-circle"></i>
+            <span class="hb-alert-text"></span>
+        </div>
+        <p class="hb-login-lead">Portal kullanıcı bilgilerinizle giriş yapın.</p>
+
+        <button type="submit" id="loginBtn" class="hb-btn-primary">Giriş yap</button>
+
+        <p class="hb-login-help">Şifrenizi unuttuysanız sistem yöneticisine başvurun.</p>
+    </form>
+</main>
+
+<footer class="hb-footer">
+    <span>KVKK başlıkları ve belgeleri (biolabltd.com.tr yayını)</span>
+    <span>Oturum 30 dk işlem yapılmazsa kapanır</span>
+</footer>
+
+<script src="../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="./js/login.js?v=1.1.0"></script>
+</body>
+</html>

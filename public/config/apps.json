@@ -26,6 +26,15 @@
       "url": "./apps/biolab-maliyet/login.html",
       "status": "active",
       "target": "_blank"
+    },
+    {
+      "code": "KVKK",
+      "name": "KVKK Yönetimi",
+      "description": "KVKK başlıkları ve belgeleri (biolabltd.com.tr KVKK sayfası)",
+      "icon": "fa-user-shield",
+      "url": "./apps/biolab-kvkk/login.html",
+      "status": "active",
+      "target": "_blank"
     }
   ]
 }

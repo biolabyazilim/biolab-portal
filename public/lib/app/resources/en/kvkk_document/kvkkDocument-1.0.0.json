@@ -1,0 +1,38 @@
+{
+    "PAGE_TITLE":"KVKK documents",
+    "LIST_TITLE":"Documents",
+    "FORM_TITLE":"Document",
+    "FILE_LIST_TITLE":"Uploaded PDF versions",
+    "FILE_LIST_INFO":"The public page always shows the latest version. Older versions are kept as an archive.",
+
+    "FILTER_NODE_ID":"Heading",
+    "FILTER_ALL":"All headings",
+
+    "DOCUMENT_ID":"ID",
+    "NODE_ID":"Heading",
+    "NODE_PATH":"Heading",
+    "DOCUMENT_NAME":"Document name",
+    "SORT_NO":"Order",
+    "PUBLISH_FL":"Published",
+    "PUBLISHED_AT":"Published at",
+    "LAST_VERSION":"Last version",
+    "LAST_UPLOAD":"Last upload",
+    "DOCUMENT_FILE":"PDF file",
+    "DOCUMENT_FILE_INFO":"PDF only, max 20 MB. On a saved document a selected file is added as a new version.",
+
+    "VERSION_NO":"Version",
+    "FILE_NAME":"File name",
+    "FILE_SIZE":"Size",
+    "UPLOADED_BY":"Uploaded by",
+    "UPLOADED_AT":"Uploaded at",
+    "BTN_OPEN_PDF":"Open",
+    "PUBLIC_LINK":"Public link",
+
+    "STATUS_PUBLISHED":"Published",
+    "STATUS_DRAFT":"Draft",
+    "NO_FILE":"No file",
+
+    "ERR_NODE_ID":"Select a heading.",
+    "ERR_DOCUMENT_NAME":"Enter the document name.",
+    "ERR_DOCUMENT_FILE":"Select a PDF file."
+}

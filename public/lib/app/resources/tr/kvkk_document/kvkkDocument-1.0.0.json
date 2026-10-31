@@ -1,0 +1,38 @@
+{
+    "PAGE_TITLE":"KVKK belgeleri",
+    "LIST_TITLE":"Belgeler",
+    "FORM_TITLE":"Belge bilgisi",
+    "FILE_LIST_TITLE":"Yüklenen PDF versiyonları",
+    "FILE_LIST_INFO":"Yayın sitesinde her zaman son versiyon görünür. Eski versiyonlar arşiv olarak saklanır.",
+
+    "FILTER_NODE_ID":"Başlık",
+    "FILTER_ALL":"Bütün başlıklar",
+
+    "DOCUMENT_ID":"ID",
+    "NODE_ID":"Başlık",
+    "NODE_PATH":"Başlık",
+    "DOCUMENT_NAME":"Belge adı",
+    "SORT_NO":"Sıra",
+    "PUBLISH_FL":"Yayında",
+    "PUBLISHED_AT":"Yayın tarihi",
+    "LAST_VERSION":"Son versiyon",
+    "LAST_UPLOAD":"Son yükleme",
+    "DOCUMENT_FILE":"PDF dosyası",
+    "DOCUMENT_FILE_INFO":"Yalnızca PDF, en fazla 20 MB. Kayıtlı belgede dosya seçerseniz yeni versiyon olarak eklenir.",
+
+    "VERSION_NO":"Versiyon",
+    "FILE_NAME":"Dosya adı",
+    "FILE_SIZE":"Boyut",
+    "UPLOADED_BY":"Yükleyen",
+    "UPLOADED_AT":"Yükleme",
+    "BTN_OPEN_PDF":"Aç",
+    "PUBLIC_LINK":"Yayın bağlantısı",
+
+    "STATUS_PUBLISHED":"Yayında",
+    "STATUS_DRAFT":"Taslak",
+    "NO_FILE":"Dosya yok",
+
+    "ERR_NODE_ID":"Başlık seçin.",
+    "ERR_DOCUMENT_NAME":"Belge adını girin.",
+    "ERR_DOCUMENT_FILE":"PDF dosyası seçin."
+}

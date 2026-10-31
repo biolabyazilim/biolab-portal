@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">KVKK menü ağacı</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/tree.view.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+    <style>
+        #treeViewWellAjax{
+            height: 420px;
+            overflow: auto;
+        }
+        .treeview-container{
+            width: 380px;
+            margin-right: 15px;
+        }
+        .kv-info{
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #667085;
+        }
+        @media (max-width: 767px){
+            .treeview-container{
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            #treeViewWellAjax{
+                height: 220px;
+            }
+        }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+        <div class="row">
+            <div class="col-sm-12">
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="BOX_TITLE">KVKK menü ağacı</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-column flex-md-row">
+
+                            <!-- Sol: başlık ağacı (lib.js $.fn.treeView) -->
+                            <div class="flex-grow-0 treeview-container">
+                                <div class="kv-info" data-tr="TREE_INFO"></div>
+                                <div class="tree-view well droppable" id="treeViewWellAjax">
+                                    <ul class="droppable"></ul>
+                                </div>
+                            </div>
+
+                            <!-- Sağ: seçili başlığın formu -->
+                            <div class="flex-fill">
+                                <form name="editFormNode" id="editFormNode" class="form-horizontal" method="post" enctype="application/x-www-form-urlencoded" action="javascript:" autocomplete="off" novalidate>
+
+                                    <input type="hidden" id="NODE_ID" name="NODE_ID"/>
+
+                                    <div class="row">
+                                        <div class="col-sm-6"><!--PARENT_NODE_ID-->
+                                            <div class="form-group">
+                                                <label for="PARENT_NODE_ID" data-tr="PARENT_NODE_ID" class="col-form-label-sm">§§PARENT_NODE_ID</label>
+                                                <select id="PARENT_NODE_ID" name="PARENT_NODE_ID" class="form-control form-control-sm"></select>
+                                                <small class="form-text text-muted" data-tr="PARENT_NODE_EMPTY"></small>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6"><!--NODE_NAME-->
+                                            <div class="form-group">
+                                                <label for="NODE_NAME" data-tr="NODE_NAME" class="col-form-label-sm">§§NODE_NAME</label>
+                                                <input type="text" id="NODE_NAME" name="NODE_NAME" class="form-control form-control-sm" maxlength="200"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-12"><!--NODE_DESC-->
+                                            <div class="form-group">
+                                                <label for="NODE_DESC" data-tr="NODE_DESC" class="col-form-label-sm">§§NODE_DESC</label>
+                                                <input type="text" id="NODE_DESC" name="NODE_DESC" class="form-control form-control-sm" maxlength="500"/>
+                                                <small class="form-text text-muted" data-tr="NODE_DESC_INFO"></small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-sm-3"><!--SORT_NO-->
+                                            <div class="form-group">
+                                                <label for="SORT_NO" data-tr="SORT_NO" class="col-form-label-sm">§§SORT_NO</label>
+                                                <input type="number" id="SORT_NO" name="SORT_NO" class="form-control form-control-sm" min="0" max="999" value="0"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3"><!--ACTIVE_FL-->
+                                            <div class="form-group">
+                                                <label for="ACTIVE_FL" data-tr="ACTIVE_FL" class="col-form-label-sm">§§ACTIVE_FL</label>
+                                                <select id="ACTIVE_FL" name="ACTIVE_FL" class="form-control form-control-sm base">
+                                                    <option value="Y" data-tr="FL_YES_TEXT" selected></option>
+                                                    <option value="N" data-tr="FL_NO_TEXT"></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-sm-6"> </div>
+                            <div class="col-sm-6 text-right">
+                                <button type="button" class="btn btn-sm btn-success btn-new" id="btnNewNode"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">Yeni</span></button>
+                                <button type="button" class="btn btn-sm btn-default btn-cancel" id="btnCancelNode"><i class="fas fa-ban"></i> <span data-tr="BTN_CANCEL_TEXT">İptal</span></button>
+                                <button type="button" class="btn btn-sm btn-danger btn-delete" id="btnDeleteNode"><i class="fas fa-trash-alt"></i> <span data-tr="BTN_DELETE_TEXT">Sil</span></button>
+                                <!-- Kaydet: seçili başlığı günceller (seçili yoksa ekler) · Ekle: her zaman yeni başlık ekler (D.Sys menuWithTree düzeni) -->
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-primary" id="btnSaveNode">
+                                        <i class="fas fa-save"></i>
+                                        <span data-tr="BTN_SAVE_TEXT">Kaydet</span>
+                                    </button>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggleNode">
+                                            <span class="caret"></span>
+                                            <span class="sr-only">Toggle Dropdown</span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-right btn-add">
+                                            <a class="dropdown-item btn-add" href="javascript:">
+                                                <button class="btn btn-sm btn-primary btn-add" type="button" id="btnAddNode">
+                                                    <i class="fas fa-plus"></i>
+                                                    <span data-tr="BTN_ADD_TEXT">Ekle</span>
+                                                </button>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/kvkkNode-1.0.0.js?v=1.0.1"></script>
+</body>
+</html>

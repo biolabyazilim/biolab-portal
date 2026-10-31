@@ -1,0 +1,16 @@
+{
+    "PAGE_TITLE":"KVKK menü ağacı",
+    "BOX_TITLE":"KVKK menü ağacı",
+    "TREE_INFO":"Başlığa tıklayınca bilgileri sağda açılır. Başlığı sürükleyip başka bir başlığın içine bırakarak taşıyabilirsiniz.",
+
+    "NODE_ID":"ID",
+    "PARENT_NODE_ID":"Üst başlık",
+    "PARENT_NODE_EMPTY":"Boş bırakılırsa ana başlık olur",
+    "NODE_NAME":"Başlık",
+    "NODE_DESC":"Açıklama",
+    "NODE_DESC_INFO":"Yayında başlığın yanında küçük gri yazı olarak görünür (ör. İş, yardım, burs vb. başvuru alanı değildir)",
+    "SORT_NO":"Sıra",
+    "ACTIVE_FL":"Yayında görünsün",
+
+    "ERR_NODE_NAME":"Başlık girin."
+}
