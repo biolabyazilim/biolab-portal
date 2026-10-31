@@ -1,0 +1,139 @@
+/* Biolab Portal — ortak uygulama menüsü (sol kenar çubuğu)
+ * Menü verisi api/auth.php?action=menu'den gelir; çizimi lib/app/js/portal-menu.js yapar.
+ * Renkler ortak temadan (biolab-theme.css) gelir; bu dosya ondan sonra yüklenmelidir.
+ *
+ *   .pm-layout              kenar çubuğu + içerik
+ *   .pm-layout.is-collapsed yalnızca ikonlar (masaüstü; tercih tarayıcıda saklanır)
+ *   .pm-layout.is-open      mobilde çekmece açık
+ */
+:root {
+    --pm-width: 248px;
+    --pm-width-collapsed: 64px;
+    --pm-bg: var(--bl-nav-dark, #1A4A6B);
+    --pm-bg-hover: rgba(255, 255, 255, .08);
+    --pm-bg-active: rgba(255, 255, 255, .16);
+    --pm-text: var(--bl-nav-text, rgba(255, 255, 255, .85));
+    --pm-text-strong: #fff;
+    --pm-accent: var(--bl-brand, #3C8DC5);
+    --pm-speed: .18s;
+}
+
+.pm-layout { position: relative; flex: 1; display: flex; min-height: 0; }
+
+/* Kenar çubuğu */
+.pm-sidebar {
+    flex: 0 0 var(--pm-width); width: var(--pm-width);
+    display: flex; flex-direction: column;
+    background: var(--pm-bg); color: var(--pm-text);
+    overflow-x: hidden; overflow-y: auto;
+    transition: width var(--pm-speed) ease, flex-basis var(--pm-speed) ease;
+    z-index: 20;
+}
+.pm-nav { list-style: none; margin: 0; padding: 10px 8px; }
+.pm-nav ul { list-style: none; margin: 0; padding: 0; }
+
+.pm-item,
+.pm-group-btn {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    min-height: 40px; margin: 2px 0; padding: 0 12px;
+    border: 0; border-radius: 8px;
+    background: transparent; color: var(--pm-text);
+    font: inherit; font-size: 14px; text-align: left; text-decoration: none; white-space: nowrap;
+    cursor: pointer;
+    transition: background var(--pm-speed), color var(--pm-speed);
+}
+.pm-item:hover, .pm-group-btn:hover,
+.pm-item:focus-visible, .pm-group-btn:focus-visible { background: var(--pm-bg-hover); color: var(--pm-text-strong); text-decoration: none; outline: none; }
+.pm-item:focus-visible, .pm-group-btn:focus-visible { box-shadow: inset 0 0 0 2px var(--pm-accent); }
+
+.pm-icon { flex: 0 0 20px; width: 20px; text-align: center; font-size: 16px; }
+.pm-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.pm-chevron { font-size: 11px; transition: transform var(--pm-speed); }
+
+/* Seçili ekran: sol çizgi + açık zemin */
+.pm-item.is-active { position: relative; background: var(--pm-bg-active); color: var(--pm-text-strong); font-weight: 600; }
+.pm-item.is-active::before {
+    content: ""; position: absolute; left: 0; top: 8px; bottom: 8px;
+    width: 3px; border-radius: 0 3px 3px 0; background: var(--pm-accent);
+}
+
+/* Grup: başlık düğmesi + açılır alt liste */
+.pm-group > .pm-group-btn { color: var(--pm-text); }
+.pm-group.is-expanded > .pm-group-btn .pm-chevron { transform: rotate(90deg); }
+.pm-group > ul { display: none; }
+.pm-group.is-expanded > ul { display: block; }
+.pm-group > ul .pm-item { padding-left: 44px; font-size: 13.5px; min-height: 36px; }
+.pm-group > ul .pm-item .pm-icon { font-size: 14px; }
+.pm-group.has-active > .pm-group-btn { color: var(--pm-text-strong); }
+
+/* Alt kısım: daralt düğmesi */
+.pm-foot { margin-top: auto; padding: 8px; border-top: 1px solid rgba(255, 255, 255, .1); }
+.pm-collapse-btn .pm-icon { transition: transform var(--pm-speed); }
+
+/* Daraltılmış (yalnızca ikon) */
+.pm-layout.is-collapsed .pm-sidebar { flex-basis: var(--pm-width-collapsed); width: var(--pm-width-collapsed); }
+.pm-layout.is-collapsed .pm-label,
+.pm-layout.is-collapsed .pm-chevron { display: none; }
+.pm-layout.is-collapsed .pm-item,
+.pm-layout.is-collapsed .pm-group-btn { justify-content: center; padding: 0; }
+.pm-layout.is-collapsed .pm-group > ul .pm-item { padding-left: 0; }
+.pm-layout.is-collapsed .pm-group > ul { display: block; }             /* alt ekranlar ikon olarak görünür */
+.pm-layout.is-collapsed .pm-group > .pm-group-btn { display: none; }   /* grup başlığı yerine ince ayraç */
+.pm-layout.is-collapsed .pm-group + .pm-group,
+.pm-layout.is-collapsed .pm-group:not(:first-child) { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, .1); }
+.pm-layout.is-collapsed .pm-collapse-btn .pm-icon { transform: rotate(180deg); }
+
+/* İçerik: yol (breadcrumb) + çerçeve */
+.pm-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.pm-crumbs {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    min-height: 40px; padding: 8px 24px;
+    border-bottom: 1px solid var(--bl-border, #E1E5EB);
+    background: var(--bl-surface, #fff);
+    font-size: 13px; color: var(--bl-muted, #6B7280);
+}
+.pm-crumbs .pm-crumb-sep { font-size: 10px; opacity: .7; }
+.pm-crumbs .pm-crumb-current { color: var(--bl-text, #1F2937); font-weight: 600; }
+
+/* Üst bardaki menü düğmesi (mobilde çekmeceyi açar) */
+.pm-toggle {
+    display: none; align-items: center; justify-content: center;
+    width: 38px; height: 38px; margin-right: 6px;
+    border: 1px solid rgba(255, 255, 255, .35); border-radius: 8px;
+    background: transparent; color: #fff; font-size: 16px; cursor: pointer;
+}
+.pm-toggle:hover { background: rgba(255, 255, 255, .12); }
+
+.pm-backdrop { display: none; }
+
+/* Boş / hata durumu */
+.pm-empty { margin: 32px; padding: 24px; border: 1px solid var(--bl-border-strong, #D0D7E0); border-radius: 10px; background: #fff; color: var(--bl-text, #1F2937); }
+.pm-empty h2 { margin: 0 0 8px; font-size: 18px; color: var(--bl-primary, #1F4E79); }
+.pm-empty p { margin: 0; color: var(--bl-muted, #6B7280); }
+.pm-empty-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.pm-loading { padding: 16px 20px; color: var(--pm-text); font-size: 13px; }
+
+/* Mobil: kenar çubuğu çekmece olur */
+@media (max-width: 991px) {
+    .pm-toggle { display: inline-flex; }
+    .pm-sidebar {
+        position: absolute; top: 0; bottom: 0; left: 0;
+        width: var(--pm-width); flex-basis: auto;
+        transform: translateX(-100%); transition: transform var(--pm-speed) ease;
+        box-shadow: 4px 0 16px rgba(0, 0, 0, .18);
+    }
+    .pm-layout.is-open .pm-sidebar { transform: translateX(0); }
+    .pm-layout.is-open .pm-backdrop { display: block; position: absolute; inset: 0; z-index: 15; background: rgba(15, 23, 42, .35); }
+    .pm-foot { display: none; }
+    /* mobilde daraltma tercihi uygulanmaz */
+    .pm-layout.is-collapsed .pm-sidebar { width: var(--pm-width); }
+    .pm-layout.is-collapsed .pm-label, .pm-layout.is-collapsed .pm-chevron { display: initial; }
+    .pm-layout.is-collapsed .pm-item, .pm-layout.is-collapsed .pm-group-btn { justify-content: flex-start; padding: 0 12px; }
+    .pm-layout.is-collapsed .pm-group > .pm-group-btn { display: flex; }
+    .pm-layout.is-collapsed .pm-group > ul .pm-item { padding-left: 44px; }
+    .pm-crumbs { padding: 8px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-sidebar, .pm-item, .pm-group-btn, .pm-chevron { transition: none; }
+}

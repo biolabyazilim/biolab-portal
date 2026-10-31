@@ -1,0 +1,18 @@
+{
+    "BOX_TITLE":"Incident Status",
+    "PAGE_TITLE":"Incident Status",
+    "EVENT_STATUS_ID":"Incident Status Id",
+    "EVENT_STATUS_NAME":"Incident Status Name",
+    "EVENT_STATUS_IS_CLOSED_FL":"Incident Status Is Closed",
+
+    "COMPANY_ID":"Company Id",
+    "C_BY":"C By",
+    "C_AT":"C At",
+    "U_BY":"U By",
+    "U_AT":"U At",
+    "D_BY":"D By",
+    "D_AT":"D At",
+    "ACTIVE_FL":"Active Fl",
+    "RECORD_FL":"Record Fl"
+}
+            

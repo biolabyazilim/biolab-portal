@@ -1,0 +1,70 @@
+{
+  "BOX_TITLE":"Medical Report List",
+  "NAV_PAIENT_CARE":"Patient Care",
+  "NAV_TREATMENT":"Patient",
+  "NAV_PAGE":"Medical Report List",
+
+  "SESSION_STATUS" : "Status",
+  "OPEN_SESSION" : "Open",
+  "APPROVE" : "Approve",
+  "DAILY_TREATMENT_ID" : "D. Treatment Id",
+  "DAILY_TREATMENT_DATE" : "D. Treatment Date",
+  "PATIENT_ID" : "Patient Id",
+  "PATIENT_NAME" : "Patient Name",
+  "PATIENT_SURNAME" : "Patient Surname",
+  "PATIENT_NAME_SURNAME" : "Patient",
+  "PHYSICIAN_USER_NAME" : "Physcian Name",
+  "PHYSICIAN_USER_SURNAME" : "Physcian Surname",
+  "CONNECTING_USER_NAME" : "Connecting User Name",
+  "CONNECTING_USER_SURNAME" : "Connecting User Surname",
+  "DISCONNECTING_USER_NAME" : "Disc. User Name",
+  "DISCONNECTING_USER_SURNAME" : "Dic. User Surname",
+  "TREATMENT_DATE" : "Treatment Date",
+  "DIALYSIS_PRESCRIPTION_DATE" : "Dialy. Presc. Date",
+  "DIALYSIS_PRESCRIPTION_TIME" : "Dialy. Presc. Time",
+  "START_DIALYSIS_PRESCRIPTION" : "Start Dialy. Presc.",
+  "INF_OPEN_SESSION_WARNING_MESSAGE" : "Dou you want to open this session?",
+  "INF_APPROVE_SESSION_WARNING_MESSAGE" : "Dou you want to approve this session?",
+  "STATUS_NAME" : "Status",
+  "STATUS_ID" : "Status Id",
+  "PATIENT_NUMBER" : "Patient Number",
+  "HC_NUMBER" : "S.S. No.",
+
+  "DTL_STATUS_APPROVED_TREATMENT": "Treatment Approved",
+  "DTL_STATUS_OPENED_TREATMENT": "Dialysis Prescription Approved",
+  "START_DATE": "Start Date",
+  "END_DATE": "End Date",
+  "FINISH_STATUS_ID": "Finish Status",
+  "FINISH_STATUS_NAME": "Finish Status",
+  "BTN_FINIS_STATUS": "Change Status",
+
+
+  "PL_PATIENT_NUMBER" : "Patient Number",
+  "PL_HMC_NUMBER" : "S.S. No.",
+  "PL_PATIENT_NAME_SURNAME" : "Patient",
+  "PL_PATIENT_NAME" : "Patient Name",
+  "PL_PATIENT_SURNAME" : "Patient Surname",
+  "PL_PATIENT_BIRTHDATE" : "Birthdate",
+  "PL_PATIENT_GENDER" : "Gender",
+  "PL_PATIENT_AGE" : "Age",
+  "APPROVED_BY_USER_NAME_SURNAME" : "Approved By",
+
+
+  "DTL_FS_CANCELLED_TREATMENT": "Dialysis Prescription Cancelled",
+  "DTL_FS_TERMINATED_TREATMENT": "Dialysis Prescription Terminated",
+  "DTL_FS_COMPLETED_TREATMENT": "Dialysis Prescription Completed",
+
+  "INF_CHANGE_FINISH_STATUS_WARNING_MESSAGE" : "Dou you want to change \"finish status\" this session?",
+  "DAILY_TREATMENT_FINISH_STATUS_ID" : "Finish Status",
+  "CHANGE_FINIS_STATUS_TITLE" : "Change Finish Status",
+
+  "BTN_WORD_TEXT" : "Word",
+  "MONTHLY_EXAM_DATE" : "Date",
+  "EXAM_TYPE" : "Type",
+
+  "MONTHLY_EXAM_TYPE_QUERY_NAME" : "Type",
+  "MONTHLY_EXAM_STATUS_NAME" : "Status",
+  "DELETE" : "Delete",
+  "INF_DELETED_SESSION_WARNING_MESSAGE" : "Dou you want to delete this Report?"
+
+}

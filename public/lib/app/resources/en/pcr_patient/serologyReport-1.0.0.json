@@ -1,0 +1,16 @@
+{
+  "BOX_TITLE":"Serology",
+  "PAGE_TITLE":"Serology",
+  "NAV_PAGE":"Serology Report",
+  "CHECK_LIST_TITLE":"Check List",
+  "TEST_PROCESS_ID":"Test Process Id",
+  "PATIENT_ID":"Patient Id",
+  "PATIENT_NAME":"Patient Name",
+  "TEST_LAB_ID":"Test Lab Id",
+  "TEST_LAB_NAME":"Test Lab Name",
+  "COMPANY_ID":"Company Id",
+  "TEST_PROCESS_DATE":"Date",
+  "TEST_PROCESS_DATA":"DATA",
+  "TEST_PROCESS_TIME":"Test Process Time",
+  "TEST_PROCESS_NO":"Test Process No"
+}

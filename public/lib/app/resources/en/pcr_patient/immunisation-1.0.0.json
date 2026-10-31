@@ -1,0 +1,19 @@
+{
+    "BOX_TITLE":"Immunization",
+    "PAGE_TITLE":"Immunization",
+    "NAV_PAGE":"Immunization",
+    
+    "CHECK_LIST_TITLE":"Check List",
+    "CHECK_LIST_DATA":"DATA",
+    "IMMUNISATION_ID":"Immunization Id",
+    "IMMUNISATION_PRODUCT_ID":"Immunization Product Id",
+    "PRODUCT_NAME":"Immunization Product Name",
+    "IMMUNISATION_DOSE_ID":"Immunization Dose Id",
+    "IMMUNISATION_DOSE_NAME":"Immunization Dose",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "COMPANY_ID":"Company Id",
+    "IMMUNISATION_DATE":"Immunization Date",
+    "IMMUNISATION_NOTE":"Immunization Note"
+}
+            

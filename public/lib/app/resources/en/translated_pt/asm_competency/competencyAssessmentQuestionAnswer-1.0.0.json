@@ -1,0 +1,16 @@
+{
+  "BOX_TITLE": "Resposta à Pergunta de Avaliação de Competências",
+  "PAGE_TITLE": "Resposta da Pergunta de Avaliação de Competências",
+  "NAV_ASM": "Definição",
+  "NAV_PAGE": "Resposta à Pergunta de Avaliação de Competências",
+  "CAQA_ID": "ID da Pergunta Resposta",
+  "CAQA_NAME": "Pergunta Resposta",
+  "CAQA_ORDER": "Ordem Pergunta Resposta",
+  "CAQA_TYPE": "Tipo de Pergunta e Resposta",
+  "CAQA_SCORE": "Pergunta Resposta Pontuação",
+  "CAQA_DEFAULT_FL": "Resposta Padrão",
+  "CATYPE_NAME": "Tipo de Avaliação",
+  "CATYPE_ID": "Tipo de ID",
+  "CAQ_ID": "ID da Pergunta",
+  "CAQ_NAME": "Uma pergunta."
+}

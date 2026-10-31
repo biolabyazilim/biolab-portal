@@ -1,0 +1,32 @@
+{
+  "BOX_TITLE":"User Information",
+  "PAGE_TITLE":"User Information",
+
+  "NAV_EDIT" : "User",
+  "NAV_PAGE":"Edit User Information",
+
+  "USER_ID":"User Id",
+  "LANGUAGE_ID":"Language Id",
+  "LANGUAGE_NAME":"Language",
+  "USER_TASK_ID":"User Task Id",
+  "USER_TASK_NAME":"User Task",
+  "COUNTRY_ID":"Country Id",
+  "COUNTRY_NAME":"Country",
+  "COMPANY_ID":"Company Id",
+  "COMPANY_NAME":"Company",
+  "USERNAME":"Username",
+  "PASSWORD":"Password",
+  "PERSON_NAME":"Name",
+  "PERSON_SURNAME":"Surname",
+  "AUTH_VIA_AD_FL":"Auth via A.D. FL",
+  "CAN_GRANT_AUTH_GLOBAL_FL":"Can Grant Auth Global FL",
+  "USER_PICTURE":"Person Picture",
+  "USER_ID_NUMBER":"User Id (Employee)",
+  "USER_PHONE_OFFICE":"Office Phone",
+  "USER_PHONE_GSM":"Mobile Phone",
+  "USER_E_MAIL":"User E-Mail",
+  "MODAL_SHOW_IMAGE_TITLE":"Patient Image Uploader",
+  "MODAL_ADD_ROLE_HEADER":"Add Role",
+  "ROLE_NAME":"Role Name",
+  "FORM_NAME":"Form Name"
+}

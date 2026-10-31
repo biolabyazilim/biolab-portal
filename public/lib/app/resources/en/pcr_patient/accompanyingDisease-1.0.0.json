@@ -1,0 +1,23 @@
+{
+    "BOX_TITLE_ACCOMPANYING_DISEASE":"Comorbidities",
+    "PAGE_TITLE":"AComorbidities",
+    "ACCOMPANYING_DISEASE_ID":"Comorbidities Id",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient",
+    "COMPANY_ID":"Compnay Id",
+    "DISEASE_ID":"Disease Id",
+    "DISEASE_NAME":"Disease Name",
+    "START_DATE":"Start Date",
+    "PRINT_FL":"Print",
+    "END_DATE":"End Date",
+    "NAV_PAGE": "Comorbidities",
+
+    "MEDICAL_HISTORY": "Medical History",
+    "COMMENT": "Medical History Comment",
+
+    "ACCOMPANYING_DISEASE_TREATMENT_ID":"Comorbidities Treatment Id",
+    "ACCOMPANYING_DISEASE_NAME":"Comorbidities Name",
+    "ACCOMPANYING_DISEASE_TREATMENT_DATE":"Treatment Date",
+    "INTERVENTION":"Intervention",
+    "INTERVENTION_NOTE":"Intervention Note"
+}

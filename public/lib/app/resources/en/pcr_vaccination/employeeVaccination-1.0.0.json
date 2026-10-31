@@ -1,0 +1,25 @@
+{
+    "BOX_TITLE":"Immunization Employee",
+    "PAGE_TITLE":"Immunization Staff",
+    "NAV_PAGE":"Immunization Employee",
+    "NAV_PATIENT":"Other",
+
+    "IMMUNISATION_STAFF_ID":"Immunization Staff Id",
+    "IMMUNISATION_STAFF_DATE":" Imm. Date",
+    "PRODUCT_ID":"Product Id",
+    "PRODUCT_NAME":"Type",
+    "USER_ID":"User Id",
+    "USERNAME":"User Name",
+    "IMMUNISATION_DOSE_ID":"Immunization Dose Id",
+    "IMMUNISATION_DOSE_NAME":"Dose Name",
+    "IMMUNISATION_STAFF_NOTE":"Note :",
+    "PERSON_NAME":"Person Name",
+    "PERSON_SURNAME":"Person Surname",
+
+    "U_AT" : "U At",
+    "C_AT" : "C At",
+    "D_AT" : "D At",
+    "ACTIVE_FL" : "Active",
+    "RECORD_FL" : "Record Fl"
+
+}

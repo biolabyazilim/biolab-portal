@@ -1,0 +1,50 @@
+{
+
+  "PAGE_TITLE":"Dialysis Hall & Machine & Station",
+  "NAV_PATIENT_CARE":"Patient Care",
+  "NAV_PATIENT":"Definition",
+  "NAV_PAGE":"Dialysis Hall & Machine & Station",
+
+  "DIALYSIS_STATION_ID":"Dialysis Station Id",
+  "DIALYSIS_HALL_ID":"Hall Id",
+  "DIALYSIS__HALL_ID":"Dialysis Hall Id",
+  "DIALYSIS_HALL_NAME":"Hall Name",
+  "DIALYSIS_HALL_TYPE":"Hall Type",
+  "DIALYSIS_HALL_ORDER":"Hall Order",
+  "COMPANY_ID":"Company Id",
+  "PATIENT_ID":"Patient Id",
+  "PATIENT_NAME":"Patient Name",
+  "PATIENT_SURNAME":"Patient Surname",
+  "DIALYSIS_STATION_REMOVAL_DATE":"Station Removal Date",
+  "DIALYSIS_STATION_NAME":"Station Name",
+  "DIALYSIS_STATION_NAME_DH":"Station Name",
+  "DIALYSIS_STATION_INSTALLATION_DATE":"Station Installation Date",
+  "IDENTITY_NUMBER":"Identity Number",
+  "BIRTH_DATE":"Birth Date",
+  "PATIENT_NUMBER":"Patient Number",
+  "DIABETES_POS_DATE":"Diabetes Post Date",
+  "HEIGHT":"Height",
+  "PHONE":"Phone",
+  "ADDRESS":"Addreess",
+  "CITY":"City",
+  "ACTIVE_FL":"Active",
+  "RECORD_FL":"Record",
+
+  "DIALYSIS_MACHINE_ID":"Machine Id",
+  "DIALYSIS_MACHINE_NAME":"Machine Name",
+  "DIALYSIS_MACHINE_SERIAL_NO":"Machine Serial No",
+
+  "DIALYSIS_MACHINE_BRAND_NAME":"Machine Brand Name",
+  "DIALYSIS_MACHINE_TYPE_NAME":"Machine Type Name",
+  "DIALYSIS_MACHINE_MODEL_NO":"Machine Model No",
+  "DIALYSIS_MACHINE_REMOVAL_DATE":"Machine Removal Date",
+  "DIALYSIS_MACHINE_INSTALLATION_DATE":"Machine Installation Date",
+
+  "PATIENT_NAME_SURNAME":"Patient",
+  "DIALYSIS_HALL_TAB_HEADER":"Dialysis Hall",
+  "DIALYSIS_STATION_TAB_HEADER":"Dialysis Station",
+  "DIALYSIS_MACHINE_TAB_HEADER":"Dialysis Machine",
+
+  "BOX_TITLE_DIALYSIS_HALL":"Dialysis Hall"
+
+}

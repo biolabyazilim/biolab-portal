@@ -1,0 +1,17 @@
+{
+    "BOX_TITLE":"Patient Status Reason",
+    "PAGE_TITLE":"Patient Status Reason",
+    "PATIENT_STATUS_REASON_ID":"Patient Status Reason Id",
+    "PATIENT_STATUS_REASON_NAME":"Patient Status Reason Name",
+    "PARENT_PATIENT_STATUS_REASON_ID":"Parent Patient Status Reason Id",
+    "PARENT_PATIENT_STATUS_REASON_NAME":"Parent Patient Status Reason",
+    "PATIENT_STATUS_REASON_NAME_START":"Patient Status Reason Name Start",
+    "PATIENT_STATUS_REASON_IO_ID":"Patient Status Reason IO Id",
+    "PATIENT_STATUS_REASON_IO_NAME":"Patient Status Reason IO Name",
+    "PATIENT_STATUS_REASON_NAME_END":"Patient Status Reason Name End",
+    "PATIENT_STATUS_REASON_CODE":"Patient Status Reason Code",
+    "PATIENT_STATUS_REASON_ORDER":"Patient Status Reason Order",
+    "PATIENT_STATUS_REASON_TEMP_FL":"Patient Status Reason Temp",
+    "PATIENT_STATUS_REASON_PERMANENT_FL":"Patient Status Reason Permanent"
+}
+            

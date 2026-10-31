@@ -1,0 +1,25 @@
+{
+    "NAV_PATIENT_CARE":"Patient Care",
+    "NAV_PATIENT":"Patient",
+    "NAV_PAGE":"Patient Document",
+
+    "BOX_TITLE_PATIENT_DOCUMENT":"Document Management",
+    "PAGE_TITLE":"Document Management",
+    "DOCUMENT_ID":"Doc.No",
+    "DOCUMENT_TYPE_ID":"Document Type",
+    "DOCUMENT_TYPE_NAME":"Document Type",
+
+    "DOCUMENT_DATE":"Date",
+    "DOCUMENT_TEXT":"Document Info",
+    "DOCUMENT_COMMENT":"Document Comment",
+    "DROP_ZONE_MESSAGE":"Drop files here or click to upload.",
+    "DROP_ZONE_NOTES":"If You want to delete uploaded file then just click it",
+    "FILE_MANAGEMENT":"File Management",
+    "BTN_UPLOAD_FILE":"Upload File",
+    "BTN_SHOW_FILE_LIST":"Show File List",
+    "BTN_REMOVE_FILE":"Remove File",
+    "MODAL_SHOW_PDF_TITLE":"PDF Viewer",
+    "MODAL_SHOW_IMAGE_TITLE":"Image Viewer",
+    "UPLOADED_FILE_INFORMATION":"Files aren't saved, If you want to keep these files, please press 'Save' button"
+}
+            

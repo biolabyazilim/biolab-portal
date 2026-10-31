@@ -1,0 +1,8 @@
+{
+  "GRID_PATIENT_NUNMBER": "Número do Paciente",
+  "GRID_PATIENT_NAME": "Nome",
+  "GRID_PATIENT_SURNAME": "Sobrenome",
+  "GRID_PATIENT_AGE": "Idade",
+  "GRID_BIRTH_DATE": "Data de Nascimento",
+  "GRID_PATIENT_ID": "ID do Paciente"
+}

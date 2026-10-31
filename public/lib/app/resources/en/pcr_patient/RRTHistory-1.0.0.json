@@ -1,0 +1,19 @@
+{
+    "BOX_TITLE":"RRT History",
+    "PAGE_TITLE":"RRT History",
+    "RRT_HISTORY_ID":"RRT History Id",
+    "RRT_TYPE_ID":"RRT Type Id",
+    "RRT_TYPE_NAME":"RRT Type",
+    "COMPANY_ID":"Company Id",
+    "START_RRT_REASON_ID":"Start RRT Reason Id",
+    "START_RRT_REASON_NAME":"Start RRT Reason",
+    "RRT_REASON_NAME":"RRT Reason Name",
+    "END_RRT_REASON_ID":"End RRT Reason",
+    "END_RRT_REASON_NAME":"End RRT Reason Name",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "NAV_PAGE": "RRT History",
+    "START_DATE":"Start Date",
+    "END_DATE":"End Date"
+}
+            

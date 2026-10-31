@@ -1,0 +1,20 @@
+{
+  "BOX_TITLE":"Competency Assessment Question",
+  "PAGE_TITLE":"Competency Assessment Question",
+  "NAV_ASM":"Definition",
+  "NAV_PAGE":"Competency Assessment Question",
+
+  "CATYPE_NAME": "Assessmnet Type",
+  "CATYPE_ID": "A.Type Id",
+  "CAQ_ID": "A.Question Id",
+  "CAQ_NAME": "A.Question",
+  "CAQ_NOTE": "A.Question Note",
+  "CAQ_TYPE": "A.Question Type",
+  "CAQ_PLACE_TYPE": "A.Question Place Type",
+  "CAQ_ORDER": "A.Question Order",
+  "CAQG_ID": "A.Question Group Id",
+  "CAQG_NAME": "A.Question Group",
+  "CAQW_ID": "A.Question Weigh Id",
+  "CAQW_NAME": "A.Question Weigh"
+
+}

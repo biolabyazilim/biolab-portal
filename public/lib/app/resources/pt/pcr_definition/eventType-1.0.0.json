@@ -1,0 +1,17 @@
+{
+    "BOX_TITLE":"Incident Type",
+    "PAGE_TITLE":"Incident Type",
+    "EVENT_TYPE_ID":"Incident Type Id",
+    "EVENT_TYPE_NAME":"Incident Type Name",
+    
+    "COMPANY_ID":"Company Id",
+    "C_BY":"C By",
+    "C_AT":"C At",
+    "U_BY":"U By",
+    "U_AT":"U At",
+    "D_BY":"D By",
+    "D_AT":"D At",
+    "ACTIVE_FL":"Active Fl",
+    "RECORD_FL":"Record Fl"
+}
+    

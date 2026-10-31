@@ -1,0 +1,26 @@
+{
+    "BOX_TITLE":"Avaliação de Competências",
+    "PAGE_TITLE":"Avaliação de Competências",
+    "PLEASE_ADD_COMMENT":"Por favor, adicione seu comentário",
+    "PLEASE_FILL_COMMENT":"Por favor, preencha seu comentário para esta questão",
+    "PLEASE_FILL_ANSWER":"Por favor, preencha sua resposta para esta questão",
+    "MISSING_PARAMETER":"Por favor, preencha os parâmetros faltantes",
+    "RIGHT_FL":"D",
+    "BOTH_FL":"A",
+    "LEFT_FL":"E",
+
+    "DROP_ZONE_MESSAGE":"Arraste os arquivos aqui ou clique para enviar.",
+    "DROP_ZONE_NOTES":"Se você deseja excluir o arquivo enviado, basta clicar nele",
+    "FILE_MANAGEMENT":"Gestão de Arquivos",
+    "BTN_UPLOAD_FILE":"Enviar Arquivo",
+    "BTN_SHOW_FILE_LIST":"Mostrar Lista de Arquivos",
+    "BTN_REMOVE_FILE":"Remover Arquivo",
+
+    "MODAL_SHOW_PDF_TITLE":"Visualizador de PDF",
+    "MODAL_SHOW_IMAGE_TITLE":"Visualizador de Imagens",
+    "ASSESSMENT_NAME":"Nome da Avaliação",
+    "ASSESSMENT_DATE":"Data da Avaliação",
+    "OBSERVER_NAME":"Observador",
+    "EMPLOYEE_NAME":"Funcionário",
+    "UPLOADED_FILE_INFORMATION":"Os arquivos não são salvos. Se você deseja manter esses arquivos, por favor, pressione o botão 'Salvar'"
+}

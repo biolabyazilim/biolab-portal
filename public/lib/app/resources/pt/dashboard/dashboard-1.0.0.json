@@ -1,0 +1,21 @@
+{
+  "PAGE_TITLE": "Painel de Controle",
+
+  "START_DATE": "Data de Início",
+  "NAV_PAGE": "Painel de Controle",
+  "PATIENT_COUNT": "Contagem de Pacientes",
+  "FROM_LAST_MONTH": "do mês passado",
+
+  "SESSION_COUNT": "Contagem de Sessões",
+  "PATIENT_INCOME_COUNT": "Contagem de Receita de Pacientes",
+  "SESSION_AVG_COUNT": "Média de Sessões",
+  "INCIDENT_ACCIDENT_BAR_TITLE": "Gráfico Mensal de Incidentes/Acidentes",
+
+  "CALENDAR_START_DATE": "Início",
+  "CALENDAR_END_DATE": "Fim",
+  "CALENDAR_TITLE": "Título",
+  "EENT_COMMENT": "Comentário",
+  "EVENT_EDIT_BOX_TITLE": "Evento",
+  "EVENT_HEADER": "Evento",
+  "DUMMY": ""
+}

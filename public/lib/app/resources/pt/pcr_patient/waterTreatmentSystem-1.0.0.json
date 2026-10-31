@@ -1,0 +1,19 @@
+{
+    "BOX_TITLE":"Sistema de Tratamento de Água",
+    "PAGE_TITLE":"Sistema de Tratamento de Água",
+    "NAV_PAGE":"Sistema de Tratamento de Água",
+    "NAV_PATIENT":"Outro",
+    "CHECK_LIST_TITLE":"Lista de Verificação",
+    "TEST_PROCESS_ID":"Id do Processo de Teste",
+    "PATIENT_ID":"Id do Paciente",
+    "PATIENT_NAME":"Nome do Paciente",
+    "TEST_LAB_ID":"Id do Laboratório de Teste",
+    "TEST_LAB_NAME":"Nome do Laboratório de Teste",
+    "COMPANY_ID":"Id da Empresa",
+    "TEST_PROCESS_DATE":"Data",
+    "TEST_PROCESS_DATA":"DADOS",
+    "TEST_PROCESS_TIME":"Hora do Processo de Teste",
+    "TEST_PROCESS_NO":"Nº do Processo de Teste",
+    "MODAL_SHOW_IMAGE_TITLE":"Visualizador de Imagens",
+    "MODAL_SHOW_PDF_TITLE":"Visualizador de PDF"
+}

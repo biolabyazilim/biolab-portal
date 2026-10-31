@@ -1,0 +1,31 @@
+{
+  "BOX_TITLE":"Dialysis Hall",
+  "NAV_DEFINITION": "Definition",
+  "NAV_PAGE": "Dialysis Hall",
+  "PAGE_TITLE":"Dialysis Hall",
+  "DIALYSIS_HALL_ID":"Hall Id",
+  "DIALYSIS_HALL_NAME":"Hall Name",
+  "DIALYSIS_HALL_ORDER":"Machine Serial No",
+  "DIALYSIS_MACHINE_ID":"Machine Id",
+  "DIALYSIS_MACHINE_NAME":"Machine Name",
+  "DIALYSIS_MACHINE_SERIAL_NO":"Machine Serial No",
+  "DIALYSIS_STATION_NAME":"Dialysis Station Name",
+  "DIALYSIS_STATION_ID":"Dialysis Station Id",
+  "DIALYSIS_MACHINE_BRAND_NAME":"Machine Brand Name",
+  "DIALYSIS_MACHINE_MODEL_NO":"Machine Model No",
+  "DIALYSIS_MACHINE_REMOVAL_DATE":"Machine Removal Date",
+  "DIALYSIS_MACHINE_INSTALLATION_DATE":"Machine Installation Date",
+  "DIALYSIS_STATION_INSTALLATION_DATE":"Station Installation Date",
+  "DIALYSIS_STATION_REMOVAL_DATE":"Station Removal Date",
+  "COMPANY_ID":"Company Id",
+  "PATIENT_ID":"Patient Id",
+  "PATIENT_NAME":"Patient Name",
+  "PATIENT_SURNAME":"Patient Surname",
+  "PATIENT_NAME_SURNAME":"Patient",
+
+  "ACTIVE_FL":"Active",
+  "RECORD_FL":"Record"
+
+
+
+}

@@ -1,0 +1,14 @@
+{
+    "BOX_TITLE_TREATMENT":"Comorbidities Treatment",
+    "PAGE_TITLE_TREATMENT":"Comorbidities Treatment",
+    "ACCOMPANYING_DISEASE_TREATMENT_ID":"Comorbidities Treatment Id",
+    "COMPANY_ID":"Company Id",
+    "ACCOMPANYING_DISEASE_ID":"Comorbidities Id",
+    "ACCOMPANYING_DISEASE_NAME":"Comorbidities Name",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "ACCOMPANYING_DISEASE_TREATMENT_DATE":"Treatment Date",
+    "INTERVENTION":"Intervention",
+    "INTERVENTION_NOTE":"Intervention Note"
+}
+            

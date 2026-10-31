@@ -1,0 +1,28 @@
+{
+    "BOX_TITLE":"¥atc_index",
+    "PAGE_TITLE":"¥atc_index",
+    "ATC_ID":"¥ATC_ID",
+    "SEMANTIC_TYPE_ID":"¥SEMANTIC_TYPE_ID",
+    "SEMANTIC_TYPE_NAME":"¥SEMANTIC_TYPE_NAME",
+    "ATC_CODE":"¥ATC_CODE",
+    "ATC_NAME":"¥ATC_NAME",
+    "ATC_CUI":"¥ATC_CUI",
+    "ATC_TUI":"¥ATC_TUI",
+    "ATC_LEVEL":"¥ATC_LEVEL",
+    "ATC_IS_DRUG_FL":"¥ATC_IS_DRUG_FL",
+    "ATC_ALT_LABEL":"¥ATC_ALT_LABEL",
+    "ATC_STY0":"¥ATC_STY0",
+    "ATC_STY1":"¥ATC_STY1",
+    "ATC_STY2":"¥ATC_STY2",
+    "ATC_LANG":"¥ATC_LANG",
+    "ATC_CONTENT":"¥ATC_CONTENT",
+    "C_BY":"¥C_BY",
+    "C_AT":"¥C_AT",
+    "U_BY":"¥U_BY",
+    "U_AT":"¥U_AT",
+    "D_BY":"¥D_BY",
+    "D_AT":"¥D_AT",
+    "ACTIVE_FL":"¥ACTIVE_FL",
+    "RECORD_FL":"¥RECORD_FL"
+}
+            

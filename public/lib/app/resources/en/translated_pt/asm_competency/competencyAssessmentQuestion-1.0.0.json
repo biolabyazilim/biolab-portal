@@ -1,0 +1,18 @@
+{
+  "BOX_TITLE": "Pergunta de Avaliação de Competências",
+  "PAGE_TITLE": "Questão de Avaliação de Competência",
+  "NAV_ASM": "Definição",
+  "NAV_PAGE": "Questão de Avaliação de Competências",
+  "CATYPE_NAME": "Tipo de Avaliação",
+  "CATYPE_ID": "Tipo de ID",
+  "CAQ_ID": "ID da Pergunta",
+  "CAQ_NAME": "Uma pergunta.",
+  "CAQ_NOTE": "Nota de Pergunta",
+  "CAQ_TYPE": "Tipo de pergunta",
+  "CAQ_PLACE_TYPE": "Tipo de Lugar da Pergunta",
+  "CAQ_ORDER": "Ordem das perguntas",
+  "CAQG_ID": "ID do Grupo de Perguntas",
+  "CAQG_NAME": "Grupo de perguntas",
+  "CAQW_ID": "Questão Peso Id",
+  "CAQW_NAME": "Peso da questão"
+}

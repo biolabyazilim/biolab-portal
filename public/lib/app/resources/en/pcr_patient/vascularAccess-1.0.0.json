@@ -1,0 +1,22 @@
+{
+    "BOX_TITLE":"Vascular Access",
+    "PAGE_TITLE":"Vascular Access",
+    "VASCULAR_ACCESS_ID":"Vascular Access Id",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "VASCULAR_ACCESS_LOCATION_ID":"Vascular Access Location Id",
+    "VASCULAR_ACCESS_LOCATION_NAME":"V.Access Location Name",
+    "PRIMARY_FL": "Is Primary",
+    "COMPANY_ID":"Company Id",
+    "VASCULAR_ACCESS_TYPE_ID":"V. Access Type ID",
+    "VASCULAR_ACCESS_TYPE_NAME":"V. Access Type Name",
+    "LOCK_SOLUTION_NAME":"Lock Solution Name",
+    "LOCK_SOLUTION_AMOUNT_VEIN":"Lock Solution Amount Vein",
+    "LOCK_SOLUTION_AMOUNT_ARTERY":"Lock Solution Amount Artery",
+    "START_DATE":"Start Date",
+    "APPLICATION_DATE":"First Use Date",
+    "TERMINATION_DATE":"End of Use Date",
+    "NAV_PAGE": "Vascular Access",
+    "VATR_NAME":"V. Access Termination Reason"
+}
+            

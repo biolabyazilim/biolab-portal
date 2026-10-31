@@ -1,0 +1,20 @@
+{
+    "BOX_TITLE":"Incident Subject User Task",
+    "PAGE_TITLE":"Incident Subject User Task",
+    "EVENT_SUBJECT_USER_TASK_ID":"Incident Subject User Task Id",
+    "USER_TASK_ID":"User Task Id",
+    "USER_TASK_NAME":"Who",
+    "COMPANY_ID":"Company Id",
+    "EVENT_SUBJECT_ID":"Incident Subject Id",
+    "EVENT_SUBJECT_NAME":"Incident Subject Name",
+
+    "C_BY":"C By",
+    "C_AT":"C At",
+    "U_BY":"U By",
+    "U_AT":"U At",
+    "D_BY":"D By",
+    "D_AT":"D At",
+    "ACTIVE_FL":"Active Fl",
+    "RECORD_FL":"Record Fl"
+}
+            

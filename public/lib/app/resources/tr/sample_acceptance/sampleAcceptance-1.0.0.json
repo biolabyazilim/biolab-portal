@@ -1,0 +1,27 @@
+{
+    "PAGE_TITLE":"Numune kabul",
+    "BOX_TITLE":"Yeni numune",
+    "LIST_TITLE":"Bugün kabul edilenler",
+
+    "SAMPLE_ACCEPTANCE_ID":"ID",
+    "BARCODE":"Barkod",
+    "BARCODE_CONFIRM":"Barkodu tekrar yazın",
+    "PATIENT":"Hasta",
+    "PATIENT_NAME":"Ad soyad",
+    "FILE_NO":"Dosya no",
+    "GENDER":"Cinsiyet",
+    "BIRTH_DATE":"Doğum tarihi",
+    "INSTITUTION":"Kurum / bölüm",
+    "ACCEPT":"Kabul",
+    "STATUS":"Durum",
+    "MANUAL_ENTRY":"elle",
+
+    "STATUS_WAITING":"Sonuç bekleniyor",
+    "STATUS_RESULTED":"Sonuç geldi",
+    "STATUS_RERUN":"Tekrar çalışma",
+    "STATUS_APPROVED":"Onaylandı",
+    "STATUS_REPORTED":"Raporlandı",
+    "STATUS_REJECTED":"Reddedildi",
+
+    "RECORD_IS_ALREADY_THERE":"Bu barkod zaten kabul edilmiş."
+}

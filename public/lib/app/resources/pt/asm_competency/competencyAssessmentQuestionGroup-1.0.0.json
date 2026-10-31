@@ -1,0 +1,12 @@
+{
+  "BOX_TITLE":"Grupo de Perguntas de Avaliação de Competências",
+  "PAGE_TITLE":"Grupo de Perguntas de Avaliação de Competências",
+  "NAV_ASM":"Definição",
+  "NAV_PAGE":"Grupo de Perguntas de Avaliação de Competências",
+  "CAQG_ID": "A.Id do Grupo de Perguntas",
+  "CAQG_NAME": "A.Grupo de Perguntas",
+  "CAQG_ORDER": "A.Ordem do Grupo de Perguntas",
+  "CAQG_CODE": "A.Código do Grupo de Perguntas",
+  "CATYPE_NAME": "A.Tipo",
+  "CATYPE_ID": "A.Id do Tipo"
+}

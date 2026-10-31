@@ -1,0 +1,9 @@
+{
+    "PAGE_TITLE": "Reports",
+    "PAGE_HINT": "Approved reports. An approved report can't be changed; corrections are made as a new revision from the specialist review screen.",
+    "SEARCH": "Barcode, name or file no",
+    "APPROVED_BETWEEN": "Approval date",
+    "BLOCK": "Comment block",
+    "BTN_SEARCH": "Search",
+    "BTN_CLEAR": "Clear"
+}

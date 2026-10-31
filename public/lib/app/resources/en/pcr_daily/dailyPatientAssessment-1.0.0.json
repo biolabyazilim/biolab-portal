@@ -1,0 +1,14 @@
+{
+  "BOX_TITLE":"Daily Patient Assessment",
+  "NAV_PATIENT_CARE":"Patient Care",
+  "NAV_PCR_DAILY":"Treatment",
+  "NAV_PAGE":"Daily Patient Assessment",
+  "PAGE_TITLE":"Daily Patient Assessment",
+  "DAILY_PATIENT_ASSESSMENT_ID":"Id",
+  "DAILY_PATIENT_ASSESSMENT_RESULT_ID":"Daily Patient Assessment Result Id",
+  "DAILY_PATIENT_ASSESSMENT_RESULT_NAME":"Assessment Result",
+  "PATIENT_ID":"Patient Id",
+  "DAILY_PATIENT_ASSESSMENT_DATE":"Date",
+  "DAILY_PATIENT_ASSESSMENT_COMMENT":"Comment"
+
+}

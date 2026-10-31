@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Raporlar · HbRapor</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/dataTables-1.10.20/DataTables-1.10.20/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+
+    <style>
+        body.rp-page { background: var(--hb-bg); color: var(--hb-text); font-family: var(--hb-font); font-size: 14px; }
+        .rp-wrap { max-width: 1320px; padding: 20px 24px 32px; }
+        .rp-mono { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+        .rp-sub { color: var(--hb-muted); font-size: 12px; }
+
+        .rp-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+        .rp-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--hb-navy); }
+
+        /* Filtre şeridi */
+        .rp-filters { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 12px 14px;
+                      background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; }
+        .rp-filters label { display: block; margin: 0 0 3px; font-size: 12px; color: var(--hb-muted); }
+        .rp-filters .rp-q { width: 280px; }
+        .rp-filters .rp-date { width: 150px; flex-wrap: nowrap; }
+        .rp-filters .datepickerbutton { cursor: pointer; }
+        .rp-filters .rp-block { width: 220px; }
+        .rp-filters .form-control, .rp-filters .input-group-text { height: 34px; font-size: 13px; }
+        .rp-info { margin: -6px 0 10px; }
+
+        .rp-card { background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; overflow: hidden; }
+        .rp-table { width: 100%; margin: 0; font-size: 13px; }
+        .rp-table thead th { padding: 10px 10px; border-bottom: 1px solid var(--hb-border); background: #fafbfc; color: var(--hb-muted);
+                             font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+        .rp-table td { padding: 9px 10px; border-top: 1px solid #edf0f4; vertical-align: middle; }
+        .rp-table tbody tr.rp-row:hover { background: #f8fafc; }
+        .rp-empty td { padding: 32px 12px; text-align: center; color: var(--hb-muted); }
+        .rp-high { color: var(--hb-danger); font-weight: 700; }
+
+        .rp-badge { display: inline-block; margin: 1px 4px 1px 0; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .rp-badge-info { background: #e8f1f9; color: #1d4f7c; }
+        .rp-badge-warn { background: #fff1d6; color: #9a6200; }
+        .rp-badge-ok   { background: #e3f4e9; color: #1e6b3a; }
+        .rp-badge-wait { background: #eceff3; color: #475467; }
+
+        .rp-actions { white-space: nowrap; text-align: right; }
+        .rp-actions .btn { padding: 3px 9px; font-size: 12px; font-weight: 600; border-radius: 6px; }
+
+        /* Revizyon geçmişi (satırın altında açılır) */
+        tr.rp-rev-row > td { background: #f6f8fb; padding: 8px 14px 12px 40px; }
+        .rp-rev-table { width: 100%; font-size: 12px; }
+        .rp-rev-table th { color: var(--hb-muted); font-weight: 600; padding: 4px 8px; border-bottom: 1px solid var(--hb-border); }
+        .rp-rev-table td { padding: 5px 8px; border-top: 1px solid #e6eaf0; }
+        .rp-rev-table tr.is-current td { font-weight: 600; }
+
+        @media (max-width: 767px) { .rp-wrap { padding: 12px; } .rp-hide-sm { display: none; } .rp-filters .rp-q { width: 100%; } }
+    </style>
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block rp-page">
+<div class="autoheight">
+    <div class="container-fluid rp-wrap">
+
+        <div class="rp-head">
+            <h1 class="rp-title" data-tr="PAGE_TITLE">Raporlar</h1>
+            <span class="rp-sub" data-tr="PAGE_HINT">Onaylanmış raporlar. Onaylı rapor değiştirilmez; düzeltme uzman onay ekranından yeni revizyon olarak yapılır.</span>
+        </div>
+
+        <form class="rp-filters" id="rpFilters" autocomplete="off" onsubmit="return false;">
+            <div>
+                <label for="Q" data-tr="SEARCH">Barkod, ad soyad veya dosya no</label>
+                <input type="search" id="Q" class="form-control rp-q" placeholder="ör. 11713441 ya da Yılmaz">
+            </div>
+            <div>
+                <label for="DATE_FROM" data-tr="APPROVED_BETWEEN">Onay tarihi</label>
+                <div class="d-flex align-items-center" style="gap:6px">
+                    <!-- Tarih seçici: lib.js $.DLN.plugin.datePicker (div.date-base → dtp) -->
+                    <div class="input-group input-group-sm date date-base rp-date">
+                        <input type="text" class="form-control form-control-sm rp-mono" id="DATE_FROM" name="DATE_FROM"/>
+                        <div class="input-group-append datepickerbutton"><span class="input-group-text"><i class="fa fa-calendar-alt"></i></span></div>
+                    </div>
+                    <span class="rp-sub">–</span>
+                    <div class="input-group input-group-sm date date-base rp-date">
+                        <input type="text" class="form-control form-control-sm rp-mono" id="DATE_TO" name="DATE_TO"/>
+                        <div class="input-group-append datepickerbutton"><span class="input-group-text"><i class="fa fa-calendar-alt"></i></span></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label for="BLOCK" data-tr="BLOCK">Yorum bloğu</label>
+                <select id="BLOCK" class="form-control rp-block"><option value="">Tümü</option></select>
+            </div>
+            <div>
+                <button type="submit" id="btnSearch" class="btn btn-primary"><i class="fas fa-search"></i> <span data-tr="BTN_SEARCH">Ara</span></button>
+                <button type="button" id="btnClear" class="btn btn-light" data-tr="BTN_CLEAR">Temizle</button>
+            </div>
+        </form>
+        <div class="rp-sub rp-info" id="rpInfo"></div>
+
+        <div class="rp-card">
+            <div class="table-responsive">
+                <table class="table rp-table">
+                    <thead>
+                    <tr>
+                        <th>Onay</th><th>Barkod</th><th>Hasta · yaş</th><th class="rp-hide-sm">Dosya no</th><th class="rp-hide-sm">Kurum</th>
+                        <th>HbA2</th><th>HbF</th><th>HbA</th><th>HbS / HbD</th><th>Blok</th><th>Rev.</th><th class="rp-hide-sm">Onaylayan</th><th></th>
+                    </tr>
+                    </thead>
+                    <tbody id="rpBody"><tr class="rp-empty"><td colspan="13">Yükleniyor…</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="rpRows-template" type="text/x-handlebars-template">
+    {{#each this}}
+    <tr class="rp-row" data-id="{{sampleReportId}}" data-sa="{{sampleAcceptanceId}}">
+        <td class="rp-mono">{{approvedText}}</td>
+        <td class="rp-mono">{{barcode}}</td>
+        <td>{{patientName}}<div class="rp-sub">{{gender}} · {{ageText}}</div></td>
+        <td class="rp-mono rp-hide-sm">{{fileNo}}</td>
+        <td class="rp-hide-sm">{{institution}}</td>
+        <td class="rp-mono {{#if a2High}}rp-high{{/if}}">{{hba2}}</td>
+        <td class="rp-mono">{{hbf}}</td>
+        <td class="rp-mono">{{hba}}{{#if hbaManual}} <span class="rp-badge rp-badge-warn" title="Anormal pik ≥ %5: değeri uzman girdi">uzman</span>{{/if}}</td>
+        <td>{{hbsHbd}}</td>
+        <td><span class="rp-badge rp-badge-info">{{blocks}}</span>{{#if commentEdited}}<span class="rp-badge rp-badge-warn" title="Uzman blok metnini düzenledi">düzenlendi</span>{{/if}}{{#if hasExpertNote}}<span class="rp-badge rp-badge-ok">not</span>{{/if}}</td>
+        <td>{{#if multiRevision}}<a href="#" class="btnRevisions" title="Revizyon geçmişi">{{revisionNo}} / {{revisionCount}} <i class="fas fa-caret-down"></i></a>{{else}}{{revisionNo}}{{/if}}</td>
+        <td class="rp-hide-sm">{{approvedBy}}</td>
+        <td class="rp-actions">
+            {{#if hasPdf}}
+            <button type="button" class="btn btn-sm btn-primary btnPdfOpen" data-id="{{sampleReportId}}" title="PDF'i aç"><i class="far fa-file-pdf"></i> PDF</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary btnPdfDownload" data-id="{{sampleReportId}}" title="PDF'i indir"><i class="fas fa-download"></i></button>
+            {{else}}<span class="rp-badge rp-badge-wait" title="PDF arşivi eklenmeden önce onaylanmış">PDF yok</span>{{/if}}
+            <button type="button" class="btn btn-sm btn-light btnOpenReview" data-sa="{{sampleAcceptanceId}}" title="Uzman onay ekranında aç"><i class="fas fa-external-link-alt"></i></button>
+        </td>
+    </tr>
+    {{/each}}
+</script>
+
+<script id="rpRevisions-template" type="text/x-handlebars-template">
+    <tr class="rp-rev-row" data-sa="{{sa}}"><td colspan="13">
+        <table class="rp-rev-table">
+            <tr><th>Rev.</th><th>Onay</th><th>Onaylayan</th><th>Gerekçe</th><th>Blok</th><th>HbA2</th><th>HbF</th><th>HbA</th><th>HbS / HbD</th><th></th></tr>
+            {{#each rows}}
+            <tr class="{{#if current}}is-current{{/if}}">
+                <td>{{revisionNo}}{{#if current}} <span class="rp-badge rp-badge-ok">geçerli</span>{{/if}}</td>
+                <td class="rp-mono">{{approvedText}}</td>
+                <td>{{approvedBy}}</td>
+                <td>{{#if revisionReason}}{{revisionReason}}{{else}}<span class="rp-sub">ilk onay</span>{{/if}}</td>
+                <td>{{blocks}}{{#if commentEdited}} <span class="rp-badge rp-badge-warn">düzenlendi</span>{{/if}}{{#if hasExpertNote}} <span class="rp-badge rp-badge-ok">not</span>{{/if}}</td>
+                <td class="rp-mono">{{hba2}}</td><td class="rp-mono">{{hbf}}</td><td class="rp-mono">{{hba}}</td><td>{{hbsHbd}}</td>
+                <td class="rp-actions">{{#if hasPdf}}<a href="#" class="btnPdfOpen" data-id="{{sampleReportId}}">PDF</a> · <a href="#" class="btnPdfDownload" data-id="{{sampleReportId}}">indir</a>{{else}}<span class="rp-sub">PDF yok</span>{{/if}}</td>
+            </tr>
+            {{/each}}
+        </table>
+    </td></tr>
+</script>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/DataTables-1.10.20/js/dataTables.bootstrap4.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/report-1.0.0.js?v=1.0.1"></script>
+</body>
+</html>

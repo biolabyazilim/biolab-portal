@@ -1,0 +1,18 @@
+{
+  "BOX_TITLE":"Patient Survey Filter",
+  "PAGE_TITLE":"Patient Survey Filter",
+  "NAV_SURVEY":"Survey",
+  "NAV_PAGE":"Patient Survey Filter Report",
+  "BTN_PREVIEW_TEXT":"Preview",
+  "PATIENT_NUMBER":"Patient Number",
+  "START_TIME":"Start Time",
+  "START_DATE":"Start Date",
+  "END_DATE":"End Date",
+  "PATIENT_ID":"Patient Id",
+  "PATIENT_NAME":"Patient Name",
+  "PATIENT_SURNAME":"Patient Surname",
+  "PATIENT_NAME_SURNAME":"Patient",
+  "SURVEY_HEADER_ID":"Survey Header Id",
+  "SURVEY_ID":"Survey Id",
+  "SURVEY_NAME":"Survey Name"
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>HbRapor · Hb Elektroforez</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="../../lib/app/images/brand/biolab-mark.png">
+
+    <link rel="stylesheet" href="../../lib/plugins/fontawesome-free-5.14.0-web/css/all.min.css">
+
+    <link rel="stylesheet" href="../../lib/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/hb.css?v=1.3.1">
+
+
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+<body class="hb-app-page" hidden>
+
+<header class="hb-header">
+    <a href="../../" class="bl-logo-box hb-logo" title="Biolab Portal">
+        <img src="../../lib/app/images/brand/biolab-logo.png" alt="Biolab Laboratuvarlar Grubu">
+    </a>
+    <span class="hb-brand">HbRapor</span>
+    <span class="hb-brand-sub">· Hb Elektroforez</span>
+
+    <div class="hb-user">
+        <i class="fas fa-user-circle"></i>
+        <span class="js-user-fullname"></span>
+        <button type="button" id="logoutBtn" class="hb-btn-ghost" title="Çıkış yap">
+            <i class="fas fa-sign-out-alt"></i> Çıkış
+        </button>
+    </div>
+</header>
+<nav class="hb-tabs">
+    <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+        <li class="nav-item"><a class="nav-link active" href="#" data-url="./dashboard/dashboard-1.0.0.html"><i class="fas fa-home"></i> Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-url="./sample_acceptance/sampleAcceptance-1.0.0.html"><i class="fas fa-vial"></i> Numune kabul</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-url="./work_list/workList-1.0.0.html"><i class="fas fa-tasks"></i> İş listesi</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-url="./report/report-1.0.0.html"><i class="fas fa-file-medical"></i> Raporlar</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-url="./settings/settings-1.0.0.html"><i class="fas fa-cog"></i> Ayarlar</a></li>
+    </ul>
+</nav>
+<!-- Ekranlar bu çerçevede açılır; girişten sonra ilk ekran dashboard -->
+<main class="hb-frame-main">
+    <iframe id="mainContentFrame" name="mainContentFrame" class="hb-main-frame" title="İçerik"></iframe>
+</main>
+
+<script src="../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="./js/app.js?v=1.3.0"></script>
+</body>
+</html>

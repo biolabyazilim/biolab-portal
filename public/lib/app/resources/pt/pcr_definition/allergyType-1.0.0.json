@@ -1,0 +1,10 @@
+{
+    "BOX_TITLE":"Tipo de Alergia",
+    "PAGE_TITLE":"Tipo de Alergia",
+    "ALLERGY_TYPE_ID":"Id do Tipo de Alergia",
+    "COMPANY_ID":"Id da Empresa",
+    "PARENT_ALLERGY_TYPE_ID":"Id do Tipo de Alergia Pai",
+    "ALLERGY_TYPE_NAME":"Tipo de Alergia",
+    "PARENT_ALLERGY_TYPE_NAME":"Tipo de Alergia Pai",
+    "ALLERGY_TYPE_PRIORTY_LEVEL":"Nível de Prioridade"
+}

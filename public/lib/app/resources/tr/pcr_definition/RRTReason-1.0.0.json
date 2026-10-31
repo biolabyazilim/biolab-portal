@@ -1,0 +1,12 @@
+{
+    "BOX_TITLE":"¥pcr_rrt_reason",
+    "PAGE_TITLE":"¥pcr_rrt_reason",
+    "RRT_REASON_ID":"¥RRT_REASON_ID",
+    "RRT_REASON_TYPE_ID":"¥RRT_REASON_TYPE_ID",
+    "COMPANY_ID":"¥COMPANY_ID",
+    "RRT_REASON_NAME":"¥RRT_REASON_NAME",
+    "RRT_REASON_IO":"¥RRT_REASON_IO",
+    "FL_INGOING_TEXT":"Ingoing",
+    "FL_OUTGOING_TEXT":"Outgoing"
+}
+            

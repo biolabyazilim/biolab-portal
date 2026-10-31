@@ -1,0 +1,29 @@
+{
+  "BOX_TITLE":"Competency Assessment Question Header",
+  "PAGE_TITLE":"Competency Assessment Question Header",
+  "NAV_ASM":"Definition",
+  "NAV_PAGE":"Competency Assessment Question Header",
+
+  "CAA_ID": "Id",
+  "CAA_TEXT": "A.Answer Text",
+  "CATYPE_NAME": "A.Type",
+  "USER_ID": "Employee Id",
+  "USER_NAME": "Employee",
+  "USERNAME": "Username",
+  "USER_SURNAME": "E.Surname",
+  "USER_TASK_NAME": "E.Task",
+  "USER_NAME_SURNAME": "Employee Name",
+  "CAH_ID": "cahId",
+  "CAH_DATE": "Assessment Date",
+
+  "CAQA_ID": "CaqaId",
+  "CAQA_NAME": "A.Question Answer",
+  "CAQ_ID": "caqId",
+  "CAQ_NAME": "A.Question",
+  "CAQG_ID": "caqgId",
+  "CAQG_NAME": "A.Question Group",
+  "CAH_COMPLETED_FL": "A.Header Completed",
+  "CAQW_ID": "caqwId",
+  "CAQW_NAME": "A.Question Weigh"
+
+}

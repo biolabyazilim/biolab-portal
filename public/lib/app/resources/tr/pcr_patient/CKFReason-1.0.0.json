@@ -1,0 +1,12 @@
+{
+    "BOX_TITLE":"Chronic Kidney Failue",
+    "PAGE_TITLE":"Chronic Kidney Failue",
+    "CRONIC_KIDNEY_FAILURE_REASON_ID":"Chronic Kidney Failue Id",
+    "CRONIC_KIDNEY_FAILURE_REASON_TYPE_ID":"Chronic Kidney Failue Type Id",
+    "CRONIC_KIDNEY_FAILURE_REASON_TYPE_NAME":"CFK Reason",
+    "CRONIC_KIDNEY_FAILURE_REASON_DATE":"Date",
+    "CRONIC_KIDNEY_FAILURE_REASON_PRIMARY_FL":"Primary",
+    "PATIENT_DOESNT_HAVE_ANY_PRIMARY_FLAG":"Patient doesn't have any primary reason",
+    "NAV_PAGE":"Chronic Kidney Failuer Reason"
+}
+            

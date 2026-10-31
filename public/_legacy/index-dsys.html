@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D.SYS-PC</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./lib/plugins/fontawesome-free-5.14.0-web/css/all.min.css" />
+    <link rel="stylesheet" href="./lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="./lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="./lib/app/css/app.css">
+    <link rel="stylesheet" href="./lib/app/css/plugins.css">
+    <style>
+        .main-content-frame{
+            border: none;
+            background: transparent;
+        }
+
+        .modal-header .close {
+            padding: 0.3rem 0.3rem;
+            margin: -0.4rem -0.2rem -0.3rem auto;
+        }
+        .modal-dialog {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        .modal-content {
+            height: auto;
+            min-height: 100%;
+            border-radius: 0;
+        }
+        .modal-footer > * {
+            margin: 0.125rem;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .badge-disable{
+            color: #8c9094;
+            background-color: #f8f9fa;
+        }
+        .login .social_icon {
+            display: none !important;
+        }
+
+        /*.custom-control-label:before{
+            background-color:var(--amber);
+        }*/
+        .custom-checkbox .custom-control-input:checked~.custom-control-label::before{
+            background-color:var(--amber);
+        }
+        .mf-container .footer {
+            background-color: #325d77;
+            display: none;
+        }
+
+        nav .nav-sidebar ul.sub-nav li {
+            margin-bottom: 0;
+            width: 100%;
+            padding-left: 15px;
+        }
+    </style>
+</head>
+<body style="background-size: cover;background-position: center;">
+<div class="mf-container">
+    <header class="header">
+        <div class="left-header show">
+            <div class="left-header-content">
+                <!--<a href="/" >-->
+<!--                    <img src="dmed-logo.png" class="dmed-logo" alt="">-->
+                    <span class="text-elegant font-weight-bolder">D.Sys-Patient Care</span>
+<!--                </a>-->
+            </div>
+            <div class="">
+                <div class="custom-navbar">
+                    <ul>
+                        <li>
+                            <a href="#" class="left-header-close">
+                                <span class="fas fa-bars"> </span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        <div class="middle-header">
+            <div class="custom-navbar">
+                <ul>
+                    <li>
+                        <div class="patient-search-container">
+                            <div class="search-input patient ">
+                                <div class="input-group">
+                                    <div class="input-group-prepend patient-prev">
+                                        <button class="btn btn-out" type="button">
+                                            <i class="fas fa-chevron-circle-left"> </i>
+                                        </button>
+                                    </div>
+                                    <div class="search-text">
+                                        <label for="headerPatientSearch" class="sr-only"></label>
+                                        <input type="text" id="headerPatientSearch" data-trph="SEARCH_PATIENT" autocomplete="off"/>
+                                    </div>
+                                    <div class="selected-patient">
+                                    </div>
+                                    <div class="input-group-append  patient-next">
+                                        <button class="btn" type="button">
+                                            <i class="fas fa-chevron-circle-right"> </i>
+                                        </button>
+                                    </div>
+                                    <!--<div class="input-group-append patient-stat-info">
+                                        <span data-tr="B_POS_FL_HEADER">B</span>
+                                    </div>
+                                    <div class="input-group-append patient-stat-info">
+                                        <span data-tr="C_POS_FL_HEADER">C</span>
+                                    </div>
+                                    <div class="input-group-append patient-stat-info">
+                                        <span data-tr="D_POS_FL_HEADER">D</span>
+                                    </div>
+                                    <div class="input-group-append patient-stat-info">
+                                        <span data-tr="A_POS_FL_HEADER">A</span>
+                                    </div>-->
+                                    <div class="input-group-append patient-close">
+                                        <button class="btn" type="button" id="headerPatientSearchButton">
+                                            <i class="fas fa-times"> </i>
+                                        </button>
+                                    </div>
+                                    <!--<div class="search-button">
+                                        <span class="fas fa-search"> </span>
+                                    </div>-->
+                                </div>
+
+                            </div>
+                        </div>
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+        <div class="right-header">
+            <div class="custom-navbar">
+                <!--<ul>
+                    <li class="dropdown user user-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <img src="/lib//app/images/user-icon.png" class="user-image" alt="User Image">
+                            <span class="hidden-xs hidden-sm hidden-md user-info"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Settings</a></li>
+                            <li><a href="#">Language:English</a></li>
+                            <li><a href="#">About Nipro.NET</a></li>
+                            <li><a href="#">&#45;&#45;&#45;&#45;&#45;&#45;</a></li>
+                            <li><a href="#" class="logoutBtn">Logout</a></li>
+                        </ul>
+
+                    </li>
+                </ul>-->
+                <input type="hidden" id="companyId" name="companyId"/>
+                <ul class="nav navbar-nav">
+                    <li class="dropdown company-menu">
+                        <a href="#" class="dropdown-toggle  dropdown-toggle-company"
+                           data-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-home text-aqua"></i>
+                            <span class="icon-text">Com Name</span>
+                        </a>
+                        <ul class="dropdown-menu">
+
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav">
+                    <!--<li>
+                        <a href="#">
+                            <span class="fas fa-envelope"> </span>
+                            <span class="custom-badge">3</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <span class="fas fa-tasks"> </span>
+                            <span class="custom-badge">3</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <span class="fas fa-exclamation-triangle"> </span>
+                            <span class="custom-badge">3</span>
+                        </a>
+                    </li>-->
+
+                    <li class="dropdown user-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="fas fa-user"> </i>
+                            <span class="icon-text">PROFILE</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" id="userConfigBtn">
+                                <i class="fas fa-user-cog"></i> <span data-tr="HEADER_USER_CONFIG"></span>
+                            </a>
+                            <a class="dropdown-item" id="changePasswordBtn">
+                                <i class="fas fa-key"></i> <span data-tr="CHANGE_PASSSWORD"></span>
+                            </a>
+                            <a class="dropdown-item" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> <span data-tr="HEADER_LOGOUT"></span>
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+    </header>
+    <section class="content-wrapper">
+        <aside class="left-content show">
+
+            <!--            <div class="left-content-wrapper">-->
+            <div class="menu-content">
+                <div class="menu-search-content">
+                    <div class="search-container">
+                        <div class="search-input">
+                            <div class="div-flex">
+                                <label for="menuSearch" class="sr-only"></label>
+                                <input type="text" id="menuSearch" placeholder="Search ..." />
+                            </div>
+                            <div class="div-flex-none">
+                                <span class="fas fa-search"> </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu">
+
+                </div>
+            </div>
+
+            <!--            </div>-->
+
+
+
+        </aside>
+        <div class="middle-content show">
+
+            <iframe id="mainContentFrame" name="mainContentFrame" allowtransparency="true"
+                    class="main-content-frame d-flex"
+            >
+
+            </iframe>
+
+        </div>
+        <aside class="right-content">
+
+
+        </aside>
+    </section>
+    <footer class="footer">
+
+    </footer>
+    <div class="search-result-container patient-list-container" style="display: none">
+        <div class="search-result-config d-none">
+            Config Area
+        </div>
+        <div class="search-result-list">
+
+        </div>
+        <div class="search-result-footer">
+            <div class="form-horizontal">
+                <div class="form-row">
+                    <div class="col">
+                        <div class="input-group-append w-100">
+                            <div class="dropdown w-100">
+                                <button class="btn btn-default dropdown-toggle w-100" type="button" id="ddmbClientSearchSearchGroup" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-tr="IN_ACTIVE_PATIENT">
+                                    §§IN_ACTIVE
+                                </button>
+                                <input type="hidden" id="clientSearchSearchGroupType" name="clientSearchSearchGroupType" value="1"/>
+                                <div class="dropdown-menu w-100" aria-labelledby="ddmClientSearchSearchGroup">
+                                    <a class="dropdown-item" data-id="1" href="#" data-tr="IN_ACTIVE_PATIENT">§§IN_ACTIVE_PATIENT</a>
+                                    <a class="dropdown-item" data-id="2" href="#" data-tr="IN_TODAY_PATIENT">§§IN_TODAY_PATIENT</a>
+                                    <a class="dropdown-item" data-id="3" href="#" data-tr="IN_THIS_WEEK_PATIENT">§§IN_THIS_WEEK_PATIENT</a>
+                                    <a class="dropdown-item" data-id="4" href="#" data-tr="IN_THIS_MONTH_PATIENT">§§IN_THIS_MONTH_PATIENT</a>
+                                    <a class="dropdown-item" data-id="0" href="#" data-tr="IN_ALL_PATIENT">§§IN_ALL_PATIENT</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="login">
+    <div class="d-flex justify-content-center h-100">
+        <div class="card">
+            <div class="card-header">
+                <h3>Sign In</h3>
+                <div class="d-flex justify-content-end social_icon">
+                    <span><i class="fab fa-facebook-square"></i></span>
+                    <span><i class="fab fa-google-plus-square"></i></span>
+                    <span><i class="fab fa-twitter-square"></i></span>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <form id="userLoginForm" name="userLoginForm" action="#" method="post">
+                    <div class="mb-3 row">
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="input-group user-name-cont">
+                                    <label for="loginUsername" class="sr-only">Username</label>
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    </div>
+                                    <input type="text" id="loginUsername" name="loginUsername" class="form-control" placeholder="username" autocomplete="off">
+
+                                </div>
+                                <div class="form-group has-feedback keep-logged">
+                                    <div class="user-name-view"></div>
+                                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <label for="loginPassword" class="sr-only">Password</label>
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                    </div>
+                                    <input type="password" id="loginPassword" name="loginPassword" class="form-control" placeholder="password" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row justify-content-end d-none">
+                        <div class="col">
+                            <div class="form-group">
+                                <div class="align-items-end remember">
+<!--                                    <label for="rememberMe" class="sr-only">Remember Me</label>-->
+<!--                                    <input type="checkbox" id="rememberMe">Remember Me-->
+
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input bg-amber" id="rememberMe" name="rememberMe">
+                                        <label class="custom-control-label" for="rememberMe">Remember Me</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col">
+                            <div class="form-group">
+                                <input type="button" id="loginBtn" value="Login" class="btn float-right login_btn">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+
+                        <div class="col">
+                            <div class="form-group">
+                                <a href="./module/userPassword/sendEmailForgotPassword-1.0.0.html" class="text-white">Forgot Password?</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer d-none">
+                <div class="d-flex justify-content-center links">
+                    Don't have an account?<a href="#">Sign Up</a>
+                </div>
+                <div class="d-flex justify-content-center">
+                    <a href="#">Forgot your password?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script id="clientList-template" type="text/x-handlebars-template">
+    {{#each this}}
+
+        <div class="patient-row user-list--onhover search-result-row"
+             data-id="{{patientId}}"
+             data-name="{{patientName}} {{patientSurname}}"
+             data-fileNo="{{patientNumber}}">
+            <div class="profile-image {{#xif 'genderAbr == "F"'}}woman{{ else }}{{#xif 'genderAbr == "M"'}}man{{ else }} {{/xif}}{{/xif}}">
+                <img src="{{#if avatarFilePath}}./module/pcr_files/php/files/stored/{{avatarFilePath}}{{else}}./lib/app/css/images/{{#xif 'genderAbr == "F"'}}avatar-woman.png{{ else }}{{#xif 'genderAbr == "M"'}}avatar-man.png{{ else }}avatar-noname.png{{/xif}}{{/xif}}{{/if}}" alt="profile-image">
+            </div>
+           <div class="text">
+                <div class="name-container">
+                    <div class="patient-name">
+                        <h6>{{patientName}} {{patientSurname}}</h6>
+                    </div>
+                </div>
+                <div class="info-container">
+                    <div class="patient-number">
+                        <h6 class="text-muted">{{patientNumber}}</h6>
+                        <h6 class="text-muted">&nbsp;</h6>
+                        <h6 class="text-muted">{{#round age 0}}{{/round}}</h6>
+                    </div>
+                    <div class="patient-status flex-fill text-center">
+                        <h6 class="text-muted">{{hmcNumber}}&nbsp;</h6>
+                    </div>
+                    <div class="medical-info">
+                        <span class="{{#xif 'hbsagPosFl == "Y"'}}active{{/xif}}" title="data-tr=TITLE_HBSAG">B</span>
+                        <span class="{{#xif 'hcvPosFl == "Y"'}}active{{/xif}}" title="data-tr=TITLE_HCV">C</span>
+                        <span class="{{#xif 'hivPosFl == "Y"'}}active{{/xif}}" title="data-tr=TITLE_HIV">H</span>
+                        <span class="{{#xif 'diabetesPosFl == "Y"'}}active{{/xif}}" title="data-tr=TITLE_DIABETES">D</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/each}}
+</script>
+
+<!--                        <span class="{{#xif 'allergy > "0"'}}active{{/xif}}" title="data-tr=TITLE_ALLERGY">A</span>-->
+<script id="clientList-template-bck" type="text/x-handlebars-template">
+    {{#each this}}
+
+    <div class="search-result-row"
+         data-id="{{patientId}}"
+         data-name="{{patientName}} {{patientSurname}}"
+         data-fileNo="{{patientNumber}}">
+        <div class="first-row">{{patientNumber}}-{{patientName}} {{patientSurname}}</div>
+        <div class="second-row">
+            <span class="gender">
+                {{#xif 'genderAbr == "F"'}}<i class="fas fa-venus"></i>{{/xif}}
+                {{#xif 'genderAbr == "M"'}}<i class="fas fa-mars"></i>{{/xif}}
+            </span>
+            <span class="age">
+                {{#round age 0}}{{/round}}
+            </span>
+            <span class="medical-info float-right d-flex flex-row">
+                <span class="mr-1 badge {{#xif 'allergy > "0"'}}badge-danger{{else}}badge-disable{{/xif}}">A</span>
+                <span class="mr-1 badge {{#xif 'hbsagPosFl == "Y"'}}badge-danger{{else}}badge-disable{{/xif}}">B</span>
+                <span class="mr-1 badge {{#xif 'hcvPosFl == "Y"'}}badge-danger{{else}}badge-disable{{/xif}}">C</span>
+                <span class="badge {{#xif 'diabetesPosFl == "Y"'}}badge-danger{{else}}badge-disable{{/xif}}">D</span>
+            </span>
+        </div>
+    </div>
+    {{/each}}
+</script>
+<script id="companyList-template" type="text/x-handlebars-template">
+    {{#each this}}
+    <li>
+        <a href="javascript:" class="dropdown-item" data-company-id="{{COMPANY_ID}}">
+            <i class="fa fa-home text-aqua"></i> {{COMPANY_NAME}}
+        </a>
+    </li>
+    {{/each}}
+</script>
+
+<script id="menuList" type="text/x-handlebars-template">
+<nav>
+    <ul class="nav nav-pills nav-sidebar flex-column main-nav" data-widget="treeview" role="menu" data-accordion="true">
+        {{#each items}}
+        <li class="nav-item {{#if items}}has-treeview{{/if}}" role="menuitem">
+
+            <a href="javascript:" class="nav-link waves-effect waves-primary "
+               {{#unless items }}data-url="{{form.formPath}}{{#if form.formTimeStamp}}?{{form.formTimeStamp}}{{/if}}" data-type="{{form.formType}}"
+               data-relativePath ="{{form.relativePath}}">
+                {{/unless}}
+                <span>{{menuName}}</span>
+                {{#if items}}
+                <i class="fas fa-angle-right float-right my-1 ml-1"></i>
+                {{/if}}
+            </a>
+            {{#if items}}
+                <ul class="nav nav-treeview sub-nav">
+                    {{> menuList}}
+                </ul>
+            {{/if}}
+        </li>
+    {{/each}}
+    </ul>
+</nav>
+</script>
+
+<script id="mainMenuList" type="x-handlebars-template">
+<ul class="sidebar-menu">
+{{> menuList}}
+</ul>
+</script>
+<!--<script src="./lib/plugins/fontawesome-free-5.14.0-web/js/all.min.js"></script>-->
+<script src="./lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="./lib/plugins/bootstrap/js/bootstrap.bundle.js"></script>
+<script src="./lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+
+<script src="./lib/plugins/moment-2.15.1/min/moment.min.js"></script>
+<script src="./lib/plugins/moment-2.15.1/min/locales.min.js"></script>
+
+<script src="./lib/app/js/lib.js"></script>
+<script src="./lib/app/js/zippedPlugins.js"></script>
+<script src="./lib/app/js/app.js?20231106"></script>
+<script src="./lib/app/js/index.js"></script>
+
+<!-- modalPrintDialog -->
+<div class="modal fade modal-fit w-900 " id="modalPrintPage" tabindex="-1" role="dialog" aria-labelledby="modalPrintPageLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content auto">
+            <div class="modal-header p-1">
+                <h5 class="modal-title" id="modalPrintPageLabel" data-tr="MODAL_PRINT_PAGE_TEXT">Print</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body d-flex flex-column p-0">
+                <iframe id="modalPrintFrame" name="modalPrintFrame" allowtransparency="true"
+                        class="main-content-frame flex-fill">
+                </iframe>
+            </div>
+            <div class="modal-footer p-0">
+                        <button type="button" class="btn btn-sm btn-pitch-blue btn-print" id="btnMainPrint"><i class="fas fa-print"></i> <span data-tr="BTN_PRINT_TEXT">New</span></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

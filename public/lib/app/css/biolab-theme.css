@@ -1,0 +1,85 @@
+/**
+ * Biolab ortak tema — portal ve bütün PHP uygulamaları (HB Elektroforez vb.)
+ *
+ * Değerler SIBO uygulamasından alındı (C:\Projects\Biolab.SiboApp, Ant Design teması):
+ *   colorPrimary #1F4E79 · yan menü #24648F / #1D5276 / #1A4A6B · logo mavisi #3C8DC5 · zemin #F5F7FA
+ *   borderRadius 6 · fontSize 13 · grafik renkleri (Dashboard.tsx)
+ * SIBO'da bir renk değişirse burası da güncellenmeli (ve tersi).
+ *
+ * Kullanım: sayfada uygulamanın kendi CSS'inden ÖNCE yüklenir. Uygulama CSS'leri renk tanımlamaz,
+ * bu değişkenleri kullanır (örn. --hb-navy: var(--bl-primary)).
+ */
+:root {
+    /* Marka */
+    --bl-primary:        #1F4E79;   /* düğme, başlık, vurgu */
+    --bl-primary-dark:   #1A4A6B;   /* üzerine gelince / basılı */
+    --bl-primary-soft:   #E8F0F7;   /* açık zemin vurgusu */
+    --bl-brand:          #3C8DC5;   /* logo mavisi: seçili menü, ikon, ince vurgu */
+    --bl-brand-soft:     #E9F3FA;
+
+    /* Menü / üst bar */
+    --bl-nav:            #24648F;
+    --bl-nav-sub:        #1D5276;
+    --bl-nav-dark:       #1A4A6B;
+    --bl-nav-text:       rgba(255, 255, 255, .85);
+
+    /* Zemin, yüzey, metin */
+    --bl-bg:             #F5F7FA;
+    --bl-surface:        #FFFFFF;
+    --bl-border:         #E1E5EB;
+    --bl-border-strong:  #D0D7E0;
+    --bl-text:           #1F2937;
+    --bl-muted:          #6B7280;
+
+    /* Durum renkleri (rozet, uyarı) */
+    --bl-success:        #2E9E5B;   --bl-success-bg: #E3F4E9;
+    --bl-warning:        #B7791F;   --bl-warning-bg: #FFF4E0;
+    --bl-danger:         #B42318;   --bl-danger-bg:  #FDE8E6;
+    --bl-info:           #1F77B4;   --bl-info-bg:    #E8F1F9;
+
+    /* Grafik paleti (SIBO ile aynı) */
+    --bl-chart-1:        #1F77B4;   /* H₂ */
+    --bl-chart-2:        #E07B00;   /* CH₄ */
+    --bl-chart-3:        #2E9E5B;   /* CO₂ */
+    --bl-chart-4:        #6B5BD2;
+    --bl-chart-grid:     #E1E0D9;
+
+    /* Ölçüler */
+    --bl-radius:         6px;       /* düğme, giriş alanı */
+    --bl-radius-card:    10px;      /* kart, panel */
+    --bl-font:           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --bl-font-size:      13px;
+}
+
+/* Bootstrap'in ana rengi kurumsal renge çekilir (D.Sys eklentileriyle gelen bootstrap teması mavi kalmasın) */
+.btn-primary,
+.btn-primary:disabled,
+.btn-primary.disabled {
+    background-color: var(--bl-primary);
+    border-color: var(--bl-primary);
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:not(:disabled):not(.disabled):active {
+    background-color: var(--bl-primary-dark);
+    border-color: var(--bl-primary-dark);
+}
+.btn-primary:focus { box-shadow: 0 0 0 3px rgba(31, 78, 121, .25); }
+
+.form-control:focus {
+    border-color: var(--bl-brand);
+    box-shadow: 0 0 0 3px rgba(60, 141, 197, .18);
+}
+
+a { color: var(--bl-primary); }
+a:hover { color: var(--bl-primary-dark); }
+
+/* Logo kutusu: koyu menü/bar üzerinde logo beyaz, yuvarlak köşeli kutu içinde durur (SIBO ile aynı) */
+.bl-logo-box {
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    padding: 5px 10px;
+    background: #fff;
+    border-radius: 8px;
+    line-height: 0;
+}
+.bl-logo-box img { display: block; height: 34px; width: auto; }

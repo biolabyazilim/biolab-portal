@@ -1,0 +1,22 @@
+{
+    "BOX_TITLE":"¥lis_test_process",
+    "PAGE_TITLE":"¥lis_test_process",
+    "TEST_PROCESS_ID":"¥TEST_PROCESS_ID",
+    "PATIENT_ID":"¥PATIENT_ID",
+    "PATIENT_NAME":"¥PATIENT_NAME",
+    "TEST_LAB_ID":"¥TEST_LAB_ID",
+    "TEST_LAB_NAME":"¥TEST_LAB_NAME",
+    "COMPANY_ID":"¥COMPANY_ID",
+    "TEST_PROCESS_DATE":"¥TEST_PROCESS_DATE",
+    "TEST_PROCESS_TIME":"¥TEST_PROCESS_TIME",
+    "TEST_PROCESS_NO":"¥TEST_PROCESS_NO",
+    "C_BY":"¥C_BY",
+    "C_AT":"¥C_AT",
+    "U_BY":"¥U_BY",
+    "U_AT":"¥U_AT",
+    "D_BY":"¥D_BY",
+    "D_AT":"¥D_AT",
+    "ACTIVE_FL":"¥ACTIVE_FL",
+    "RECORD_FL":"¥RECORD_FL"
+}
+            

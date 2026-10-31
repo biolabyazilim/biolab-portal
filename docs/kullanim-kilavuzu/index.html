@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HbRapor Kullanım Kılavuzu</title>
+<style>
+    :root {
+        --navy: #1f4e79; --brand: #3c8dc5; --soft: #eaf3fa; --text: #1d2939; --muted: #667085;
+        --border: #dfe3e8; --warn-bg: #fff4de; --warn: #7a4f00; --ok-bg: #e3f4e9; --ok: #1e6b3a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f5f7fa; color: var(--text); font: 15px/1.6 "Segoe UI", Arial, sans-serif; }
+    .page { max-width: 1000px; margin: 0 auto; padding: 32px 24px 64px; background: #fff; }
+    header.cover { border-bottom: 3px solid var(--navy); padding-bottom: 18px; margin-bottom: 24px; }
+    header.cover h1 { margin: 0; color: var(--navy); font-size: 30px; }
+    header.cover p { margin: 6px 0 0; color: var(--muted); }
+    h2 { color: var(--navy); font-size: 22px; margin: 40px 0 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+    h3 { color: var(--navy); font-size: 17px; margin: 26px 0 6px; }
+    p { margin: 6px 0 10px; }
+    .toc { background: var(--soft); border-radius: 8px; padding: 14px 20px; }
+    .toc ol { margin: 4px 0; padding-left: 20px; }
+    .toc a { color: var(--navy); text-decoration: none; }
+    .flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 12px 0; font-weight: 600; font-size: 14px; }
+    .flow span { background: var(--soft); color: var(--navy); padding: 6px 12px; border-radius: 999px; }
+    .flow i { color: var(--muted); font-style: normal; }
+    figure { margin: 14px 0 18px; }
+    figure img { width: 100%; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 14px rgba(15, 40, 70, .08); display: block; }
+    figcaption { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 14px; }
+    th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f3f6fa; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+    td:first-child { font-weight: 600; white-space: nowrap; }
+    ol.steps { padding-left: 22px; }
+    ol.steps li { margin: 3px 0; }
+    .btn { display: inline-block; padding: 0 7px; border-radius: 4px; background: var(--navy); color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .tab { display: inline-block; padding: 0 8px; border-radius: 999px; border: 1px solid var(--border); font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .note { background: var(--warn-bg); color: var(--warn); border-radius: 6px; padding: 10px 14px; margin: 12px 0; font-size: 14px; }
+    .tip { background: var(--ok-bg); color: var(--ok); border-radius: 6px; padding: 10px 14px; margin: 12px 0; font-size: 14px; }
+    .ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0; }
+    .way { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+    .way b { color: var(--navy); display: block; margin-bottom: 4px; }
+    .way p { margin: 0; font-size: 14px; }
+    footer { margin-top: 40px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+    @media (max-width: 700px) { .ways { grid-template-columns: 1fr; } td:first-child { white-space: normal; } }
+    @media print {
+        @page { size: A4; margin: 14mm 12mm; }
+        body { background: #fff; font-size: 11pt; }
+        .page { max-width: none; padding: 0; }
+        h2 { break-before: page; border-top: 0; margin-top: 0; }
+        h2.keep { break-before: auto; }
+        figure, table, .way, .note, .tip { break-inside: avoid; }
+        h3 { break-after: avoid; }
+        figure img { box-shadow: none; }
+        .toc a { color: var(--text); }
+    }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="cover">
+    <h1>HbRapor · Kullanım Kılavuzu</h1>
+    <p>Hb Elektroforez (Bio-Rad D-10) sonuçlarının kabulü, eşleştirilmesi, uzman onayı ve raporlanması</p>
+</header>
+
+<div class="toc">
+    <b>İçindekiler</b>
+    <ol>
+        <li><a href="#akis">Genel akış: numune nasıl ilerler?</a></li>
+        <li><a href="#kabul">Numune kabul ekranı</a></li>
+        <li><a href="#is-listesi">İş listesi ekranı</a></li>
+        <li><a href="#eslestirme">Sonucu kabulle buluşturmak</a></li>
+        <li><a href="#inceleme">Rapor inceleme ve onay</a></li>
+        <li><a href="#raporlar">Raporlar ekranı</a></li>
+        <li><a href="#ozet">Kısa özet: hangi durumda ne yapılır?</a></li>
+    </ol>
+</div>
+
+<p class="tip">Kılavuzdaki görüntülerde yer alan hastalar (<b>TEST …</b>) ve barkodlar (<b>9999…</b>) örnektir; gerçek kişilere ait değildir.</p>
+
+<!-- 1 -->
+<h2 id="akis" class="keep">1. Genel akış: numune nasıl ilerler?</h2>
+<p>Uygulamada iki bilgi kaynağı vardır: laboratuvarın girdiği <b>kabul kaydı</b> (hasta bilgileri) ve D-10 cihazından gelen <b>sonuç</b>. Bu ikisi aynı barkodla buluşunca numune uzman onayına düşer.</p>
+<div class="flow">
+    <span>Kabul kaydı</span><i>+</i><span>Cihaz sonucu</span><i>→</i><span>Eşleşir</span><i>→</i><span>Uzman inceler</span><i>→</i><span>Onaylar</span><i>→</i><span>PDF rapor</span>
+</div>
+<p>Kabul kaydı sonuçtan <b>önce</b> de açılabilir, <b>sonra</b> da. İki yol da aynı yere çıkar:</p>
+<div class="ways">
+    <div class="way"><b>Önce kabul</b><p>Numune gelince Numune kabul ekranında kaydedilir. Sonuç cihazdan gelince barkoddan tanınır ve <b>kendiliğinden</b> eşleşir.</p></div>
+    <div class="way"><b>Önce sonuç</b><p>Kaydı olmayan sonuç İş listesinde bekler. <span class="btn">Yeni kabul aç</span> ile hasta bilgileri girilir, sonuç hemen bağlanır.</p></div>
+    <div class="way"><b>Barkod uyuşmuyor</b><p>Barkod hatalı girilmişse sonuç, <span class="btn">Eşleştir</span> ile doğru kabule elle ve gerekçe yazılarak bağlanır.</p></div>
+</div>
+
+<!-- 2 -->
+<h2 id="kabul">2. Numune kabul ekranı</h2>
+<p>Laboratuvara gelen tüpün kaydedildiği ekrandır. Üst menüden <span class="tab">Numune kabul</span> ile açılır.</p>
+<figure><img src="img/01-numune-kabul.png" alt="Numune kabul ekranı"><figcaption>Numune kabul: solda yeni numune formu, sağda gün içinde kabul edilenler.</figcaption></figure>
+
+<h3>Yeni numune kaydetmek</h3>
+<ol class="steps">
+    <li>Tüp etiketindeki barkodu okuyucuyla <b>Barkod</b> alanına okutun.<br>
+        <span style="color:var(--muted);font-size:14px">Okuyucu yoksa barkodu elle yazın; yanlış girişi önlemek için <b>Barkodu tekrar yazın</b> alanı açılır.</span></li>
+    <li><b>Ad Soyad</b>, <b>Dosya no</b>, <b>Cinsiyet</b>, <b>Doğum tarihi</b> ve <b>Kurum / bölüm</b> bilgilerini girin.</li>
+    <li><span class="btn">Kaydet</span>'e basın. Numune İş listesinde <span class="tab">Sonucu gelmeyen</span> sekmesine düşer.</li>
+</ol>
+<figure><img src="img/02-numune-kabul-yeni.png" alt="Cihaz sonucu olan barkodla kabul"><figcaption>Bu barkodun sonucu cihazdan zaten geldiyse form bunu mavi kutuda gösterir; kaydedince sonuç bu numuneye bağlanır ve numune doğrudan onaya düşer.</figcaption></figure>
+
+<table>
+    <tr><th>Düğme / alan</th><th>Ne işe yarar</th></tr>
+    <tr><td>Kaydet</td><td>Kabulü oluşturur. Barkodun cihaz sonucu varsa hemen bağlar.</td></tr>
+    <tr><td>Bugün kabul edilenler</td><td>Gün içinde kaydedilen numuneler. Satıra tıklayınca bilgiler forma gelir; düzeltme yapılabilir.</td></tr>
+    <tr><td>Arama</td><td>Listede barkod, ad soyad veya dosya no ile arar.</td></tr>
+    <tr><td>Reddet</td><td>Listeden seçilen numune uygun değilse (pıhtılı, yetersiz vb.) <b>Red nedeni</b> seçilerek reddedilir. Yalnız henüz onaylanmamış numunelerde görünür.</td></tr>
+</table>
+
+<!-- 3 -->
+<h2 id="is-listesi">3. İş listesi ekranı</h2>
+<p>Uzmanın günlük çalışma ekranıdır. Üst menüden <span class="tab">İş listesi</span> ile açılır.</p>
+
+<h3>Üst kısım</h3>
+<table>
+    <tr><th>Öğe</th><th>Ne işe yarar</th></tr>
+    <tr><td>Tarih aralığı</td><td>Listede hangi günlerin görüneceğini belirler. Açılışta son 7 gündür.</td></tr>
+    <tr><td>Cihazdan şimdi çek</td><td>D-10'dan seçili tarih aralığındaki sonuçları hemen alır. Ekran açıkken sistem birkaç dakikada bir kendisi de çeker.</td></tr>
+    <tr><td>Yeşil bant</td><td>Cihaz bağlantısının durumu, son çekme saati ve kaç yeni sonuç geldiği. Bağlantı yoksa kırmızıya döner.</td></tr>
+</table>
+
+<h3>Sekmeler (iş sırasına göre)</h3>
+<p>Ekran açıldığında bu sıradaki ilk dolu sekme seçili gelir. Sekme adının yanındaki sayı, o sekmedeki kayıt sayısıdır.</p>
+
+<h3>Kabulü olmayan sonuç</h3>
+<figure><img src="img/03-wl-kabulsuz.png" alt="Kabulü olmayan sonuçlar"><figcaption>Cihazdan gelen ama kabul kaydı bulunmayan sonuçlar. Barkod bekleyen bir kabule çok benziyorsa "Olası yazım hatası" ipucu çıkar.</figcaption></figure>
+<p>Her satırda iki düğme vardır: <span class="btn">Eşleştir</span> (var olan bir kabule bağla) ve <span class="btn">Yeni kabul aç</span> (hasta bilgilerini girerek kabul oluştur). Ayrıntı için <a href="#eslestirme">4. bölüme</a> bakın.</p>
+
+<h3>Onay bekleyen</h3>
+<figure><img src="img/04-wl-onay-bekleyen.png" alt="Onay bekleyen numuneler"><figcaption>Sonucu gelmiş, uzman onayı bekleyen numuneler. Dikkat isteyenler listenin üstündedir.</figcaption></figure>
+<table>
+    <tr><th>Sütun</th><th>Anlamı</th></tr>
+    <tr><td>HbA2 / HbF</td><td>Referans dışı değerler <b style="color:#b42318">kırmızı</b> yazılır.</td></tr>
+    <tr><td>Blok</td><td>Sistemin önerdiği yorum bloğu (ör. C4). <b>uzman seçmeli</b> yazıyorsa sistem blok öneremedi; uzman seçer.</td></tr>
+    <tr><td>Dikkat</td><td>Cihaz uyarısı (Out of range), anormal pik (Unknown %…), birden fazla çalışma (2 çalışma) gibi işaretler.</td></tr>
+    <tr><td>İncele</td><td>Rapor inceleme ekranını açar (<a href="#inceleme">5. bölüm</a>).</td></tr>
+</table>
+
+<h3>Sonucu gelmeyen</h3>
+<figure><img src="img/05-wl-sonucu-gelmeyen.png" alt="Sonucu gelmeyen numuneler"><figcaption>Kabulü yapılmış, cihaz sonucu henüz gelmemiş numuneler. Sonuç gelince kendiliğinden Onay bekleyen'e geçer.</figcaption></figure>
+
+<h3>Onaylananlar ve toplu indirme</h3>
+<figure><img src="img/06-wl-onaylananlar.png" alt="Onaylanan raporlar"><figcaption>Raporu çıkmış numuneler. Kutucuklarla seçip <b>Seçilenleri indir</b>: tek rapor PDF, birden fazlası ZIP olarak iner.</figcaption></figure>
+<ol class="steps">
+    <li>İndirmek istediğiniz satırların kutucuğunu işaretleyin (başlıktaki kutucuk hepsini seçer).</li>
+    <li><span class="btn">Seçilenleri indir</span>'e basın. Dosya adları <b>barkod-tarih.pdf</b> biçimindedir.</li>
+    <li><b>Görüntüle</b> ile tek bir raporu açabilirsiniz.</li>
+</ol>
+
+<h3>Tüm sonuçlar</h3>
+<figure><img src="img/07-wl-tum-sonuclar.png" alt="Tüm sonuçlar"><figcaption>Seçili tarihlerde cihazdan gelen her çalışma; kabulü olsun olmasın. DiaWeb listesiyle karşılaştırmak için kullanılır.</figcaption></figure>
+<p>Bu sekme, çalışmaları <b>çalışma tarihine</b> göre listeler. <b>Kabul</b> sütununda hasta adı ya da "Kabul kaydı yok", <b>Durum</b> sütununda numunenin bulunduğu aşama yazar. Bir sonuç başka sekmede görünmüyorsa önce buraya bakın.</p>
+
+<!-- 4 -->
+<h2 id="eslestirme">4. Sonucu kabulle buluşturmak</h2>
+
+<h3>Yol A · Önce kabul, sonra sonuç</h3>
+<ol class="steps">
+    <li><span class="tab">Numune kabul</span> ekranında barkodu okutun, hasta bilgilerini girip <span class="btn">Kaydet</span>'e basın.</li>
+    <li>Numune <span class="tab">Sonucu gelmeyen</span> sekmesinde bekler.</li>
+    <li>Cihaz numuneyi çalıştırıp sonuç gelince sistem barkoddan tanır ve <b>kendiliğinden eşleştirir</b>. Sizin bir şey yapmanız gerekmez.</li>
+    <li>Numune <span class="tab">Onay bekleyen</span> sekmesine geçer.</li>
+</ol>
+
+<h3>Yol B · Önce sonuç, sonra kabul</h3>
+<ol class="steps">
+    <li>Kaydı olmayan sonuç <span class="tab">Kabulü olmayan sonuç</span> sekmesine düşer.</li>
+    <li>Satırdaki <span class="btn">Yeni kabul aç</span>'a basın. Numune kabul ekranı barkod dolu olarak açılır ve cihazdaki sonucu gösterir (yukarıdaki 2. görüntü).</li>
+    <li>Hasta bilgilerini girip <span class="btn">Kaydet</span>'e basın. Sonuç <b>anında</b> bağlanır, numune <span class="tab">Onay bekleyen</span>'e geçer.</li>
+</ol>
+
+<h3>Yol C · Barkod uymuyorsa: elle eşleştirme</h3>
+<p>Cihaza ya da kabule barkod yanlış girilmişse sonuç kendiliğinden eşleşmez.</p>
+<figure><img src="img/08-wl-eslestir.png" alt="Elle eşleştirme penceresi"><figcaption>Eşleştir penceresi: sonucun bağlanacağı kabul seçilir ve gerekçe yazılır.</figcaption></figure>
+<ol class="steps">
+    <li><span class="tab">Kabulü olmayan sonuç</span> sekmesinde satırdaki <span class="btn">Eşleştir</span>'e basın.</li>
+    <li><b>Bağlanacak kabul</b> listesinden doğru numuneyi seçin. Barkodu çok benzeyen kabul "(olası yazım hatası)" notuyla en üstte gelir.</li>
+    <li><b>Gerekçe</b> alanını kontrol edin (ör. "Kabulde barkod yanlış yazılmış") ve <span class="btn">Eşleştir</span>'e basın.</li>
+</ol>
+<p class="note">Elle eşleştirilen sonuçlar listelerde <b>"elle"</b> etiketiyle görünür ve inceleme ekranında uzmana ayrıca bildirilir. Eşleştirmeden önce hasta ve barkodun gerçekten aynı numuneye ait olduğundan emin olun.</p>
+
+<!-- 5 -->
+<h2 id="inceleme">5. Rapor inceleme ve onay</h2>
+<p>İş listesinde <span class="btn">İncele</span>'ye basınca açılır. Üstte hasta bilgileri, solda cihaz çalışmaları ve kromatogram, sağda sonuç, uyarılar ve yorum bulunur.</p>
+<figure><img src="img/09-inceleme-1.png" alt="Rapor inceleme ekranı"><figcaption>Normal akış: sistem yaşa ve sonuca göre yorum bloğunu (C4) önermiş ve yorum metnini hazırlamış.</figcaption></figure>
+
+<h3>Ekranın bölümleri</h3>
+<table>
+    <tr><th>Bölüm</th><th>Ne gösterir / ne yapılır</th></tr>
+    <tr><td>Çalışmalar</td><td>Numunenin cihazdaki her çalışması. Birden fazlaysa raporlanacak olan tıklanarak seçilir.</td></tr>
+    <tr><td>Kromatogram ve pikler</td><td>Cihazın grafiği ve pik tablosu. <b>Cihaz orijinali (arşiv)</b> D-10'un kendi PDF'ini açar; rapora eklenmez.</td></tr>
+    <tr><td>Sonuç</td><td>HbA2, HbF, hesaplanan HbA ve <b>HbS / HbD</b> seçimi. Yaş grubu (A / B / C) sağ üstte yazar.</td></tr>
+    <tr><td>Uyarılar</td><td>Kurallardan çıkan uyarılar. Onaydan önce <b>"Uyarıları ve kromatogramı kontrol ettim"</b> işaretlenir.</td></tr>
+    <tr><td>Yaş / Ek not / Varyant bloğu</td><td>Rapor yorumunun hazır metinleri. Sistem önerir, uzman değiştirebilir.</td></tr>
+    <tr><td>Algoritma yorumu</td><td>Seçilen blokların metni. Değiştirilirse kayıtta "düzenlendi" olarak işaretlenir.</td></tr>
+    <tr><td>Uzman notu</td><td>Raporda yorumun altında ayrı kutuda, uzmanın adıyla çıkan ek görüş. İsteğe bağlıdır.</td></tr>
+</table>
+
+<h3>Sistem blok öneremediğinde</h3>
+<figure><img src="img/10-inceleme-2.png" alt="Uzman seçmeli durum"><figcaption>Sonuç kurallardaki hiçbir kombinasyona uymuyorsa kırmızı uyarı çıkar, yorum boş kalır; uzman bloğu kendisi seçer.</figcaption></figure>
+<p class="note">Kırmızı uyarılar giderilmeden rapor onaylanamaz. Anormal pik %5 ve üzerindeyse HbA değerini sistem hesaplamaz, uzman girer; HbS/HbD alanında <b>"DOĞRULAMA GEREKLİ"</b> yazar.</p>
+
+<h3>Alttaki düğmeler</h3>
+<table>
+    <tr><th>Düğme</th><th>Ne işe yarar</th></tr>
+    <tr><td>Rapor önizleme</td><td>Raporun PDF'ini <b>TASLAK</b> damgasıyla gösterir. Onaydan önce kontrol için.</td></tr>
+    <tr><td>Tekrar çalışma iste</td><td>Sonuç şüpheliyse numuneyi gerekçeyle yeniden çalışmaya gönderir (aşağıdaki görüntü).</td></tr>
+    <tr><td>Onayla</td><td>Raporu kesinleştirir. PDF oluşturulup arşivlenir; numune <span class="tab">Onaylananlar</span>'a geçer.</td></tr>
+    <tr><td>Taslağı bloklardan yenile</td><td>Yorum metninde yaptığınız değişiklikleri silip blokların orijinal metnine döner.</td></tr>
+    <tr><td>İş listesine dön</td><td>Kaydetmeden listeye döner.</td></tr>
+</table>
+
+<h3>Tekrar çalışma istemek</h3>
+<figure><img src="img/12-tekrar-calisma.png" alt="Tekrar çalışma penceresi"><figcaption>Gerekçe seçilir; numune "Tekrar çalışma" durumuna geçer. Yeni çalışma cihazdan gelince yeniden onaya düşer.</figcaption></figure>
+
+<h3>Onaylanmış rapor ve düzeltme</h3>
+<figure><img src="img/11-inceleme-onayli.png" alt="Onaylı rapor görünümü"><figcaption>Onaylı rapor salt okunurdur. Sağ üstte revizyon numarası, onaylayan ve onay zamanı yazar.</figcaption></figure>
+<table>
+    <tr><th>Düğme</th><th>Ne işe yarar</th></tr>
+    <tr><td>Rapor PDF'i</td><td>Arşivdeki raporu açar.</td></tr>
+    <tr><td>İndir</td><td>Raporu bilgisayara indirir.</td></tr>
+    <tr><td>Düzeltme yap (yeni revizyon)</td><td>Raporda hata varsa <b>Düzeltme gerekçesi</b> yazılarak yeni sürüm açılır. Kaydedince rapor R2, R3… olarak yeniden çıkar; eski sürüm silinmez.</td></tr>
+</table>
+
+<!-- 6 -->
+<h2 id="raporlar">6. Raporlar ekranı</h2>
+<p>Onaylanmış raporların arşividir. Üst menüden <span class="tab">Raporlar</span> ile açılır.</p>
+<figure><img src="img/13-raporlar.png" alt="Raporlar ekranı"><figcaption>Barkod, ad soyad veya dosya no ile arama; onay tarihi ve yorum bloğuna göre filtre.</figcaption></figure>
+<table>
+    <tr><th>Öğe</th><th>Ne işe yarar</th></tr>
+    <tr><td>Arama kutusu</td><td>Barkod, ad soyad veya dosya no. Arama kutusu doluysa tüm tarihlerde arar.</td></tr>
+    <tr><td>Onay tarihi / Yorum bloğu</td><td>Listeyi tarih aralığına veya bloğa göre daraltır.</td></tr>
+    <tr><td>Ara / Temizle</td><td>Aramayı çalıştırır / filtreleri sıfırlar.</td></tr>
+    <tr><td>PDF</td><td>Raporu yeni sekmede açar.</td></tr>
+    <tr><td>İndir (mor)</td><td>Raporu <b>barkod-tarih.pdf</b> adıyla indirir.</td></tr>
+    <tr><td>Aç (ok simgesi)</td><td>Raporun inceleme ekranını açar; revizyon geçmişi ve düzeltme oradan yapılır.</td></tr>
+    <tr><td>Rev.</td><td>Revizyon numarası. 1'den büyükse rapor düzeltilmiştir; önceki sürümler saklanır.</td></tr>
+</table>
+
+<!-- 7 -->
+<h2 id="ozet">7. Kısa özet: hangi durumda ne yapılır?</h2>
+<table>
+    <tr><th>Durum</th><th>Yapılacak</th></tr>
+    <tr><td>Numune geldi, sonuç henüz yok</td><td>Numune kabul → barkodu okut → bilgileri gir → <b>Kaydet</b></td></tr>
+    <tr><td>Sonuç geldi, kabul kaydı yok</td><td>İş listesi → Kabulü olmayan sonuç → <b>Yeni kabul aç</b></td></tr>
+    <tr><td>Barkod uyuşmuyor</td><td>Kabulü olmayan sonuç → <b>Eşleştir</b> (doğru kabulü seç, gerekçe yaz)</td></tr>
+    <tr><td>Sonuç geldi, kabul kaydı var</td><td>Bir şey yapmayın; otomatik <b>Onay bekleyen</b>'e geçer</td></tr>
+    <tr><td>Uzman onayı</td><td>Onay bekleyen → <b>İncele</b> → kontrol et → <b>Onayla</b></td></tr>
+    <tr><td>Sonuç şüpheli</td><td>İncele → <b>Tekrar çalışma iste</b></td></tr>
+    <tr><td>Onaylı raporda hata</td><td>Görüntüle → <b>Düzeltme yap (yeni revizyon)</b></td></tr>
+    <tr><td>Toplu rapor indirme</td><td>Onaylananlar → kutucukları işaretle → <b>Seçilenleri indir</b></td></tr>
+    <tr><td>Bir sonuç listede yok</td><td>Tarih aralığını genişlet → <b>Cihazdan şimdi çek</b> → <b>Tüm sonuçlar</b> sekmesine bak</td></tr>
+</table>
+
+<footer>Biolab · HbRapor kullanım kılavuzu · Ekim 2026</footer>
+</div>
+</body>
+</html>

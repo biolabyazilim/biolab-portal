@@ -1,0 +1,26 @@
+{
+  "BOX_TITLE":"Acesso Vascular",
+  "PAGE_TITLE":"Acesso Vascular",
+  "VASCULAR_ACCESS_ID":"Id do Acesso Vascular",
+  "PATIENT_ID":"Id do Paciente",
+  "PATIENT_NAME":"Nome do Paciente",
+  "VASCULAR_ACCESS_LOCATION_ID":"Id da Localização do Acesso Vascular",
+  "VASCULAR_ACCESS_LOCATION_NAME":"Nome da Localização do Acesso V.",
+  "PRIMARY_FL": "É Primário",
+  "COMPANY_ID":"Id da Empresa",
+  "VASCULAR_ACCESS_TYPE_ID":"ID do Tipo de Acesso V.",
+  "VASCULAR_ACCESS_TYPE_NAME":"Nome do Tipo de Acesso V.",
+  "LOCK_SOLUTION_NAME":"Nome da Solução de Bloqueio",
+  "LOCK_SOLUTION_AMOUNT_VEIN":"Quantidade da Solução de Bloqueio na Veia",
+  "LOCK_SOLUTION_AMOUNT_ARTERY":"Quantidade da Solução de Bloqueio na Artéria",
+  "START_DATE":"Data de Início",
+  "APPLICATION_DATE":"Data do Primeiro Uso",
+  "TERMINATION_DATE":"Data do Fim de Uso",
+  "NAV_PAGE": "Cirurgião de Acesso Vascular",
+  "VATR_NAME":"Motivo do Término do Acesso V.",
+
+  "VASCULAR_ACCESS_SURGEON_DATE":"Data do Cirurgião de Acesso V.",
+  "VASCULAR_ACCESS_SURGEON_WHO":"Quem é o Cirurgião de Acesso V.",
+  "VASCULAR_ACCESS_SURGEON_COMMENT":"Comentário do Cirurgião de Acesso V.",
+  "BOX_TITLE_SURGEON":"Cirurgião de Acesso Vascular"
+}

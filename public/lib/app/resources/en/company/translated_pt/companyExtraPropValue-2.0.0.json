@@ -1,0 +1,12 @@
+{
+  "BOX_TITLE": "Valor Extra da Propriedade da Empresa Mng",
+  "PAGE_TITLE": "Valor Extra da Propriedade da Empresa Mng",
+  "COMPANY_EXTRA_PROP_VALUE_ID": "Id do Valor Extra da Propriedade da Empresa",
+  "COMPANY_ID": "Id da Empresa",
+  "COMPANY_NAME": "Nome da Empresa",
+  "COMPANY_EXTRA_PROP_TYPE_ID": "Id do Tipo de Propriedade Extra da Empresa",
+  "COMPANY_EXTRA_PROP_TYPE_NAME": "Nome do Tipo de Propriedade Extra da Empresa",
+  "COMPANY_EXTRA_PROP_VALUE_STRING": "Valor Extra da Propriedade da Empresa String",
+  "COMPANY_EXTRA_PROP_VALUE_BLOB": "Blob do Valor Extra da Propriedade da Empresa",
+  "COMPANY_EXTRA_PROP_VALUE_FLAG": "Flag do Valor Extra da Propriedade da Empresa"
+}

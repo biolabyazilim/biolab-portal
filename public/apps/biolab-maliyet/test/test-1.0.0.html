@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Test tanımları · Maliyet</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+
+    <style>
+        body.ts-page { background: var(--hb-bg); color: var(--hb-text); font-family: var(--hb-font); font-size: 14px; }
+        .ts-wrap { max-width: 100%; padding: 20px 24px 32px; }
+
+        .ts-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+        .ts-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--hb-navy); }
+        .ts-sub { color: var(--hb-muted); font-size: 12px; }
+
+        /* Sekmeler + filtreler */
+        .ts-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+        .ts-tab { padding: 7px 14px; border: 1px solid var(--hb-border); border-radius: 999px; background: #fff;
+                  color: var(--hb-text); font-size: 13px; font-weight: 600; cursor: pointer; }
+        .ts-tab .ts-count { margin-left: 4px; font-weight: 700; }
+        .ts-tab.active { background: var(--hb-navy); border-color: var(--hb-navy); color: #fff; }
+        .ts-tab.ts-tab-warn { background: #fff8ea; border-color: #e0b25a; color: #7a4f00; }
+        .ts-tab.ts-tab-warn.active { background: #9a6200; border-color: #9a6200; color: #fff; }
+        /* Filtre satırı: gap yok (col yüzdelerine eklenip satırı taşırır), satır arası row-gap */
+        .ts-filter-bar { margin: 0 0 14px; padding: 10px 6px; row-gap: 8px; align-items: center;
+                         background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; }
+        .ts-filter-bar select { width: 100%; height: 34px; font-size: 13px; }
+        .ts-search-box { position: relative; }
+        .ts-search-box .fa-search { position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+                                    color: var(--hb-muted); font-size: 13px; pointer-events: none; }
+        .ts-search { width: 100%; height: 34px; padding-right: 32px; font-size: 13px; }
+        .ts-search::-webkit-search-cancel-button { display: none; }
+
+        /* Liste (jqGrid) */
+        .ts-card { background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; overflow: hidden; }
+        .ts-card .ui-jqgrid tr.jqgrow td { padding: 6px 8px; vertical-align: middle; white-space: normal; font-size: 13px; }
+        .ts-card .ui-jqgrid tr.jqgrow { cursor: pointer; }
+        .ts-card .ui-jqgrid tr.jqgrow.ts-row-undefined { background: #fffbf2; }
+        .ts-card .ui-jqgrid tr.jqgrow.ts-row-inactive td { color: var(--hb-muted); text-decoration: line-through; }
+        .ts-grid-msg { padding: 24px 12px; text-align: center; color: var(--hb-muted); }
+        .ts-mono { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+
+        .ts-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .ts-m-KIT        { background: #e8f1f9; color: #1d4f7c; }
+        .ts-m-RECIPE     { background: #e3f4e9; color: #1e6b3a; }
+        .ts-m-SERVICE    { background: #f1ecfa; color: #553a8f; }
+        .ts-m-CALCULATED { background: #eceff3; color: #475467; }
+        .ts-m-UNDEFINED  { background: #fff1d6; color: #9a6200; }
+
+        /* Form */
+        .ts-section { margin: 4px 0 10px; padding-top: 10px; border-top: 1px solid #edf0f4; font-size: 12px; font-weight: 700;
+                      color: var(--hb-muted); letter-spacing: .04em; text-transform: uppercase; }
+        .ts-section-first { margin-top: 0; padding-top: 0; border-top: 0; }
+        .ts-section-hint { margin-left: 6px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+        .ts-howto { margin-bottom: 12px; padding: 8px 12px; border-radius: 6px; background: #eef5fc; color: #1d4f7c; font-size: 12px; }
+        .ts-howto b { font-weight: 600; }
+        .ts-source { padding: 8px 12px; border-radius: 6px; background: #f6f7f9; font-size: 12px; color: var(--hb-muted); }
+        .ts-source b { color: var(--hb-text); font-weight: 600; }
+        .ts-comp { width: 100%; font-size: 13px; }
+        .ts-comp td, .ts-comp th { padding: 4px 6px; border-top: 1px solid #edf0f4; }
+        .ts-comp th { color: var(--hb-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; border-top: 0; }
+
+        @media (max-width: 767px) { .ts-wrap { padding: 12px; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block ts-page">
+<div class="autoheight">
+    <div class="container-fluid ts-wrap">
+
+        <div class="ts-head">
+            <div>
+                <h1 class="ts-title" data-tr="PAGE_TITLE">Test tanımları</h1>
+                <div class="ts-sub">Tenay test listesi. Kod, ad, hizmet grubu ve birim Excel aktarımıyla güncellenir; maliyet yöntemi burada belirlenir.</div>
+            </div>
+            <button type="button" id="btnNewTest" class="btn btn-primary" style="height:34px;font-weight:600"><i class="fas fa-plus"></i> <span data-tr="BTN_NEW_TEST">Test ekle</span></button>
+        </div>
+
+        <div class="ts-filters" id="tsTabs">
+            <button type="button" class="ts-tab active" data-tab="all"><span data-tr="TAB_ALL">Tümü</span> · <span class="ts-count" data-count="all">0</span></button>
+            <button type="button" class="ts-tab ts-tab-warn" data-tab="undefined"><span data-tr="TAB_UNDEFINED">Yöntemi belirsiz</span> · <span class="ts-count" data-count="undefined">0</span></button>
+            <button type="button" class="ts-tab" data-tab="inactive"><span data-tr="TAB_INACTIVE">Pasif</span> · <span class="ts-count" data-count="inactive">0</span></button>
+        </div>
+
+        <!-- Filtreler: Bootstrap form-row + col-* (Test maliyetleri ekranıyla aynı düzen) -->
+        <div class="ts-filter-bar form-row">
+            <div class="col-sm-6 col-lg-3">
+                <select id="F_SERVICE_GROUP_ID" name="F_SERVICE_GROUP_ID" class="form-control" aria-label="Hizmet grubu filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <select id="F_COST_METHOD" name="F_COST_METHOD" class="form-control" aria-label="Maliyet yöntemi filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <select id="F_LAB_UNIT" name="F_LAB_UNIT" class="form-control" aria-label="Birim filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-4 ts-search-box">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="search" id="SEARCH" class="form-control ts-search" placeholder="Kod, test veya tedarikçi ara" autocomplete="off" aria-label="Kod, test veya tedarikçi ara">
+            </div>
+        </div>
+
+        <!-- Test listesi: jqGrid (getGridList). Satıra tıklayınca form açılır (getSelectedId). -->
+        <div class="ts-card">
+            <table id="jqGrid"></table>
+            <div id="jqGridPager"></div>
+            <div id="gridMsg" class="ts-grid-msg" hidden></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Test ekle / düzenle -->
+<div class="modal fade" id="modalTest" tabindex="-1" role="dialog" aria-labelledby="modalTestTitle">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTestTitle">Test</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Kapat"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="TEST_ID">
+
+                <!-- Tenay'dan gelen alanlar: mevcut testte salt okunur -->
+                <div class="ts-section ts-section-first">Tenay bilgileri
+                    <span class="ts-section-hint">Tenay test listesinden gelir</span></div>
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label for="TEST_CODE">Tenay kodu</label>
+                        <input type="text" id="TEST_CODE" class="form-control ts-mono" maxlength="20">
+                    </div>
+                    <div class="form-group col-md-9">
+                        <label for="TEST_NAME">Test adı</label>
+                        <input type="text" id="TEST_NAME" class="form-control" maxlength="500">
+                    </div>
+                    <div class="form-group col-md-8">
+                        <label for="SERVICE_GROUP_ID">Hizmet grubu</label>
+                        <select id="SERVICE_GROUP_ID" name="SERVICE_GROUP_ID" class="form-control" style="width:100%"></select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="LAB_UNIT">Birim</label>
+                        <select id="LAB_UNIT" name="LAB_UNIT" class="form-control" style="width:100%"></select>
+                    </div>
+                </div>
+
+                <!-- Fiyat burada girilmez: yalnızca maliyetin nasıl hesaplanacağı seçilir -->
+                <div class="ts-section">Maliyet hesaplama şekli
+                    <span class="ts-section-hint">Fiyat burada girilmez</span></div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="COST_METHOD">Maliyet yöntemi</label>
+                        <select id="COST_METHOD" name="COST_METHOD" class="form-control" style="width:100%"></select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="SUPPLIER_ID">Tedarikçi / cihaz</label>
+                        <select id="SUPPLIER_ID" name="SUPPLIER_ID" class="form-control" style="width:100%"></select>
+                        <small class="ts-sub">Listede yoksa yazıp Enter'a basın</small>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="ts-howto">
+                            <i class="fas fa-info-circle"></i>
+                            Malzeme fiyatları ve kurlar <b>Malzemeler</b> ekranında, testte hangi malzemeden kaç adet
+                            kullanıldığı (reçete) <b>Test maliyetleri</b> ekranında girilir. Test maliyeti bunlardan hesaplanır.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ts-section">Ek bilgiler
+                    <span class="ts-section-hint">Hesaba girmez</span></div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="RESPONSIBLE_NAME">Malzeme bilgisini veren (lab)</label>
+                        <input type="text" id="RESPONSIBLE_NAME" class="form-control" maxlength="100" placeholder="Nuri Bey">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="SAMPLE_TYPE">Numune tipi</label>
+                        <input type="text" id="SAMPLE_TYPE" class="form-control" maxlength="50" placeholder="BOS, MAYİ, SPOT İDRAR">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="PATHOLOGY_LEVEL">Patoloji düzeyi</label>
+                        <input type="number" id="PATHOLOGY_LEVEL" class="form-control ts-mono" min="1" max="4" step="1">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="SUT_CODE">SUT kodu</label>
+                        <input type="text" id="SUT_CODE" class="form-control ts-mono" maxlength="6" inputmode="numeric" placeholder="909410">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="NOTE">Not</label>
+                        <input type="text" id="NOTE" class="form-control" maxlength="500">
+                    </div>
+                    <div class="form-group col-md-12 mb-2">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="ACTIVE">
+                            <label class="custom-control-label" for="ACTIVE">Aktif (pasif test maliyet çalışmasına girmez)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="js-components" hidden>
+                    <div class="ts-section">Bileşen testler · <span class="js-comp-count"></span>
+                        <span class="ts-section-hint">Bu testin maliyeti = bileşenlerin toplamı</span></div>
+                    <table class="ts-comp">
+                        <thead><tr><th>Kod</th><th>Test</th><th class="text-right">Adet</th><th class="text-right">Oran %</th></tr></thead>
+                        <tbody class="js-comp-body"></tbody>
+                    </table>
+                    <small class="ts-sub d-block mt-1">Bileşenler Excel'deki birleşik test adından (SUT kodları) oluşturuldu; düzenleme reçete ekranında yapılacak.</small>
+                </div>
+
+                <div class="ts-source mt-3 js-source" hidden></div>
+
+                <div id="testMsg" class="alert alert-danger mt-3 mb-0" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Vazgeç</button>
+                <button type="button" id="btnTestSave" class="btn btn-primary"><i class="fas fa-save"></i> Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="js/test-1.0.0.js?v=1.0.1"></script>
+</body>
+</html>

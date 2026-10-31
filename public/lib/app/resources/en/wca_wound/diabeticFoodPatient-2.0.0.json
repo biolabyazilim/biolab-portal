@@ -1,0 +1,46 @@
+{
+    "BOX_TITLE":"Diabetic Food Assessment",
+    "BOX_TITLE_WOUND":"Medical Assessment",
+    "PAGE_TITLE":"Diabetic Food Assessment",
+    "NAV_WOUND":"Treatment",
+    "NAV_PAGE":"Diabetic Food Assessment",
+    "NAV_TREATMENT":"Treatment",
+    "NAV_PAGE_GENERAL":"Medical Assessment",
+    "PLEASE_ADD_COMMENT":"Please Add Your Comment",
+    "PLEASE_FILL_COMMENT":"Please fill your comment this question",
+    "PLEASE_FILL_ANSWER":"Please fill your answer this question",
+    "MISSING_PARAMETER":"Please fill missing parameters",
+
+    "RIGHT_FL":"R",
+    "BOTH_FL":"B",
+    "LEFT_FL":"L",
+    "WAH_ID": "Id",
+    "WAT_ID": "Type Id",
+    "WAT_NAME": "A.Type",
+    "PATIENT_ID": "Patient Id",
+    "PATIENT_NAME": "P.Name",
+    "PATIENT_SURNAME": "P.Surname",
+    "WAH_DATE": "Assessment Date",
+    "BTN_REVIEW_TEXT": "Review",
+    "REVIEW_IN_HEADER": "Review",
+    "BTN_CREATE_NEW_ASSESSMENT_TEXT": "Create New Assessment",
+
+    "BTN_SAVE_AND_COMPLETE_TEXT": "Save and Complete",
+    "BTN_SAVE_AND_LATER_TEXT": "Save and Continue Later",
+    "COMPLETED_FL": "Is Completed",
+    "BTN_CONTINUE_TEXT": "Continue",
+
+    "DROP_ZONE_MESSAGE":"Drop files here or click to upload.",
+    "DROP_ZONE_NOTES":"If You want to delete uploaded file then just click it",
+    "FILE_MANAGEMENT":"File Management",
+    "BTN_UPLOAD_FILE":"Upload File",
+    "BTN_SHOW_FILE_LIST":"Show File List",
+    "BTN_REMOVE_FILE":"Remove File",
+
+    "MODAL_SHOW_PDF_TITLE":"PDF Viewer",
+    "MODAL_SHOW_IMAGE_TITLE":"Image Viewer",
+    "UPLOADED_FILE_INFORMATION":"Files aren't saved, If you want to keep these files, please press 'Save' button",
+
+
+    "DUMMY": ""
+}

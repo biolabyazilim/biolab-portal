@@ -1,0 +1,18 @@
+{
+    "BOX_TITLE":"Histórico de TRR",
+    "PAGE_TITLE":"Histórico de TRR",
+    "RRT_HISTORY_ID":"Id do Histórico de TRR",
+    "RRT_TYPE_ID":"Id do Tipo de TRR",
+    "RRT_TYPE_NAME":"Tipo de TRR",
+    "COMPANY_ID":"Id da Empresa",
+    "START_RRT_REASON_ID":"Id do Motivo do Início da TRR",
+    "START_RRT_REASON_NAME":"Motivo do Início da TRR",
+    "RRT_REASON_NAME":"Nome do Motivo da TRR",
+    "END_RRT_REASON_ID":"Id do Motivo do Fim da TRR",
+    "END_RRT_REASON_NAME":"Nome do Motivo do Fim da TRR",
+    "PATIENT_ID":"Id do Paciente",
+    "PATIENT_NAME":"Nome do Paciente",
+    "NAV_PAGE": "Histórico de TRR",
+    "START_DATE":"Data de Início",
+    "END_DATE":"Data de Fim"
+}

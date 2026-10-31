@@ -1,0 +1,19 @@
+{
+  "BOX_TITLE":"Competency Assessment Question Answer",
+  "PAGE_TITLE":"Competency Assessment Question Answer",
+  "NAV_ASM":"Definition",
+  "NAV_PAGE":"Competency Assessment Question Answer",
+  "CAQA_ID": "A.Question Answer Id",
+  "CAQA_NAME": "A.Question Answer",
+  "CAQA_ORDER": "A.Question Answer Order",
+  "CAQA_TYPE": "A.Question Answer Type",
+  "CAQA_SCORE": "A.Question Answer Score",
+  "CAQA_DEFAULT_FL": "A.Question Answer Default",
+
+  "CATYPE_NAME": "Assessment Type",
+  "CATYPE_ID": "A.Type Id",
+  "CAQ_ID": "A.Question Id",
+  "CAQ_NAME": "A.Question"
+
+
+}

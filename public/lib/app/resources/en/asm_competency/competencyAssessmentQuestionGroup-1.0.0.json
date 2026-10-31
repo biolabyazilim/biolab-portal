@@ -1,0 +1,13 @@
+{
+  "BOX_TITLE":"Competency Assessment Question Group",
+  "PAGE_TITLE":"Competency Assessment Question Group",
+  "NAV_ASM":"Definition",
+  "NAV_PAGE":"Competency Assessment Question Group",
+  "CAQG_ID": "A.Question Group Id",
+  "CAQG_NAME": "A.Question Group",
+  "CAQG_ORDER": "A.Question Group Order",
+  "CAQG_CODE": "A.Question Group Code",
+  "CATYPE_NAME": "A.Type",
+  "CATYPE_ID": "A.Type Id"
+
+}

@@ -1,0 +1,11 @@
+{
+    "BOX_TITLE":"Alergia do Paciente",
+    "PAGE_TITLE":"Alergia do Paciente",
+    "NAV_PAGE":"Alergia do Paciente",
+    "PATIENT_ALLERGY_ID":"Id da Alergia do Paciente",
+    "ALLERGY_TYPE_ID":"Id da Alergia",
+    "ALLERGY_TYPE_NAME":"Alergia",
+    "PATIENT_ALLERGY_START_DATE":"Data de Início",
+    "PATIENT_ALLERGY_END_DATE":"Data de Término",
+    "PATIENT_ALLERGY_DESCRIPTION":"Descrição do Tipo de Alergia"
+}

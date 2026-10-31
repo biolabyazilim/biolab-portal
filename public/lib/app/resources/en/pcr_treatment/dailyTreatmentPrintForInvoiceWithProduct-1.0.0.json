@@ -1,0 +1,20 @@
+{
+    "NAV_PAGE":"Daily Treatment",
+    "REPORT_HEADER": "Product Consumption",
+    "START_DATE": "From ",
+    "END_DATE": " to ",
+
+    "DTV_MC_NO": "P No",
+    "DTV_PATIENT_NAME_SURNAME": "Patient Name",
+    "DTV_HMC_NUMBER": "S.S. No.",
+    "DTV_TREATMENT_COUNT": "Treatment No",
+    "DTV_TREATMENT_DATE": "Treatment Date",
+    "DTV_TREATMENT_MACHINE_NO": "Mach No",
+
+    "DTV_SERIAL_NO": "S.No",
+    "DTV_NURSE_NAME_SURNAME": "Nurse Name",
+    "PAGE_NUMBER": "",
+    "PAGE_NUMBER_OF": "",
+    "PRODUCT_AMOUNT": "Amount",
+    "DUMMY": ""
+}

@@ -1,0 +1,9 @@
+{
+    "BOX_TITLE":"Patient Allergy",
+    "PAGE_TITLE":"Patient Allergy",
+    "PATIENT_ALLERGY_ID":"Patient Allergy Id",
+    "ALLERGY_TYPE_ID":"Allergy Id",
+    "ALLERGY_TYPE_NAME":"Allergy",
+    "PATIENT_ALLERGY_START_DATE":"Start Date",
+    "PATIENT_ALLERGY_END_DATE":"End Date"
+}

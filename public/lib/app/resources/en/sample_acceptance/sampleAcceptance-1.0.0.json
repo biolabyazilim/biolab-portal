@@ -1,0 +1,27 @@
+{
+    "PAGE_TITLE":"Sample acceptance",
+    "BOX_TITLE":"New sample",
+    "LIST_TITLE":"Accepted today",
+
+    "SAMPLE_ACCEPTANCE_ID":"ID",
+    "BARCODE":"Barcode",
+    "BARCODE_CONFIRM":"Re-enter barcode",
+    "PATIENT":"Patient",
+    "PATIENT_NAME":"Full name",
+    "FILE_NO":"File no",
+    "GENDER":"Gender",
+    "BIRTH_DATE":"Date of birth",
+    "INSTITUTION":"Institution / department",
+    "ACCEPT":"Accepted",
+    "STATUS":"Status",
+    "MANUAL_ENTRY":"manual",
+
+    "STATUS_WAITING":"Awaiting result",
+    "STATUS_RESULTED":"Result received",
+    "STATUS_RERUN":"Re-run",
+    "STATUS_APPROVED":"Approved",
+    "STATUS_REPORTED":"Reported",
+    "STATUS_REJECTED":"Rejected",
+
+    "RECORD_IS_ALREADY_THERE":"This barcode has already been accepted."
+}

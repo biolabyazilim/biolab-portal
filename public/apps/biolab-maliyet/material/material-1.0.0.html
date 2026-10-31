@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Malzemeler · Maliyet</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+    <!--[if lt IE 9]>
+    <script src="../../../lib/plugins/html5shiv-3.7.3/html5shiv.min.js"></script>
+    <script src="../../../lib/plugins/respond-1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+        body.mt-page { background: var(--hb-bg); color: var(--hb-text); font-family: var(--hb-font); font-size: 14px; }
+        .mt-wrap { max-width: 100%; padding: 20px 24px 32px; }
+
+        .mt-btn { height: 30px; font-weight: 600; border: 1px solid var(--hb-navy); color: var(--hb-navy); background: #fff; white-space: nowrap; }
+        .mt-btn:hover { background: var(--hb-navy); color: #fff; }
+
+        /* Çalışma çubuğu: seçim + durum + kurlar + işlemler tek satırda */
+        .mt-study { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 8px 12px;
+                    border: 1px solid #bcd3ea; border-radius: 8px; background: #eef5fc; color: var(--hb-navy); font-size: 13px; }
+        .mt-study.is-locked { border-color: #b7dfc4; background: #e9f6ee; color: #1e6b3a; }
+        .mt-study.is-empty { border-color: #e0b25a; background: #fff8ea; color: #7a4f00; }
+        .mt-study-label { margin: 0; font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .mt-study-pick { flex: 0 0 220px; }
+        .mt-study-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1 1 auto; min-width: 0; }
+        .mt-study-info .mt-sep { width: 1px; height: 16px; background: currentColor; opacity: .25; }
+        .mt-study .mt-rate { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+        .mt-study .mt-rate.is-missing { color: #9a6200; }
+        .mt-study .mt-study-edit { margin-left: auto; height: 30px; white-space: nowrap; }
+        .mt-add { margin-left: auto; height: 34px; font-weight: 600; }
+
+        /* Filtre hapları */
+        .mt-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+        .mt-tab { padding: 7px 14px; border: 1px solid var(--hb-border); border-radius: 999px; background: #fff;
+                  color: var(--hb-text); font-size: 13px; font-weight: 600; cursor: pointer; }
+        .mt-tab .mt-count { margin-left: 4px; font-weight: 700; }
+        .mt-tab.active { background: var(--hb-navy); border-color: var(--hb-navy); color: #fff; }
+        .mt-tab.mt-tab-warn { background: #fff8ea; border-color: #e0b25a; color: #7a4f00; }
+        .mt-tab.mt-tab-warn.active { background: #9a6200; border-color: #9a6200; color: #fff; }
+        /* Kategori + arama satırı */
+        .mt-filter-bar { margin: 0 0 14px; padding: 10px 6px; row-gap: 8px; align-items: center;
+                         background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; }
+        .mt-filter-bar select { width: 100%; height: 34px; font-size: 13px; }
+        .mt-search-box { position: relative; }
+        .mt-search-box .fa-search { position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+                                    color: var(--hb-muted); font-size: 13px; pointer-events: none; }
+        .mt-search { width: 100%; height: 34px; padding-left: 32px; font-size: 13px; }
+
+        /* Liste (jqGrid) */
+        .mt-card { background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; overflow: hidden; }
+        .mt-card .ui-jqgrid tr.jqgrow td { padding: 6px 8px; vertical-align: middle; white-space: normal; font-size: 13px; }
+        .mt-card .ui-jqgrid tr.jqgrow { cursor: pointer; }
+        .mt-card .ui-jqgrid tr.jqgrow.mt-row-missing { background: #fffbf2; }
+        .mt-grid-msg { padding: 24px 12px; text-align: center; color: var(--hb-muted); }
+        .mt-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .mt-mono { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+        .mt-sub { color: var(--hb-muted); font-size: 12px; }
+
+        .mt-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .mt-badge-warn   { background: #fff1d6; color: #9a6200; }
+        .mt-badge-danger { background: #fde8e6; color: var(--hb-danger); }
+        .mt-badge-info   { background: #e8f1f9; color: #1d4f7c; }
+        .mt-badge-wait   { background: #eceff3; color: #475467; }
+
+        /* Form */
+        .mt-section { margin: 4px 0 10px; padding-top: 10px; border-top: 1px solid #edf0f4; font-size: 12px; font-weight: 700;
+                      color: var(--hb-muted); letter-spacing: .04em; text-transform: uppercase; }
+        .mt-preview { padding: 10px 12px; border-radius: 6px; background: #eef5fc; color: var(--hb-navy); font-size: 13px; }
+        .mt-preview strong { font-size: 16px; }
+        .mt-kit-hint { margin: 0 0 12px; padding: 8px 12px; border-radius: 6px; background: #e8f1f9; color: #1d4f7c; font-size: 13px; }
+
+        /* Kullanıldığı testler (reçete satırları; bağlama hemen kaydedilir) */
+        .mt-tests-add { align-items: flex-end; }
+        .mt-tests-add .btn { height: 34px; width: 100%; }
+        .mt-tests { width: 100%; margin-top: 4px; font-size: 13px; }
+        .mt-tests th { padding: 6px 8px; border-bottom: 1px solid var(--hb-border); color: var(--hb-muted); font-size: 12px; font-weight: 600; }
+        .mt-tests td { padding: 6px 8px; border-bottom: 1px solid #edf0f4; vertical-align: middle; }
+        .mt-tests .mt-empty td { color: var(--hb-muted); text-align: center; padding: 12px 8px; }
+        .mt-tests .btn-link { padding: 0 4px; color: var(--hb-danger); }
+
+        @media (max-width: 767px) { .mt-wrap { padding: 12px; } .mt-hide-sm { display: none; } .mt-study-pick { flex: 1 1 100%; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block mt-page">
+<div class="autoheight">
+    <div class="container-fluid mt-wrap">
+
+        <!-- Sayfa adı üst çubuktaki yol göstericide (Tanımlar › Malzemeler) görünüyor; burada yalnız ekran okuyucu için -->
+        <h1 class="sr-only" data-tr="PAGE_TITLE">Malzemeler</h1>
+
+        <!-- Çalışma çubuğu: seçim + durum/kurlar (JS: #studyInfo) + çalışma işlemleri, tek satır -->
+        <div id="studyBar" class="mt-study is-empty" role="status">
+            <label for="STUDY_ID" class="mt-study-label" data-tr="STUDY">Maliyet çalışması</label>
+            <div class="mt-study-pick">
+                <select id="STUDY_ID" name="STUDY_ID" class="form-control" style="width:100%"></select>
+            </div>
+            <button type="button" id="btnNewStudy" class="btn btn-sm mt-btn"><i class="fas fa-plus"></i> <span data-tr="BTN_NEW_STUDY">Yeni çalışma</span></button>
+            <div id="studyInfo" class="mt-study-info">
+                <i class="fas fa-circle-notch fa-spin"></i> <span>Yükleniyor…</span>
+            </div>
+
+        </div>
+
+        <!-- Fiyat durumu sekmeleri + malzeme ekle -->
+        <div class="mt-filters" id="mtTabs">
+            <button type="button" class="mt-tab active" data-tab="all"><span data-tr="TAB_ALL">Tümü</span> · <span class="mt-count" data-count="all">0</span></button>
+            <button type="button" class="mt-tab mt-tab-warn" data-tab="missing"><span data-tr="TAB_MISSING">Fiyatı girilmemiş</span> · <span class="mt-count" data-count="missing">0</span></button>
+            <button type="button" class="mt-tab" data-tab="priced"><span data-tr="TAB_PRICED">Fiyatı girilmiş</span> · <span class="mt-count" data-count="priced">0</span></button>
+            <button type="button" id="btnNewMaterial" class="btn btn-primary mt-add"><i class="fas fa-plus"></i> <span data-tr="BTN_NEW_MATERIAL">Malzeme ekle</span></button>
+        </div>
+
+        <!-- Alt: kategori + arama yan yana -->
+        <div class="mt-filter-bar form-row">
+            <div class="col-sm-6 col-lg-4">
+                <select id="F_CATEGORY_ID" name="F_CATEGORY_ID" class="form-control" aria-label="Kategori filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-8 mt-search-box">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="search" id="SEARCH" class="form-control mt-search" placeholder="Malzeme veya tedarikçi ara" autocomplete="off" aria-label="Malzeme veya tedarikçi ara">
+            </div>
+        </div>
+
+        <!-- Malzeme listesi: jqGrid (getGridList). Satıra tıklayınca form açılır (getSelectedId). -->
+        <div class="mt-card">
+            <table id="jqGrid"></table>
+            <div id="jqGridPager"></div>
+            <div id="gridMsg" class="mt-grid-msg" hidden></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Malzeme ekle / düzenle (fiyat seçili çalışmaya yazılır) -->
+<div class="modal fade" id="modalMaterial" tabindex="-1" role="dialog" aria-labelledby="modalMaterialTitle">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalMaterialTitle">Malzeme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Kapat"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="MATERIAL_ID">
+                <div class="mt-kit-hint js-kit-only" hidden>
+                    <i class="fas fa-info-circle"></i> Kit: fiyat bölümüne kit fiyatını, kitteki test sayısını ve kitten çıkan
+                    hasta sayısını girin. Kiti kullanan testleri en alttaki <strong>Kullanıldığı testler</strong> bölümünden bağlayın.
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="MATERIAL_NAME">Malzeme adı</label>
+                        <input type="text" id="MATERIAL_NAME" class="form-control" maxlength="250" placeholder="FİLTRELİ PİPET UCU 200LÜK">
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="CATEGORY_ID">Kategori</label>
+                        <select id="CATEGORY_ID" name="CATEGORY_ID" class="form-control" style="width:100%"></select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="USAGE_UNIT">Kullanım birimi</label>
+                        <select id="USAGE_UNIT" name="USAGE_UNIT" class="form-control" style="width:100%"></select>
+                        <small class="mt-sub">Reçetede miktar bu birimle yazılır</small>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="SUPPLIER_ID">Tedarikçi</label>
+                        <select id="SUPPLIER_ID" name="SUPPLIER_ID" class="form-control" style="width:100%"></select>
+                        <small class="mt-sub">Listede yoksa yazıp Enter'a basın</small>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label for="NOTE">Not</label>
+                        <input type="text" id="NOTE" class="form-control" maxlength="500">
+                    </div>
+                </div>
+
+                <div class="mt-section">Fiyat · <span class="js-price-study"></span></div>
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label for="PACKAGE_QTY" class="js-qty-label">Ambalaj içeriği</label>
+                        <input type="text" id="PACKAGE_QTY" class="form-control mt-mono" inputmode="decimal" placeholder="960">
+                        <small class="mt-sub js-qty-hint">kaç birim var</small>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="PACKAGE_PRICE" class="js-price-label">Ambalaj fiyatı</label>
+                        <input type="text" id="PACKAGE_PRICE" class="form-control mt-mono" inputmode="decimal" placeholder="1.500,00">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="CURRENCY">Para birimi</label>
+                        <select id="CURRENCY" name="CURRENCY" class="form-control" style="width:100%"></select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="PACKAGE_DESC">Ambalaj açıklaması</label>
+                        <input type="text" id="PACKAGE_DESC" class="form-control" maxlength="100" placeholder="1 kutu = 10 paket x 96">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="PATIENT_QTY" class="js-patient-label">Kaç hastaya yeter</label>
+                        <input type="text" id="PATIENT_QTY" class="form-control mt-mono" inputmode="decimal" placeholder="—">
+                        <small class="mt-sub js-patient-hint">Doluysa birim maliyet hasta başıdır (fiyat ÷ hasta sayısı). Boşsa ambalaj içeriği kullanılır.</small>
+                    </div>
+                    <div class="form-group col-md-9">
+                        <label class="d-block">&nbsp;</label>
+                        <small class="mt-sub js-price-note" hidden></small>
+                    </div>
+                    <div class="form-group col-md-12 mb-2">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="VAT_INCLUDED">
+                            <label class="custom-control-label" for="VAT_INCLUDED">Fiyata KDV dahil</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-preview js-preview">Birim maliyet: <strong class="js-preview-value">—</strong> <span class="js-preview-formula mt-sub"></span></div>
+                <small class="mt-sub d-block mt-2">Fiyatı bu çalışmadan kaldırmak için ambalaj içeriği ve fiyatı boş bırakın.</small>
+
+                <!-- Kullanıldığı testler: reçete satırları (hasta başı). Bağla / kaldır hemen kaydedilir; Kaydet beklenmez. -->
+                <div class="mt-section mt-3">Kullanıldığı testler · <span class="js-test-count">0</span></div>
+                <div class="js-tests-new mt-sub mb-2">Test bağlamak için önce malzemeyi kaydedin.</div>
+                <div class="js-tests-edit">
+                    <div class="form-row mt-tests-add">
+                        <div class="form-group col-md-7 mb-2">
+                            <label for="TEST_ID">Test</label>
+                            <select id="TEST_ID" name="TEST_ID" class="form-control" style="width:100%"></select>
+                        </div>
+                        <div class="form-group col-md-2 mb-2">
+                            <label for="TEST_QUANTITY" class="js-test-qty-label">Hasta başı</label>
+                            <input type="text" id="TEST_QUANTITY" class="form-control mt-mono" inputmode="decimal" value="1">
+                        </div>
+                        <div class="form-group col-md-3 mb-2">
+                            <button type="button" id="btnTestLink" class="btn mt-btn"><i class="fas fa-link"></i> Teste bağla</button>
+                        </div>
+                    </div>
+                    <small class="mt-sub d-block">Bağlama ve kaldırma hemen kaydedilir. Aynı test yeniden bağlanırsa miktarı güncellenir.</small>
+                    <table class="mt-tests">
+                        <thead><tr><th>Kod</th><th>Test</th><th class="mt-num">Miktar</th><th>Tüketim</th><th></th></tr></thead>
+                        <tbody id="materialTests"></tbody>
+                    </table>
+                </div>
+
+                <div id="materialMsg" class="alert alert-danger mt-3 mb-0" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnMaterialDelete" class="btn btn-outline-danger mr-auto"><i class="fas fa-trash-alt"></i> Sil</button>
+                <button type="button" class="btn btn-light" data-dismiss="modal">Vazgeç</button>
+                <button type="button" id="btnMaterialSave" class="btn btn-primary"><i class="fas fa-save"></i> Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Maliyet çalışması ekle / düzenle -->
+<div class="modal fade" id="modalStudy" tabindex="-1" role="dialog" aria-labelledby="modalStudyTitle">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalStudyTitle">Maliyet çalışması</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Kapat"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="EDIT_STUDY_ID">
+                <div class="form-group">
+                    <label for="STUDY_NAME">Çalışma adı</label>
+                    <input type="text" id="STUDY_NAME" class="form-control" maxlength="150" placeholder="2026 Yıl Sonu Maliyet Çalışması">
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="RATE_DATE">Kur tarihi</label>
+                        <input type="text" id="RATE_DATE" class="form-control mt-mono" placeholder="gg.aa.yyyy" maxlength="10">
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="WORK_DAYS_PER_MONTH">Aylık iş günü</label>
+                        <input type="number" id="WORK_DAYS_PER_MONTH" class="form-control mt-mono" min="1" max="31" step="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-4"><label for="RATE_USD">USD kuru</label><input type="text" id="RATE_USD" class="form-control mt-mono" inputmode="decimal" placeholder="55,00"></div>
+                    <div class="form-group col-4"><label for="RATE_EUR">EUR kuru</label><input type="text" id="RATE_EUR" class="form-control mt-mono" inputmode="decimal" placeholder="62,00"></div>
+                    <div class="form-group col-4"><label for="RATE_GBP">GBP kuru</label><input type="text" id="RATE_GBP" class="form-control mt-mono" inputmode="decimal" placeholder="70,00"></div>
+                </div>
+                <small class="mt-sub">Kurlar bu çalışmadaki tüm döviz fiyatlarına uygulanır.</small>
+                <div class="form-row mt-3">
+                    <div class="form-group col-4 mb-1">
+                        <label for="TRY_FACTOR">TL öngörü katsayısı</label>
+                        <input type="text" id="TRY_FACTOR" class="form-control mt-mono" inputmode="decimal" placeholder="1">
+                    </div>
+                    <div class="form-group col-8 mb-1 d-flex align-items-end">
+                        <small class="mt-sub">TL fiyatlar bu katsayıyla çarpılır (ör. 1,5 = %50 artış öngörüsü). Öngörü yoksa 1.</small>
+                    </div>
+                </div>
+                <div id="studyMsg" class="alert alert-danger mt-3 mb-0" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Vazgeç</button>
+                <button type="button" id="btnStudySave" class="btn btn-primary"><i class="fas fa-save"></i> Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="js/material-1.0.0.js?v=1.5.3"></script>
+</body>
+</html>

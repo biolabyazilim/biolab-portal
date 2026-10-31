@@ -1,0 +1,17 @@
+{
+    "PAGE_TITLE":"İş listesi",
+    "DATE_RANGE":"Tarih",
+    "BTN_FETCH_DEVICE":"Cihazdan şimdi çek",
+
+    "TAB_PENDING":"Onay bekleyen",
+    "TAB_UNMATCHED":"Kabulü olmayan sonuç (BIO-RAD Dia Web Hb-Elektroforez)",
+    "TAB_WAITING":"Sonucu gelmeyen",
+    "TAB_APPROVED":"Onaylananlar",
+
+    "STATUS_WAITING":"Sonuç bekleniyor",
+    "STATUS_RESULTED":"Onay bekliyor",
+    "STATUS_RERUN":"Tekrar çalışma",
+    "STATUS_APPROVED":"Onaylandı",
+    "STATUS_REPORTED":"Raporlandı",
+    "STATUS_REJECTED":"Reddedildi"
+}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Test maliyetleri · Maliyet</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+
+    <style>
+        body.tc-page { background: var(--hb-bg); color: var(--hb-text); font-family: var(--hb-font); font-size: 14px; }
+        .tc-wrap { /*max-width: 1320px;*/ padding: 20px 24px 32px; }
+
+        .tc-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+        .tc-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--hb-navy); }
+        .tc-sub { color: var(--hb-muted); font-size: 12px; }
+        .tc-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .tc-tools label { margin: 0; font-size: 12px; color: var(--hb-muted); }
+        .tc-total { padding: 6px 12px; border-radius: 6px; background: #eef5fc; color: var(--hb-navy); font-size: 13px; white-space: nowrap; }
+        .tc-total strong { font-size: 16px; }
+
+        /* Filtre satırı: Bootstrap form-row + col-*; gap yok (col yüzdelerine eklenip satırı taşırır), satır arası row-gap */
+        .tc-filters { margin: 0 0 12px; padding: 10px 6px; row-gap: 8px; align-items: center;
+                      background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; }
+        .tc-filters select { width: 100%; height: 34px; font-size: 13px; }
+        .tc-search-box { position: relative; }
+        .tc-search-box .fa-search { position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+                                    color: var(--hb-muted); font-size: 13px; pointer-events: none; }
+        .tc-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; margin-top: -10px; }
+        .tc-tab { padding: 7px 14px; border: 1px solid var(--hb-border); border-radius: 999px; background: #fff;
+                  color: var(--hb-text); font-size: 13px; font-weight: 600; cursor: pointer; }
+        .tc-tab .tc-count { margin-left: 4px; font-weight: 700; }
+        .tc-tab.active { background: var(--hb-navy); border-color: var(--hb-navy); color: #fff; }
+        .tc-tab.tc-tab-warn { background: #fff8ea; border-color: #e0b25a; color: #7a4f00; }
+        .tc-tab.tc-tab-warn.active { background: #9a6200; border-color: #9a6200; color: #fff; }
+        .tc-search { width: 100%; height: 34px; padding-right: 32px; font-size: 13px; }
+        .tc-search::-webkit-search-cancel-button { display: none; }
+
+        .tc-card { background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; overflow: hidden; }
+        .tc-card .ui-jqgrid tr.jqgrow td { padding: 6px 8px; vertical-align: middle; white-space: normal; font-size: 13px; }
+        .tc-card .ui-jqgrid tr.jqgrow { cursor: pointer; }
+        .tc-grid-msg { padding: 24px 12px; text-align: center; color: var(--hb-muted); }
+        .tc-mono { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+        .tc-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+        .tc-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .tc-s-OK                { background: #e3f4e9; color: #1e6b3a; }
+        .tc-s-MISSING_PRICE     { background: #fff1d6; color: #9a6200; }
+        .tc-s-NO_RECIPE         { background: #fde8e6; color: var(--hb-danger); }
+        .tc-s-COMPONENT_MISSING { background: #f1ecfa; color: #553a8f; }
+        .tc-s-NEEDS_VOLUME      { background: #e8f1f9; color: #1d4f7c; }
+        .tc-s-CYCLE             { background: #fde8e6; color: var(--hb-danger); }
+
+        /* Detay */
+        .tc-section { margin: 12px 0 8px; padding-top: 10px; border-top: 1px solid #edf0f4; font-size: 12px; font-weight: 700;
+                      color: var(--hb-muted); letter-spacing: .04em; text-transform: uppercase; }
+        .tc-summary { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border-radius: 6px; background: #f6f7f9; }
+        .tc-summary .tc-cost { font-size: 20px; font-weight: 700; color: var(--hb-navy); }
+        .tc-missing { margin: 8px 0 0; padding-left: 18px; font-size: 12px; color: #7a4f00; }
+        .tc-lines { width: 100%; font-size: 13px; }
+        .tc-lines th { padding: 6px; color: var(--hb-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--hb-border); }
+        .tc-lines td { padding: 5px 6px; border-top: 1px solid #edf0f4; vertical-align: middle; }
+        .tc-lines tfoot td { border-top: 2px solid var(--hb-border); font-weight: 700; }
+        /* form-control blok öğe: text-right hücrede sağa yaslanmıyordu, başlıkla aynı hizaya gelsin diye inline-block */
+        .tc-lines .tc-qty { display: inline-block; width: 90px; height: 30px; text-align: right; }
+        .tc-add { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+        .tc-add .tc-qty { width: 100px; height: 34px; text-align: right; }
+        .tc-source { padding: 8px 12px; border-radius: 6px; background: #f6f7f9; font-size: 12px; color: var(--hb-muted); }
+        .tc-source b { color: var(--hb-text); font-weight: 600; }
+
+        @media (max-width: 767px) { .tc-wrap { padding: 12px; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block tc-page">
+<div class="autoheight">
+    <div class="container-fluid tc-wrap">
+
+        <div class="tc-head form-row">
+            <div class="col-sm-6">
+                <h1 class="tc-title" data-tr="PAGE_TITLE">Test maliyetleri</h1>
+                <div class="tc-sub">Hasta başı malzeme maliyeti (TL), seçili çalışmanın fiyat ve kurlarıyla. Birleşik testler bileşenlerin toplamıdır.</div>
+            </div>
+            <div class="tc-tools col-sm-4">
+                    <label for="STUDY_ID" data-tr="STUDY">Maliyet çalışması</label>
+                    <select id="STUDY_ID" name="STUDY_ID" class="form-control" style="width:260px"></select>
+                <div class="tc-total">Listelenen toplam: <strong class="js-total">—</strong> TL</div>
+                <button type="button" id="btnExcelPathology" class="btn btn-outline-success" style="height:34px;font-weight:600"
+                                title="Maliyet Excel'indeki PATOLOJİ sayfası düzeninde; formüller canlı (fiyat / kur değişince yeniden hesaplanır)">
+                    <i class="fas fa-file-excel"></i> Patoloji Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="tc-tabs" id="tcTabs">
+            <button type="button" class="tc-tab active" data-tab="all">Tümü · <span class="tc-count" data-count="all">0</span></button>
+            <button type="button" class="tc-tab" data-tab="OK">Hesaplandı · <span class="tc-count" data-count="OK">0</span></button>
+            <button type="button" class="tc-tab tc-tab-warn" data-tab="MISSING_PRICE">Fiyatı eksik · <span class="tc-count" data-count="MISSING_PRICE">0</span></button>
+            <button type="button" class="tc-tab tc-tab-warn" data-tab="NO_RECIPE">Reçete / kit yok · <span class="tc-count" data-count="NO_RECIPE">0</span></button>
+            <button type="button" class="tc-tab tc-tab-warn" data-tab="COMPONENT_MISSING">Bileşeni eksik · <span class="tc-count" data-count="COMPONENT_MISSING">0</span></button>
+        </div>
+
+        <div class="tc-filters form-row">
+            <div class="col-sm-6 col-lg-2">
+                <select id="F_LAB_UNIT" name="F_LAB_UNIT" class="form-control" aria-label="Birim filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <select id="F_SERVICE_GROUP_ID" name="F_SERVICE_GROUP_ID" class="form-control" aria-label="Hizmet grubu filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <select id="F_COST_METHOD" name="F_COST_METHOD" class="form-control" aria-label="Maliyet yöntemi filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-4 tc-search-box">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="search" id="SEARCH" class="form-control tc-search" placeholder="Kod veya test ara" autocomplete="off" aria-label="Kod veya test ara">
+            </div>
+        </div>
+
+
+
+        <!-- Test listesi: jqGrid (getGridList). Satıra tıklayınca ayrıntı açılır (getSelectedId). -->
+        <div class="tc-card">
+            <table id="jqGrid"></table>
+            <div id="jqGridPager"></div>
+            <div id="gridMsg" class="tc-grid-msg" hidden></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Test maliyet ayrıntısı + reçete -->
+<div class="modal fade" id="modalCost" tabindex="-1" role="dialog" aria-labelledby="modalCostTitle">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCostTitle">Test</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Kapat"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="TEST_ID">
+
+                <div class="tc-summary">
+                    <span class="tc-cost js-cost">—</span><span class="tc-sub">TL / hasta</span>
+                    <span class="tc-badge js-status"></span>
+                    <span class="tc-sub js-meta"></span>
+                </div>
+                <ul class="tc-missing js-missing" hidden></ul>
+
+                <!-- Reçete (reçeteli / kit / hizmet testleri) -->
+                <div class="js-recipe" hidden>
+                    <div class="tc-section">Reçete · hasta başına</div>
+                    <table class="tc-lines">
+                        <thead><tr><th>Malzeme</th><th class="text-right">Miktar</th><th>Birim</th><th class="text-right">Birim maliyet (TL)</th><th class="text-right">Tutar (TL)</th><th></th></tr></thead>
+                        <tbody class="js-recipe-body"></tbody>
+                        <tfoot><tr><td colspan="4" class="text-right">Toplam</td><td class="tc-num js-recipe-total">—</td><td></td></tr></tfoot>
+                    </table>
+                    <div class="tc-add">
+                        <select id="MATERIAL_ID" name="MATERIAL_ID" class="form-control" style="width:100%"></select>
+                        <input type="text" id="ADD_QTY" class="form-control tc-mono tc-qty" inputmode="decimal" placeholder="Miktar" value="1">
+                        <button type="button" id="btnAddLine" class="btn btn-outline-secondary" style="white-space:nowrap"><i class="fas fa-plus"></i> Ekle</button>
+                    </div>
+                    <small class="tc-sub d-block mt-1">Yeni eklenen malzemenin tutarı kaydedince hesaplanır. Miktar malzemenin birimindedir (0,5 adet, 1,5 ml...).</small>
+                </div>
+
+                <!-- Bileşenler (hesaplamalı / birleşik testler) -->
+                <div class="js-components" hidden>
+                    <div class="tc-section">Bileşenler</div>
+                    <table class="tc-lines">
+                        <thead><tr><th>Kod</th><th>Test</th><th class="text-right">Adet</th><th class="text-right">Oran %</th><th class="text-right">Bileşen maliyeti</th><th class="text-right">Tutar (TL)</th><th>Durum</th></tr></thead>
+                        <tbody class="js-comp-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="tc-source mt-3 js-source" hidden></div>
+                <div id="costMsg" class="alert alert-danger mt-3 mb-0" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Kapat</button>
+                <button type="button" id="btnRecipeSave" class="btn btn-primary"><i class="fas fa-save"></i> Reçeteyi kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="js/testCost-1.0.0.js?v=1.1.4"></script>
+</body>
+</html>

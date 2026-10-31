@@ -1,0 +1,15 @@
+{
+  "BOX_TITLE":"Wound Assessment",
+  "PAGE_TITLE":"Wound Assessment",
+  "WAH_DATE":"Assessment Header Date",
+  "WAH_ID":"Header Id",
+  "START_DATE":"Start Date",
+  "END_DATE":"End Date",
+  "WAT_ID":"Wound Type Id",
+  "WAT_NAME":"Type Name",
+  "PATIENT_ID":"Patient Id",
+  "PATIENT_NAME":"Patient Name",
+  "PATIENT_SURNAME":" Surname"
+
+
+}

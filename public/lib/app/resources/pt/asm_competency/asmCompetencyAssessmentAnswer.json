@@ -1,0 +1,27 @@
+{
+  "BOX_TITLE":"Resposta da Avaliação de Competências",
+  "PAGE_TITLE":"Resposta da Avaliação de Competências",
+  "NAV_ASM":"Definição",
+  "NAV_PAGE":"Resposta da Avaliação de Competências",
+
+  "CAA_ID": "Id",
+  "CAA_TEXT": "Texto da Resposta",
+  "CATYPE_NAME": "Tipo de Avaliação",
+  "USER_ID": "Id do Empregado",
+  "USER_NAME": "N.Nome",
+  "USER_SURNAME": "N.Sobrenome",
+  "USER_TASK_NAME": "N.Função",
+  "USER_NAME_SURNAME": "Nome do Empregado",
+  "CAH_ID": "cahId",
+  "CAH_DATE": "Data da Avaliação",
+
+  "CAQA_ID": "CaqaId",
+  "CAQA_NAME": "Resposta à Pergunta",
+  "CAQ_ID": "caqId",
+  "CAQ_NAME": "Pergunta da Avaliação",
+  "CAQG_ID": "caqgId",
+  "CAQG_NAME": "Grupo de Perguntas",
+  "CAH_COMPLETED_FL": "Cabeçalho Concluído",
+  "CAQW_ID": "caqwId",
+  "CAQW_NAME": "Peso da Pergunta"
+}

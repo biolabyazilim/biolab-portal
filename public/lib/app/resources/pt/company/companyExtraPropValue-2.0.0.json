@@ -1,0 +1,12 @@
+{
+    "BOX_TITLE":"Gerenciar Valor de Propriedade Extra da Empresa",
+    "PAGE_TITLE":"Gerenciar Valor de Propriedade Extra da Empresa",
+    "COMPANY_EXTRA_PROP_VALUE_ID":"Id do Valor de Propriedade Extra da Empresa",
+    "COMPANY_ID":"Id da Empresa",
+    "COMPANY_NAME":"Nome da Empresa",
+    "COMPANY_EXTRA_PROP_TYPE_ID":"Id do Tipo de Propriedade Extra da Empresa",
+    "COMPANY_EXTRA_PROP_TYPE_NAME":"Nome do Tipo de Propriedade Extra da Empresa",
+    "COMPANY_EXTRA_PROP_VALUE_STRING":"String do Valor de Propriedade Extra da Empresa",
+    "COMPANY_EXTRA_PROP_VALUE_BLOB":"Blob do Valor de Propriedade Extra da Empresa",
+    "COMPANY_EXTRA_PROP_VALUE_FLAG":"Flag do Valor de Propriedade Extra da Empresa"
+}

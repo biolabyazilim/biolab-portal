@@ -1,0 +1,22 @@
+{
+    "BOX_TITLE":"CVC Monitoring Form",
+    "PAGE_TITLE":"Cvc Monitoring Form",
+    "NAV_PAGE":"Cvc Monitoring Form",
+
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "PATIENT_SURNAME":"Patient Surname",
+    "IDENTITY_NUMBER":"Identity Number",
+    "BIRTH_DATE":"Birth Date",
+    "PATIENT_NUMBER":"Patient Number",
+    "COMPANY_ID":"Company",
+    "DIABETES_POS_DATE":"Diabetes Post Date",
+    "START_DATE":"Start Date",
+    "END_DATE":"End Date",
+    "HEIGHT":"Height",
+    "PHONE":"Phone",
+    "ADDRESS":"Addreess",
+    "CITY":"City",
+    "ACTIVE_FL":"Active",
+    "RECORD_FL":"Record"
+}

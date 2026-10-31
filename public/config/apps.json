@@ -1,0 +1,31 @@
+{
+  "apps": [
+    {
+      "code": "HB_ELEKTROFOREZ",
+      "name": "Hb Elektroforez",
+      "description": "Hemoglobin elektroforez sonuç girişi ve raporlama",
+      "icon": "fa-vial",
+      "url": "./apps/hb-elektroforez/login.html",
+      "status": "active",
+      "target": "_blank"
+    },
+    {
+      "code": "SIBO",
+      "name": "SIBO Nefes Testi",
+      "description": "SIBO hasta, numune ve test sonuç takibi",
+      "icon": "fa-lungs",
+      "url": "http://192.168.1.43:8090/login",
+      "status": "active",
+      "target": "_blank"
+    },
+    {
+      "code": "MALIYET",
+      "name": "Maliyet Çalışması",
+      "description": "Sıfırdan bir maliyet dosyası hazırlama, raporlama",
+      "icon": "fa-hand-holding-usd",
+      "url": "./apps/biolab-maliyet/login.html",
+      "status": "active",
+      "target": "_blank"
+    }
+  ]
+}

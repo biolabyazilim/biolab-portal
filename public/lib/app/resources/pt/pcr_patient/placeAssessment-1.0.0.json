@@ -1,0 +1,13 @@
+{
+    "BOX_TITLE":"Verificação de Temperatura e Humidade",
+    "PAGE_TITLE":"Verificação de Temperatura e Humidade",
+    "NAV_PAGE":"Verificação de Temperatura e Humidade",
+    "PATIENT_PLACE_CONDITION_ID":"Id",
+    "PATIENT_PLACE_TYPE_ID":"Tipo",
+    "PATIENT_PLACE_TYPE_NAME":"Nome do Tipo",
+    "PATIENT_ID":"Id do Paciente",
+    "PATIENT_NAME":"Nome do Paciente",
+    "PATIENT_PLACE_CONDITION_DATE":"Data",
+    "PATIENT_PLACE_CONDITION_TEMP":"Temperatura",
+    "PATIENT_PLACE_CONDITION_HUMUDITY":"Humidade"
+}

@@ -1,0 +1,14 @@
+{
+  "BOX_TITLE":"Additional Test",
+  "NAV_PATIENT_CARE":"Additional Test",
+  "NAV_ADDITIONAL":"Patient",
+  "NAV_PAGE":"Additional Test",
+  "PAGE_TITLE":"Additional Test",
+  "ADDITIONAL_TEST_ID":"Id",
+  "ADDITIONAL_TEST_TYPE_ID":"Daily Patient Additional Test Id",
+  "ADDITIONAL_TEST_TYPE_NAME":"Additional Test Name",
+  "PATIENT_ID":"Patient Id",
+  "ADDITIONAL_TEST_DATE":"Date",
+  "ADDITIONAL_TEST_COMMENT":"Comment"
+
+}

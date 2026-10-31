@@ -1,0 +1,20 @@
+{
+    "BOX_TITLE":"Product",
+    "PAGE_TITLE":"Product",
+    "PRODUCT_ID":"Product Id",
+    "PRODUCT_TYPE_ID":"Product Type Id",
+    "PRODUCT_TYPE_NAME":"Product Type Name",
+    "PARENT_PRODUCT_ID":"Parent Product Id",
+    "PRODUCT_NAME":"Product Name",
+    "PARENT_PRODUCT_NAME":"Parent Product Name",
+    "COMPANY_ID":"Company Id",
+    "BARCODE":"Barcode",
+    "UNIT_AMOUNT":"Unit Amount",
+    "PACKAGE_SIZE":"Package Size",
+    "CRITICAL_STOCK":"Critical Stock",
+    "MIN_STOCK":"Min Stock",
+    "MAX_STOCK":"Max Stock",
+    "PARTLY_USE_FL":"Is Partly Use",
+    "USAGE_FL":"Usage"
+}
+            

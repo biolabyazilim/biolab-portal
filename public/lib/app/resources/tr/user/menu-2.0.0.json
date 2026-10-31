@@ -1,0 +1,16 @@
+{
+    "BOX_TITLE":"Menu Tanımlama",
+    "PAGE_TITLE":"Menu Tanımlama",
+    "MENU_ID":"Menu Id",
+    "PARENT_MENU_ID":"Üst Menü",
+    "PARENT_MENU_NAME":"Üst Menü",
+    "FORM_ID":"Form Id",
+    "FORM_NAME":"Form Adı",
+    "MENU_NAME":"Menü Adı",
+    "MENU_NAME_EN":"Menü Adı EN",
+    "MENU_NAME_COMMENT":"Menü Açıklama",
+    "MENU_ORDER":"Menu Sırası",
+    "MENU_GROUP":"Menu Grup",
+    "MENU_IN_HEAD_FL":"Menu Headerda FL"
+}
+            

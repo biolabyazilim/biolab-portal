@@ -1,0 +1,13 @@
+{
+    "BOX_TITLE":"Mng Company Extra Prop Value",
+    "PAGE_TITLE":"Mng Company Extra Prop Value",
+    "COMPANY_EXTRA_PROP_VALUE_ID":"Company Extra Prop Value Id",
+    "COMPANY_ID":"Company Id",
+    "COMPANY_NAME":"Company Name",
+    "COMPANY_EXTRA_PROP_TYPE_ID":"Company Extra Prop Type Id",
+    "COMPANY_EXTRA_PROP_TYPE_NAME":"Company Extra Prop Type Name",
+    "COMPANY_EXTRA_PROP_VALUE_STRING":"Company Extra Prop Value String",
+    "COMPANY_EXTRA_PROP_VALUE_BLOB":"Company Extra Prop Value Blob",
+    "COMPANY_EXTRA_PROP_VALUE_FLAG":"Company Extra Prop Value Flag"
+}
+            

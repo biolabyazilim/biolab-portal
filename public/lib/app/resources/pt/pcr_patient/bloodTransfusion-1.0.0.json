@@ -1,0 +1,14 @@
+{
+    "BOX_TITLE":"Blood Transfusion",
+    "PAGE_TITLE":"Blood Transfusion",
+    "BLOOD_TRANSFUSION_ID":"Blood Transfusion Id",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "COMPANY_ID":"Company Id",
+    "BLOOD_PRODUCT_TYPE_ID":"Blood Product Type Id",
+    "BLOOD_PRODUCT_NAME":"Blood Product Type Name",
+    "PRODUCT_TYPE_NAME":"Blood Product Name",
+    "BLOOD_TRANSFUSION_DATE":"Transfusion Date",
+    "NAV_PAGE": "Blood Transfusion"
+}
+            

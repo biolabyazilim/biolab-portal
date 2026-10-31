@@ -1,0 +1,28 @@
+{
+    "BOX_TITLE":"Dialysis Machine",
+    "PAGE_TITLE":"Dialysis Machine",
+    "DIALYSIS_MACHINE_ID":"Id",
+    "DIALYSIS_MACHINE_NAME":"Machine Name",
+    "DIALYSIS_MACHINE_SERIAL_NO":"Machine Serial No",
+    "DIALYSIS_STATION_NAME":"Dialysis Station Name",
+    "DIALYSIS_STATION_ID":"Dialysis Station Id",
+    "DIALYSIS_MACHINE_BRAND_NAME":"Machine Brand Name",
+    "DIALYSIS_MACHINE_MODEL_NO":"Machine Model No",
+    "DIALYSIS_MACHINE_REMOVAL_DATE":"Removal Date",
+    "DIALYSIS_MACHINE_INSTALLATION_DATE":"Installation Date",
+    "COMPANY_ID":"Company Id",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "PATIENT_SURNAME":"Patient Surname",
+    "IDENTITY_NUMBER":"Identity Number",
+    "BIRTH_DATE":"Birth Date",
+    "PATIENT_NUMBER":"Patient Number",
+    "DIABETES_POS_DATE":"Diabetes Post Date",
+    "HEIGHT":"Height",
+    "PHONE":"Phone",
+    "ADDRESS":"Addreess",
+    "CITY":"City",
+    "ACTIVE_FL":"Active",
+    "RECORD_FL":"Record"
+    
+}

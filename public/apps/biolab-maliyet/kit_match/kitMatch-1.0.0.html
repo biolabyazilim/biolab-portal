@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Kit eşleştirme · Maliyet</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+
+    <style>
+        body.km-page { background: var(--hb-bg); color: var(--hb-text); font-family: var(--hb-font); font-size: 14px; }
+        .km-wrap { padding: 20px 24px 32px; }
+
+        .km-head { margin-bottom: 14px; }
+        .km-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--hb-navy); }
+        .km-sub { color: var(--hb-muted); font-size: 12px;
+            background-color: #ffc0cb3b;
+            border-radius: 10px;
+            width: fit-content;}
+
+        /* Sekmeler (testCost ile aynı) */
+        .km-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+        .km-tab { padding: 7px 14px; border: 1px solid var(--hb-border); border-radius: 999px; background: #fff;
+                  color: var(--hb-text); font-size: 13px; font-weight: 600; cursor: pointer; }
+        .km-tab .km-count { margin-left: 4px; font-weight: 700; }
+        .km-tab.active { background: var(--hb-navy); border-color: var(--hb-navy); color: #fff; }
+        .km-tab.km-tab-warn { background: #fff8ea; border-color: #e0b25a; color: #7a4f00; }
+        .km-tab.km-tab-warn.active { background: #9a6200; border-color: #9a6200; color: #fff; }
+
+        /* Filtre satırı: Bootstrap form-row + col-*; gap yok, satır arası row-gap */
+        .km-filters { margin: 0 0 12px; padding: 10px 6px; row-gap: 8px; align-items: center;
+                      background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; }
+        .km-filters select { width: 100%; height: 34px; font-size: 13px; }
+        .km-search-box { position: relative; }
+        .km-search-box .fa-search { position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+                                    color: var(--hb-muted); font-size: 13px; pointer-events: none; }
+        .km-search { width: 100%; height: 34px; padding-right: 32px; font-size: 13px; }
+        .km-search::-webkit-search-cancel-button { display: none; }
+        .km-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+        .km-actions .btn { height: 34px; font-weight: 600; white-space: nowrap; }
+
+        .km-card { background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; overflow: hidden; }
+        .km-card .ui-jqgrid tr.jqgrow td { padding: 6px 8px; vertical-align: middle; white-space: normal; font-size: 13px; }
+        .km-card .ui-jqgrid tr.jqgrow.km-row-checked { background: #eef5fc; }
+        .km-grid-msg { padding: 24px 12px; text-align: center; color: var(--hb-muted); }
+        .km-mono { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+        .km-kit { width: 100%; height: 30px; font-size: 13px; }
+        .km-qty { width: 70px; height: 30px; text-align: right; }
+        .km-chk, .km-chk-all { width: 16px; height: 16px; cursor: pointer; vertical-align: middle; }
+
+        .km-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .km-c-HIGH   { background: #e3f4e9; color: #1e6b3a; }
+        .km-c-MEDIUM { background: #fff1d6; color: #9a6200; }
+        .km-c-NONE   { background: #eceff3; color: #475467; }
+        .km-c-LINKED { background: #e8f1f9; color: #1d4f7c; }
+        .km-linked { display: flex; align-items: center; gap: 6px; }
+        .km-linked .btn-link { padding: 0 4px; color: var(--hb-danger); }
+
+        @media (max-width: 767px) { .km-wrap { padding: 12px; } .km-actions { justify-content: flex-start; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block km-page">
+<div class="autoheight">
+    <div class="container-fluid km-wrap">
+
+        <div class="km-head">
+            <h1 class="km-title" data-tr="PAGE_TITLE">Kit eşleştirme</h1>
+            <div class="km-sub">Kitler testlere ad benzerliğiyle önerilir. Öneriyi kontrol edin, gerekirse kiti değiştirin, seçip bağlayın.
+                Bağlama testin reçetesine hasta başı satır yazar; Test maliyetleri hemen hesaplanır.</div>
+        </div>
+
+        <!-- Güven sekmeleri (getGridList → resObject.counts) -->
+        <div class="km-tabs" id="kmTabs">
+            <button type="button" class="km-tab active" data-tab="HIGH">Yüksek güven · <span class="km-count" data-count="HIGH">0</span></button>
+            <button type="button" class="km-tab km-tab-warn" data-tab="MEDIUM">Orta güven · <span class="km-count" data-count="MEDIUM">0</span></button>
+            <button type="button" class="km-tab" data-tab="NONE">Öneri yok · <span class="km-count" data-count="NONE">0</span></button>
+            <button type="button" class="km-tab" data-tab="LINKED">Kit bağlı · <span class="km-count" data-count="LINKED">0</span></button>
+        </div>
+
+        <div class="km-filters form-row">
+            <div class="col-sm-6 col-lg-3">
+                <select id="F_COST_METHOD" name="F_COST_METHOD" class="form-control" aria-label="Maliyet yöntemi filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-4 km-search-box">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="search" id="SEARCH" class="form-control km-search" placeholder="Kod veya test ara" autocomplete="off" aria-label="Kod veya test ara">
+            </div>
+            <div class="col-sm-12 col-lg-5 km-actions">
+                <button type="button" id="btnLink" class="btn btn-primary" disabled><i class="fas fa-link"></i> Seçilenleri bağla · <span class="js-selected">0</span></button>
+            </div>
+        </div>
+
+        <!-- Aday testler: jqGrid (getGridList). Satırdaki kutu seçer; kit ve miktar satırda değiştirilir. -->
+        <div class="km-card">
+            <table id="jqGrid"></table>
+            <div id="jqGridPager"></div>
+            <div id="gridMsg" class="km-grid-msg" hidden></div>
+        </div>
+
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="js/kitMatch-1.0.0.js?v=1.0.5"></script>
+</body>
+</html>

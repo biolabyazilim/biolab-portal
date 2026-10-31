@@ -1,0 +1,21 @@
+{
+  "BOX_TITLE":"General Wounds",
+  "PAGE_TITLE":"General Wounds",
+  "NAV_TREATMENT":"Treatment",
+  "NAV_PAGE":"General Wounds",
+  "PLEASE_ADD_COMMENT":"Please Add Your Comment",
+  "PLEASE_FILL_COMMENT":"Please fill your comment this question",
+  "PLEASE_FILL_ANSWER":"Please fill your answer this question",
+  "MISSING_PARAMETER":"Please fill missing parameters",
+  "DROP_ZONE_MESSAGE":"Drop files here or click to upload.",
+  "DROP_ZONE_NOTES":"If You want to delete uploaded file then just click it",
+  "FILE_MANAGEMENT":"File Management",
+  "BTN_UPLOAD_FILE":"Upload File",
+  "BTN_SHOW_FILE_LIST":"Show File List",
+  "BTN_REMOVE_FILE":"Remove File",
+  "RIGHT_FL":"R",
+  "BOTH_FL":"B",
+  "LEFT_FL":"L"
+
+
+}

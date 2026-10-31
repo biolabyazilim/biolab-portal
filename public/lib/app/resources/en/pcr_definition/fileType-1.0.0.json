@@ -1,0 +1,19 @@
+{
+    "BOX_TITLE":"¥pcr_file_type",
+    "PAGE_TITLE":"¥pcr_file_type",
+    "FILE_TYPE_ID":"¥FILE_TYPE_ID",
+    "COMPANY_ID":"¥COMPANY_ID",
+    "FILE_TYPE_GROUP_ID":"¥FILE_TYPE_GROUP_ID",
+    "FILE_TYPE_GROUP_NAME":"¥FILE_TYPE_GROUP_NAME",
+    "FILE_TYPE_NAME":"¥FILE_TYPE_NAME",
+    "FILE_TYPE_EXTENSION":"¥FILE_TYPE_EXTENSION",
+    "C_BY":"¥C_BY",
+    "C_AT":"¥C_AT",
+    "U_BY":"¥U_BY",
+    "U_AT":"¥U_AT",
+    "D_BY":"¥D_BY",
+    "D_AT":"¥D_AT",
+    "ACTIVE_FL":"¥ACTIVE_FL",
+    "RECORD_FL":"¥RECORD_FL"
+}
+            

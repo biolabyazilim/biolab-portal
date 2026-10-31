@@ -1,0 +1,9 @@
+{
+    "PAGE_TITLE": "Raporlar",
+    "PAGE_HINT": "Onaylanmış raporlar. Onaylı rapor değiştirilmez; düzeltme uzman onay ekranından yeni revizyon olarak yapılır.",
+    "SEARCH": "Barkod, ad soyad veya dosya no",
+    "APPROVED_BETWEEN": "Onay tarihi",
+    "BLOCK": "Yorum bloğu",
+    "BTN_SEARCH": "Ara",
+    "BTN_CLEAR": "Temizle"
+}

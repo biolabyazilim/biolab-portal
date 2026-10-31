@@ -1,0 +1,15 @@
+{
+    "BOX_TITLE":"Social Security History",
+    "PAGE_TITLE":"Social Security History",
+    "PATIENT_SOCIAL_SECURITY_HISTORY_ID":"Social Security History Id",
+    "COMPANY_ID":"Company Id",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "SOCIAL_SECURITY_ID":"Social Security Id",
+    "SOCIAL_SECURITY_NAME":"Social Security Name",
+    "PATIENT_SOCIAL_SECURITY_HISTORY_NAME":"Social Security History Name",
+    "NAV_PAGE":"Social Security History",
+    "START_DATE": "Start Date",
+    "END_DATE": "End Date"
+}
+            

@@ -1,0 +1,32 @@
+{
+    "BOX_TITLE":"Shifting Plan",
+    "PAGE_TITLE":"Shifting Plan",
+    "NAV_PAGE":"Shifting Plan",
+    "NAV_TREATMENT":"Treatment",
+    "TREATMENT_PLAN_ID":"Treatment Plan Id",
+    "TREATMENT_SESSION_ID":"Treatment Session Id",
+    "TREATMENT_SESSION_NAME":"Treatment Session Name",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "USER_ID":"User Id",
+    "COMPANY_ID":"Company Id",
+    "TREATMENT_PLAN_DATE":"Treatment Plan Date",
+    "C_BY":"¥C_BY",
+    "C_AT":"¥C_AT",
+    "U_BY":"¥U_BY",
+    "U_AT":"¥U_AT",
+    "D_BY":"¥D_BY",
+    "D_AT":"¥D_AT",
+    "ACTIVE_FL":"¥ACTIVE_FL",
+    "RECORD_FL":"¥RECORD_FL",
+    "TREATMENT_PLAN_FORM_NAME":"Shift Planning",
+
+    "INF_WOULD_YOU_LIKE_TO_APLY_SERIES": "Would you like to apply this series?",
+
+    "GRID_PATIENT_NUMBER": "Patient Number",
+    "GRID_PATIENT_NAME": "Name",
+    "GRID_PATIENT_SURNAME": "Surname",
+    "GRID_PATIENT_AGE": "Age",
+    "GRID_BIRTH_DATE": "Birth Date",
+    "GRID_PATIENT_ID": "Patient Id"
+}

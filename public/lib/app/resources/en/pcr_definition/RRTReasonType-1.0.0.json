@@ -1,0 +1,11 @@
+{
+    "BOX_TITLE":"RRT Disease Group",
+    "PAGE_TITLE":"RRT Disease Group",
+    "RRT_REASON_TYPE_ID":"RRT Disease Id",
+    "RRT_REASON_TYPE_NAME":"RRT Disease Group Name",
+    "RRT_REASON_TYPE_CODE":"RRT Disease Group Code",
+    "RRT_REASON_TYPE_IO":"RRT Disease Group IO",
+    "FL_INGOING_TEXT":"Ingoing",
+    "FL_OUTGOING_TEXT":"Outgoing"
+}
+            

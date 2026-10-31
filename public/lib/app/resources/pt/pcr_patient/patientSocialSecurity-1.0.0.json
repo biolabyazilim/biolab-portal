@@ -1,0 +1,14 @@
+{
+    "BOX_TITLE":"Histórico da Previdência Social",
+    "PAGE_TITLE":"Histórico da Previdência Social",
+    "PATIENT_SOCIAL_SECURITY_HISTORY_ID":"Id do Histórico da Previdência Social do Paciente",
+    "COMPANY_ID":"Id da Empresa",
+    "PATIENT_ID":"Id do Paciente",
+    "PATIENT_NAME":"Nome do Paciente",
+    "SOCIAL_SECURITY_ID":"Id da Previdência Social",
+    "SOCIAL_SECURITY_NAME":"Nome da Previdência Social",
+    "PATIENT_SOCIAL_SECURITY_HISTORY_NAME":"Nome do Histórico da Previdência Social do Paciente",
+    "NAV_PAGE":"Histórico da Previdência Social",
+    "START_DATE": "Data de Início",
+    "END_DATE": "Data de Término"
+}

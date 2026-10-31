@@ -1,0 +1,22 @@
+{
+    "BOX_TITLE":"¥pcr_patient_social_security_history",
+    "PAGE_TITLE":"¥pcr_patient_social_security_history",
+    "PATIENT_SOCIAL_SECURITY_HISTORY_ID":"¥PATIENT_SOCIAL_SECURITY_HISTORY_ID",
+    "COMPANY_ID":"¥COMPANY_ID",
+    "PATIENT_ID":"¥PATIENT_ID",
+    "PATIENT_NAME":"¥PATIENT_NAME",
+    "SOCIAL_SECURITY_ID":"¥SOCIAL_SECURITY_ID",
+    "SOCIAL_SECURITY_NAME":"¥SOCIAL_SECURITY_NAME",
+    "PATIENT_SOCIAL_SECURITY_HISTORY_NAME":"¥PATIENT_SOCIAL_SECURITY_HISTORY_NAME",
+    "START_DATE":"¥START_DATE",
+    "END_DATE":"¥END_DATE",
+    "C_BY":"¥C_BY",
+    "C_AT":"¥C_AT",
+    "U_BY":"¥U_BY",
+    "U_AT":"¥U_AT",
+    "D_BY":"¥D_BY",
+    "D_AT":"¥D_AT",
+    "ACTIVE_FL":"¥ACTIVE_FL",
+    "RECORD_FL":"¥RECORD_FL"
+}
+            

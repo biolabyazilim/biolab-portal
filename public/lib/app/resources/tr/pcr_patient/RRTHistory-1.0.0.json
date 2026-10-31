@@ -1,0 +1,25 @@
+{
+    "BOX_TITLE":"¥pcr_rrt_history",
+    "PAGE_TITLE":"¥pcr_rrt_history",
+    "RRT_HISTORY_ID":"¥RRT_HISTORY_ID",
+    "RRT_TYPE_ID":"¥RRT_TYPE_ID",
+    "RRT_TYPE_NAME":"¥RRT_TYPE_NAME",
+    "COMPANY_ID":"¥COMPANY_ID",
+    "START_RRT_REASON_ID":"¥START_RRT_REASON_ID",
+    "RRT_REASON_NAME":"¥RRT_REASON_NAME",
+    "END_RRT_REASON_ID":"¥END_RRT_REASON_ID",
+    "RRT_REASON_NAME":"¥RRT_REASON_NAME",
+    "PATIENT_ID":"¥PATIENT_ID",
+    "PATIENT_NAME":"¥PATIENT_NAME",
+    "START_DATE":"¥START_DATE",
+    "END_DATE":"¥END_DATE",
+    "C_BY":"¥C_BY",
+    "C_AT":"¥C_AT",
+    "U_BY":"¥U_BY",
+    "U_AT":"¥U_AT",
+    "D_BY":"¥D_BY",
+    "D_AT":"¥D_AT",
+    "ACTIVE_FL":"¥ACTIVE_FL",
+    "RECORD_FL":"¥RECORD_FL"
+}
+            

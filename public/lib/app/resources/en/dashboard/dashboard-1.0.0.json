@@ -1,0 +1,21 @@
+{
+  "PAGE_TITLE":"Dashboard",
+
+  "START_DATE":"Start Date",
+  "NAV_PAGE": "Dashboard",
+  "PATIENT_COUNT": "Patient Count",
+  "FROM_LAST_MONTH": "from last month",
+
+  "SESSION_COUNT": "Session Count",
+  "PATIENT_INCOME_COUNT": "Patient Income Count",
+  "SESSION_AVG_COUNT": "Session Average",
+  "INCIDENT_ACCIDENT_BAR_TITLE": "Incident/Accident Monthly Chart",
+
+  "CALENDAR_START_DATE": "Start",
+  "CALENDAR_END_DATE": "End",
+  "CALENDAR_TITLE": "Title",
+  "EENT_COMMENT": "Comment",
+  "EVENT_EDIT_BOX_TITLE": "Event",
+  "EVENT_HEADER": "Event",
+  "DUMMY": ""
+}

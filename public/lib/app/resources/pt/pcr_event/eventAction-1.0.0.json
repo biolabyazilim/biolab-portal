@@ -1,0 +1,17 @@
+{
+    "BOX_TITLE":"Incident Action Reporting",
+    "PAGE_TITLE":"Incident Action Reporting",
+    "EVENT_ACTION_ID":"I. Action Id",
+    "EVENT_ACTION_PLANNED_DATE":"Incident Action Planned Date",
+    "EVENT_ACTION_COMPLETED_DATE":"Incident Action Completed Date",
+    "EVENT_ID":"Event Id",
+    "EVENT_TYPE_NAME":"Incident/Accident Type",
+    "EVENT_ACTION_COMMENT":"Incident Action Comment",
+    "EVENT_ACTION_IS_CLOSED":"Incident Action Is Closed",
+    "USER_ID":"Who Reported",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME_SURNAME":"Patient",
+ 
+    "DUMMY":""
+}
+       

@@ -1,0 +1,149 @@
+/* Biolab Portal — uygulama kartları
+ * Renk ve yazı değerleri ortak temadan gelir (biolab-theme.css, bu dosyadan önce yüklenir). */
+:root {
+    --bp-brand: var(--bl-brand);          /* logo mavisi */
+    --bp-brand-dark: var(--bl-primary);
+    --bp-brand-soft: var(--bl-brand-soft);
+    --bp-bg: var(--bl-bg);
+    --bp-surface: var(--bl-surface);
+    --bp-border: var(--bl-border);
+    --bp-text: var(--bl-text);
+    --bp-muted: var(--bl-muted);
+    --bp-radius: var(--bl-radius-card);
+    --bp-font: var(--bl-font);
+}
+
+html, body { min-height: 100%; }
+body {
+    display: flex; flex-direction: column;
+    min-height: 100vh; margin: 0;
+    background: var(--bp-bg); color: var(--bp-text);
+    font-family: var(--bp-font); font-size: 15px;
+}
+
+.portal-container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+/* Üst bar */
+.portal-header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--bp-border);
+}
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.header-logo img { height: 44px; width: auto; display: block; }
+
+/* BiolApp Store: logonun yanındaki ürün adı */
+.header-brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.header-divider { width: 1px; height: 36px; background: var(--bp-border); flex: 0 0 auto; }
+.header-app { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.header-app:hover { text-decoration: none; }
+.header-app-icon {
+    width: 34px; height: 34px; border-radius: 9px; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--bp-brand) 0%, var(--bp-brand-dark) 100%);
+    color: #fff; font-size: 15px;
+    box-shadow: 0 2px 6px rgba(31, 78, 121, .25);
+}
+.header-app-name { font-size: 21px; font-weight: 700; letter-spacing: -.01em; line-height: 1; color: var(--bp-brand-dark); white-space: nowrap; }
+.header-app-name .accent { color: var(--bp-brand); }
+.header-app-name .light { font-weight: 500; color: var(--bp-muted); }
+.hero-accent { color: #bfe0f7; }
+.header-meta { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--bp-muted); }
+.header-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--bp-brand-soft); color: var(--bp-brand-dark); font-weight: 600;
+}
+
+/* Hero */
+.portal-hero {
+    position: relative; overflow: hidden;
+    padding: 48px 0 96px;
+    color: #fff;
+    background:
+        radial-gradient(600px 300px at 85% -10%, rgba(255, 255, 255, .18), transparent 70%),
+        radial-gradient(500px 260px at 10% 120%, rgba(255, 255, 255, .10), transparent 70%),
+        linear-gradient(135deg, var(--bp-brand) 0%, var(--bp-brand-dark) 100%);
+}
+.hero-eyebrow {
+    margin: 0 0 8px; font-size: 12px; font-weight: 600;
+    letter-spacing: .12em; opacity: .8;
+}
+.hero-title { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -.01em; }
+.hero-subtitle { margin: 8px 0 0; font-size: 16px; opacity: .85; max-width: 560px; }
+
+/* Kartlar — hero'nun üzerine taşar */
+.portal-main { flex: 1; margin-top: -56px; padding-bottom: 48px; position: relative; }
+.app-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.app-message {
+    grid-column: 1 / -1;
+    padding: 24px; border-radius: var(--bp-radius);
+    background: var(--bp-surface); color: var(--bp-muted);
+    box-shadow: 0 10px 30px rgba(15, 40, 70, .08);
+}
+
+.app-card {
+    position: relative;
+    display: flex; align-items: center; gap: 16px;
+    padding: 22px;
+    background: var(--bp-surface);
+    border: 1px solid var(--bp-border); border-radius: var(--bp-radius);
+    box-shadow: 0 10px 30px rgba(15, 40, 70, .08);
+    color: var(--bp-text); text-decoration: none;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+a.app-card[href]:hover, a.app-card[href]:focus {
+    color: var(--bp-text); text-decoration: none;
+    border-color: var(--bp-brand);
+    box-shadow: 0 16px 40px rgba(29, 79, 124, .18);
+    transform: translateY(-3px);
+    outline: none;
+}
+.app-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 56px; height: 56px; border-radius: 14px; flex: none;
+    background: linear-gradient(135deg, var(--bp-brand) 0%, var(--bp-brand-dark) 100%);
+    color: #fff; font-size: 22px;
+    box-shadow: 0 6px 14px rgba(60, 141, 197, .35);
+}
+.app-body { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.app-name { font-weight: 600; font-size: 16px; }
+.app-desc { color: var(--bp-muted); font-size: 13px; margin-top: 3px; line-height: 1.4; }
+.app-arrow {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%; flex: none;
+    background: var(--bp-brand-soft); color: var(--bp-brand);
+    font-size: 13px; transition: background .2s, color .2s;
+}
+a.app-card[href]:hover .app-arrow { background: var(--bp-brand); color: #fff; }
+
+.app-badge {
+    display: none;
+    font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+    background: #fff4e0; color: #9a6200;
+}
+
+/* Henüz açılmamış uygulama */
+.app-card.is-soon { cursor: default; }
+.app-card.is-soon .app-icon { background: #eef2f6; color: #94a3b8; box-shadow: none; }
+.app-card.is-soon .app-name, .app-card.is-soon .app-desc { color: #94a3b8; }
+.app-card.is-soon .app-badge { display: inline-block; }
+.app-card.is-soon .app-arrow { display: none; }
+
+.portal-footer { padding: 20px 0; text-align: center; color: var(--bp-muted); font-size: 12px; border-top: 1px solid var(--bp-border); background: var(--bp-surface); }
+
+@media (max-width: 575px) {
+    .portal-container { padding: 0 16px; }
+    .header-inner { height: 60px; }
+    .header-logo img { height: 34px; }
+    .header-date { display: none; }
+    .header-tag { display: none; }
+    .header-brand { gap: 10px; }
+    .header-divider { height: 28px; }
+    .header-app-icon { display: none; }
+    .header-app-name { font-size: 17px; }
+    .portal-hero { padding: 32px 0 80px; }
+    .hero-title { font-size: 26px; }
+    .app-grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,16 @@
+# HTML sayfaları önbellekten körlemesine açılmasın: tarayıcı her seferinde sunucuya sorar
+# (değişmediyse 304 döner, yine hızlıdır). Böylece sayfadaki ?v= sürüm numaraları hemen etkili olur.
+<IfModule mod_headers.c>
+    <FilesMatch "\.html?$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+    # Uygulama ayar dosyaları (ör. config/apps.json) da her seferinde kontrol edilsin
+    <FilesMatch "\.json$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>
+
+# IIS ayar dosyası (sunucuda kullanılır) Apache'de dışarıya verilmesin
+<Files "web.config">
+    Require all denied
+</Files>

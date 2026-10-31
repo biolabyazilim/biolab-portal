@@ -1,0 +1,11 @@
+{
+    "BOX_TITLE":"Allergy Type",
+    "PAGE_TITLE":"Allergy Type",
+    "ALLERGY_TYPE_ID":"Allergy Type Id",
+    "COMPANY_ID":"Company Id",
+    "PARENT_ALLERGY_TYPE_ID":"Parent Allergy Type Id",
+    "ALLERGY_TYPE_NAME":"Allergy Type",
+    "PARENT_ALLERGY_TYPE_NAME":"Parent Allergy Type",
+    "ALLERGY_TYPE_PRIORTY_LEVEL":"Priority Level"
+}
+            

@@ -1,0 +1,20 @@
+{
+    "BOX_TITLE":"¥pcr_blood_transfusion",
+    "PAGE_TITLE":"¥pcr_blood_transfusion",
+    "BLOOD_TRANSFUSION_ID":"¥BLOOD_TRANSFUSION_ID",
+    "PATIENT_ID":"¥PATIENT_ID",
+    "PATIENT_NAME":"¥PATIENT_NAME",
+    "COMPANY_ID":"¥COMPANY_ID",
+    "BLOOD_PRODUCT_TYPE_ID":"¥BLOOD_PRODUCT_TYPE_ID",
+    "BLOOD_PRODUCT_TYPE_NAME":"¥BLOOD_PRODUCT_TYPE_NAME",
+    "BLOOD_TRANSFUSION_DATE":"¥BLOOD_TRANSFUSION_DATE",
+    "C_BY":"¥C_BY",
+    "C_AT":"¥C_AT",
+    "U_BY":"¥U_BY",
+    "U_AT":"¥U_AT",
+    "D_BY":"¥D_BY",
+    "D_AT":"¥D_AT",
+    "ACTIVE_FL":"¥ACTIVE_FL",
+    "RECORD_FL":"¥RECORD_FL"
+}
+            

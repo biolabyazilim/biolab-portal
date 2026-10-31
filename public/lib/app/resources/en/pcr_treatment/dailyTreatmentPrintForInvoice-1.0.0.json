@@ -1,0 +1,21 @@
+{
+    "NAV_PAGE":"Daily Treatment",
+    "REPORT_HEADER": "Delivered HHC Treatments",
+    "START_DATE": "From ",
+    "END_DATE": " to ",
+
+    "DSPC_NUMBER": "P No",
+    "DTV_PATIENT_NAME_SURNAME": "Patient Name",
+    "DTV_HMC_NUMBER": "S.S. No.",
+    "DTV_TREATMENT_COUNT": "Treatment No",
+    "DTV_TREATMENT_COUNTS": "Treatment Count",
+    "DTV_TREATMENT_DATE": "Treatment Date",
+    "DTV_TREATMENT_MACHINE_NO": "Mach No",
+    "DTV_TOTAL_SESSION_COUNT": "Total Treatment Count:",
+
+    "DTV_SERIAL_NO": "S.No",
+    "DTV_NURSE_NAME_SURNAME": "Nurse Name",
+    "PAGE_NUMBER": "",
+    "PAGE_NUMBER_OF": "",
+    "DUMMY": ""
+}

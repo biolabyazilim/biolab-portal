@@ -1,0 +1,208 @@
+@charset "utf-8";
+@page {
+    margin: 10mm
+}
+
+@media print {
+    button {display: none;}
+    body {margin: 0;}
+    html{
+        font-size: 14px!important;
+        color: #000;
+    }
+    pre{
+        border: none!important;
+    }
+}
+
+html{
+    font-family: Tahoma, Geneva, sans-serif;
+    /*font-size: 11px;*/
+    color: #000;
+}
+body{
+    padding: 3px;
+    margin: 0;
+}
+
+.page-table{
+    position: relative;
+    left:0;
+    top:0;
+    width: 100%;
+    height: 98vh;
+}
+
+
+
+.page-table > tbody > tr> td,
+.page-table > tfoot > tr> td,
+.page-table > thead > tr> th{
+    padding: 0;
+    border: 1px solid #000;
+}
+.page-table > tbody > tr> td{
+    border-bottom: none;
+    border-top: none;
+    padding-bottom: 0;
+}
+.page-table > tbody > tr> td.fixed{
+    max-height: 200px;
+    height: 200px;
+}
+
+.page {
+    page-break-after: always;
+    height: 100%;
+}
+.page-header-space {
+    height: 60px;
+    background-color: white;
+}
+
+.page-footer-space {
+    height: 50px;
+    background-color: white;
+}
+.page-content{
+    width: 100%;
+}
+
+.page .table-bordered.table thead th,
+.page .table-bordered.table tbody td{
+    border-color: #aeaeae !important;
+}
+
+.logo {
+    max-height: 60px;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+/*****************/
+/*
+@media all {
+    .page-break	{ display: none; }
+}
+
+
+!*h1 { string-set: doctitle content() }*!
+@media print {
+    .page-break	{ display: block; page-break-before: always; }
+    @page
+    {
+        size: A4 portrait;
+        margin: 10mm 10mm 10mm 10mm;
+    }
+}
+
+
+
+!*******************!
+.print-header-content{
+    border: solid 2px black;
+    float: left;
+    display: inline-block;
+    width: 100%;
+}
+.print-content{
+    border: solid 1px black;
+    float: left;
+    display: inline-table;
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    !*min-height:100%;*!
+    !*min-height:980px;*!
+
+}
+.print-header-content img{
+    float: left;
+    margin: 3px;
+}
+.print-clinic-name-cont{
+    float: left;
+    padding-left: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+.print-patient-name{
+    float: left;
+
+    font-size: 14px;
+    font-weight: bold;
+}
+.print-form-name-cont{
+    float: right;
+    padding-right: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.print-form-name{
+    float: none;
+}
+.print-form-no{
+    float: right;
+    !*padding-right: 10px;*!
+    font-size: 8px;
+    font-weight: bold;
+    bottom: 0px;
+    position: relative;
+}
+.print-info-cont{
+    margin-top: 10px;
+    float: left;
+    width: 100%;
+}
+.print-row{
+    float: left;
+    width: 100%;
+}
+.print-col{
+
+    width:50%;
+    !* border: solid 1px red;*!
+
+}
+.print-col:first-child{
+    float: left;
+    !* margin-right: 3px;*!
+}
+.print-col:last-child{
+    float: right;
+    !*margin-left: 3px;*!
+}
+.print-item-label{
+    float:left;
+    width:100px;
+    font-weight: bold;
+}
+.print-item-content{
+    float:left;
+
+}
+.table{
+    font-size: 12px;
+}
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > tbody > tr > td,
+.table > tfoot > tr > td {
+    padding: 2px;
+}
+.table > tbody > tr > td.clabel{
+    font-weight: bold;
+}
+.table {
+    margin-bottom: 0px;
+}
+.table-bordered.border-first-no,
+.table-bordered.border-first-no > thead > tr:first-child > th,
+.table-bordered.border-first-no > tbody > tr:first-child > th,
+.table-bordered.border-first-no > tfoot > tr:first-child > th,
+.table-bordered.border-first-no > thead > tr:first-child > td,
+.table-bordered.border-first-no > tbody > tr:first-child > td,
+.table-bordered.border-first-no > tfoot > tr:first-child > td {
+    border-top: none;
+}*/

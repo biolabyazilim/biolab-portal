@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">İş listesi · HbRapor</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/dataTables-1.10.20/DataTables-1.10.20/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+    <!--[if lt IE 9]>
+    <script src="../../../lib/plugins/html5shiv-3.7.3/html5shiv.min.js"></script>
+    <script src="../../../lib/plugins/respond-1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+        body.wl-page { background: var(--hb-bg); color: var(--hb-text); font-family: var(--hb-font); font-size: 14px; }
+        .wl-wrap { max-width: 1240px; padding: 20px 24px 32px; }
+
+        /* Başlık + tarih + çekme */
+        .wl-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+        .wl-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--hb-navy); }
+        .wl-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .wl-tools label { margin: 0; font-size: 12px; color: var(--hb-muted); }
+        .wl-tools .wl-date { width: 150px; flex-wrap: nowrap; }
+        .wl-tools .wl-date .form-control, .wl-tools .wl-date .input-group-text { height: 34px; font-size: 13px; }
+        .wl-tools .datepickerbutton { cursor: pointer; }
+        .wl-btn-fetch { height: 34px; font-weight: 600; border: 1px solid var(--hb-navy); color: var(--hb-navy); background: #fff; }
+        .wl-btn-fetch:hover { background: var(--hb-navy); color: #fff; }
+        .wl-btn-fetch:disabled { opacity: .6; cursor: wait; }
+
+        /* D-10 durum şeridi */
+        .wl-status { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 9px 14px;
+                     border: 1px solid #b7dfc4; border-radius: 6px; background: #e9f6ee; color: #1e6b3a; font-size: 13px; }
+        .wl-status.is-error { border-color: #f1c0bb; background: var(--hb-danger-bg); color: var(--hb-danger); }
+        .wl-status.is-running { border-color: #bcd3ea; background: #eef5fc; color: var(--hb-navy); }
+
+        /* Sekmeler (hap) */
+        .wl-tabs { display: flex; gap: 1px; flex-wrap: wrap; margin-bottom: 14px; }
+        .wl-tab { padding: 7px 14px; border: 1px solid var(--hb-border); border-radius: 999px; background: #fff;
+                  color: var(--hb-text); font-size: 13px; font-weight: 600; cursor: pointer; }
+        .wl-tab .wl-count { margin-left: 4px; font-weight: 700; }
+        .wl-tab.active { background: var(--hb-navy); border-color: var(--hb-navy); color: #fff; }
+        .wl-tab.wl-tab-warn { background: #fff8ea; border-color: #e0b25a; color: #7a4f00; }
+        .wl-tab.wl-tab-warn.active { background: #9a6200; border-color: #9a6200; color: #fff; }
+
+        /* Tablo */
+        .wl-card { background: #fff; border: 1px solid var(--hb-border); border-radius: 10px; overflow: hidden; }
+        .wl-table { width: 100%; margin: 0; font-size: 13px; }
+        .wl-table thead th { padding: 10px 12px; border-bottom: 1px solid var(--hb-border); background: #fafbfc;
+                             color: var(--hb-muted); font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+        .wl-table td { padding: 10px 12px; border-top: 1px solid #edf0f4; vertical-align: middle; }
+        .wl-table tbody tr:first-child td { border-top: 0; }
+        .wl-table tbody tr:hover { background: #f8fafc; }
+        .wl-table tr.wl-row-attention { background: #fffbf2; }
+        .wl-empty td { padding: 32px 12px; text-align: center; color: var(--hb-muted); }
+        .wl-mono { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+        .wl-sub { color: var(--hb-muted); font-size: 12px; }
+        .wl-val-high { color: var(--hb-danger); font-weight: 700; }
+
+        .wl-badge { display: inline-block; margin: 1px 4px 1px 0; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .wl-badge-warn   { background: #fff1d6; color: #9a6200; }
+        .wl-badge-danger { background: #fde8e6; color: var(--hb-danger); }
+        .wl-badge-info   { background: #e8f1f9; color: #1d4f7c; }
+        .wl-badge-ok     { background: #e3f4e9; color: #1e6b3a; }
+        .wl-badge-wait   { background: #eceff3; color: #475467; }
+
+        .wl-btn-row { padding: 4px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; }
+
+        /* Onaylananlar: seçim kutuları ve toplu indirme çubuğu */
+        .wl-check { width: 34px; text-align: center; padding-left: 12px !important; padding-right: 0 !important; }
+        .wl-check input { width: 16px; height: 16px; cursor: pointer; vertical-align: middle; }
+        .wl-table tr.wl-row-checked { background: #eef5fc; }
+        .wl-bulk { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; padding: 8px 12px;
+                   border: 1px solid var(--hb-border); border-radius: 8px; background: #fff; font-size: 13px; }
+        .wl-match-result { padding: 10px 12px; border-radius: 6px; background: var(--bl-warning-bg); }
+
+        @media (max-width: 767px) { .wl-wrap { padding: 12px; } .wl-hide-sm { display: none; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block wl-page">
+<div class="autoheight">
+    <div class="container-fluid wl-wrap">
+
+        <div class="wl-head">
+            <h1 class="wl-title" data-tr="PAGE_TITLE">İş listesi</h1>
+            <div class="wl-tools">
+                <label for="DATE_FROM" data-tr="DATE_RANGE">Tarih</label>
+                <!-- Tarih seçici: lib.js $.DLN.plugin.datePicker (div.date-base → dtp) -->
+                <div class="input-group input-group-sm date date-base wl-date">
+                    <input type="text" class="form-control form-control-sm wl-mono" id="DATE_FROM" name="DATE_FROM"/>
+                    <div class="input-group-append datepickerbutton">
+                        <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                    </div>
+                </div>
+                <span class="wl-sub">–</span>
+                <div class="input-group input-group-sm date date-base wl-date">
+                    <input type="text" class="form-control form-control-sm wl-mono" id="DATE_TO" name="DATE_TO"/>
+                    <div class="input-group-append datepickerbutton">
+                        <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                    </div>
+                </div>
+                <button type="button" id="btnFetch" class="btn wl-btn-fetch">
+                    <i class="fas fa-sync-alt"></i> <span data-tr="BTN_FETCH_DEVICE">Cihazdan şimdi çek</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="d10Status" class="wl-status" role="status">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <span class="wl-status-text">D-10 durumu okunuyor…</span>
+        </div>
+
+        <div class="wl-tabs" id="wlTabs">
+            <!-- İş akışı sırası: cihazdan gelen sonuç önce kabulle eşleşir → onaya düşer → onaylanır -->
+            <button type="button" class="wl-tab wl-tab-warn active" data-tab="unmatched"><span data-tr="TAB_UNMATCHED">Kabulü olmayan sonuç (Dia web'den çekilen sonuçlar)</span> · <span class="wl-count" data-count="unmatched">0</span></button>
+            <button type="button" class="wl-tab" data-tab="pending"><span data-tr="TAB_PENDING">Onay bekleyen</span> · <span class="wl-count" data-count="pending">0</span></button>
+            <button type="button" class="wl-tab" data-tab="waiting"><span data-tr="TAB_WAITING">Sonucu gelmeyen</span> · <span class="wl-count" data-count="waiting">0</span></button>
+            <button type="button" class="wl-tab" data-tab="approved"><span data-tr="TAB_APPROVED">Onaylananlar</span> · <span class="wl-count" data-count="approved">0</span></button>
+            <button type="button" class="wl-tab" data-tab="all"><span data-tr="TAB_ALL">Tüm sonuçlar(BIO-RAD Dia web Hb-Elektroforez) </span> · <span class="wl-count" data-count="all">0</span></button>
+        </div>
+
+        <!-- Onaylananlar: seçilen raporları toplu indirme (Tenay'a yükleme için) -->
+        <div class="wl-bulk" id="wlBulk" hidden>
+            <span><b id="wlSelCount">0</b> rapor seçili</span>
+            <button type="button" id="btnClearSel" class="btn btn-sm btn-link p-0">Seçimi temizle</button>
+            <button type="button" id="btnDownloadSel" class="btn btn-sm btn-primary" disabled>
+                <i class="fas fa-download"></i> Seçilenleri indir
+            </button>
+            <span class="wl-sub">Tek rapor PDF, birden fazlası ZIP olarak iner; dosya adları "SampleID-tarih".</span>
+        </div>
+
+        <div class="wl-card">
+            <div class="table-responsive">
+                <table class="table wl-table" id="wlTable">
+                    <thead id="wlHead"></thead>
+                    <tbody id="wlBody">
+                    <tr class="wl-empty"><td>Yükleniyor…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Numune satırları: onay bekleyen / sonucu gelmeyen / onaylanan -->
+<script id="wlSampleHead-template" type="text/x-handlebars-template">
+    <tr>
+        {{#if selectable}}<th class="wl-check"><input type="checkbox" id="wlCheckAll" title="Tümünü seç"></th>{{/if}}
+        <th>Barkod</th><th>Hasta · yaş</th><th class="wl-hide-sm">Dosya no</th><th>Kabul</th>
+        <th>HbA2</th><th>HbF</th><th>A1c</th><th>Blok</th><th>Dikkat</th><th>Durum</th><th></th>
+    </tr>
+</script>
+<script id="wlSampleRows-template" type="text/x-handlebars-template">
+    {{#each this}}
+    <tr class="{{#if attention}}wl-row-attention{{/if}} {{#if checked}}wl-row-checked{{/if}}" data-id="{{sampleAcceptanceId}}">
+        {{#if selectable}}<td class="wl-check"><input type="checkbox" class="wlCheck" value="{{sampleAcceptanceId}}" {{#if checked}}checked{{/if}}></td>{{/if}}
+        <td class="wl-mono">{{barcode}}{{#if barcodeManual}} <span class="wl-badge wl-badge-warn">elle</span>{{/if}}</td>
+        <td>{{patientName}}<div class="wl-sub">{{gender}} · {{ageText}}</div></td>
+        <td class="wl-mono wl-hide-sm">{{fileNo}}</td>
+        <td class="wl-mono">{{acceptedText}}{{#if injectedText}}<div class="wl-sub">enj. {{injectedText}}</div>{{/if}}</td>
+        <td class="wl-mono {{#if a2High}}wl-val-high{{/if}}">{{a2Text}}</td>
+        <td class="wl-mono {{#if fHigh}}wl-val-high{{/if}}">{{fText}}</td>
+        <td class="wl-mono">{{a1cText}}</td>
+        <td>{{#if blockText}}<span class="wl-badge {{blockCls}}">{{blockText}}</span>{{/if}}</td>
+        <td>{{#each flags}}<span class="wl-badge {{cls}}" title="{{title}}">{{text}}</span>{{/each}}</td>
+        <td><span class="wl-badge {{statusCls}}">{{statusText}}</span></td>
+        <td class="text-right">{{#if canReview}}<button type="button" class="btn btn-sm btn-primary wl-btn-row btnReview" data-id="{{sampleAcceptanceId}}">{{reviewText}}</button>{{/if}}</td>
+    </tr>
+    {{/each}}
+</script>
+
+<!-- Kabulü olmayan sonuçlar -->
+<script id="wlUnmatchedHead-template" type="text/x-handlebars-template">
+    <tr>
+        <th>Sample ID</th><th>Çalışma</th><th>HbA2</th><th>HbF</th><th>A1c</th><th>Cihaz uyarıları</th><th>Olası eşleşme</th><th></th>
+    </tr>
+</script>
+<script id="wlUnmatchedRows-template" type="text/x-handlebars-template">
+    {{#each this}}
+    <tr class="wl-row-attention">
+        <td class="wl-mono">{{sampleId}}</td>
+        <td class="wl-mono">{{injectionText}}</td>
+        <td class="wl-mono">{{a2Text}}</td>
+        <td class="wl-mono">{{fText}}</td>
+        <td class="wl-mono">{{a1cText}}</td>
+        <td>{{#if comment}}<span class="wl-badge wl-badge-warn">{{comment}}</span>{{/if}}{{#each flags}}<span class="wl-badge {{cls}}" title="{{title}}">{{text}}</span>{{/each}}</td>
+        <td>{{#if suggestion}}<span class="wl-badge wl-badge-info">Olası yazım hatası: kabulde {{suggestion}} var</span>{{else}}<span class="wl-sub">Kabul kaydı yok</span>{{/if}}</td>
+        <td class="text-right text-nowrap">
+            <button type="button" class="btn btn-sm btn-primary wl-btn-row btnMatch" data-id="{{deviceResultId}}">Eşleştir</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary wl-btn-row btnNewAcceptance" data-sample-id="{{sampleId}}">Yeni kabul aç</button>
+        </td>
+    </tr>
+    {{/each}}
+</script>
+
+<!-- Tüm sonuçlar: cihazdan gelen her çalışma (kabulü olan/olmayan), çalışma tarihine göre -->
+<script id="wlAllHead-template" type="text/x-handlebars-template">
+    <tr>
+        <th>Sample ID</th><th>Çalışma</th><th>HbA2</th><th>HbF</th><th>A1c</th><th>Cihaz uyarıları</th><th>Kabul</th><th>Durum</th><th></th>
+    </tr>
+</script>
+<script id="wlAllRows-template" type="text/x-handlebars-template">
+    {{#each this}}
+    <tr class="{{#unless matched}}wl-row-attention{{/unless}}">
+        <td class="wl-mono">{{sampleId}}</td>
+        <td class="wl-mono">{{injectionText}}</td>
+        <td class="wl-mono">{{a2Text}}</td>
+        <td class="wl-mono">{{fText}}</td>
+        <td class="wl-mono">{{a1cText}}</td>
+        <td>{{#if comment}}<span class="wl-badge wl-badge-warn">{{comment}}</span>{{/if}}{{#each flags}}<span class="wl-badge {{cls}}" title="{{title}}">{{text}}</span>{{/each}}</td>
+        <td>{{#if matched}}{{patientName}}<div class="wl-sub wl-mono">{{barcode}}{{#if manual}} <span class="wl-badge wl-badge-warn">elle</span>{{/if}}</div>{{else}}<span class="wl-sub">Kabul kaydı yok</span>{{/if}}</td>
+        <td><span class="wl-badge {{statusCls}}">{{statusText}}</span></td>
+        <td class="text-right text-nowrap">
+            {{#if matched}}
+            <button type="button" class="btn btn-sm btn-primary wl-btn-row btnReview" data-id="{{sampleAcceptanceId}}">{{reviewText}}</button>
+            {{else}}
+            <button type="button" class="btn btn-sm btn-primary wl-btn-row btnMatch" data-id="{{deviceResultId}}">Eşleştir</button>
+            {{/if}}
+        </td>
+    </tr>
+    {{/each}}
+</script>
+
+<!-- Kabulü olmayan sonucu bir kabule elle bağlama -->
+<div class="modal fade" id="modalMatch" tabindex="-1" role="dialog" aria-labelledby="modalMatchTitle">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalMatchTitle">Sonucu kabulle eşleştir</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Kapat"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="wl-match-result">
+                    Cihazdaki sonuç: <strong class="wl-mono js-match-sample"></strong>
+                    <div class="wl-sub js-match-detail"></div>
+                </div>
+                <div class="form-group mt-3">
+                    <label for="MATCH_ACCEPTANCE">Bağlanacak kabul</label>
+                    <select id="MATCH_ACCEPTANCE" class="form-control"></select>
+                    <small class="wl-sub">Son 30 günün sonuç bekleyen / onay bekleyen kabulleri</small>
+                </div>
+                <div class="form-group mb-0">
+                    <label for="MATCH_NOTE">Gerekçe</label>
+                    <input type="text" id="MATCH_NOTE" class="form-control" maxlength="200" placeholder="ör. Kabulde barkod yanlış yazılmış">
+                </div>
+                <div id="matchMsg" class="alert alert-danger mt-3 mb-0" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Vazgeç</button>
+                <button type="button" id="btnMatchConfirm" class="btn btn-primary"><i class="fas fa-link"></i> Eşleştir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/DataTables-1.10.20/js/dataTables.bootstrap4.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/workList-1.0.0.js?v=1.0.13"></script>
+</body>
+</html>

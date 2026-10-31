@@ -1,0 +1,26 @@
+{
+    "require": {
+        "symfony/http-client": "^5.4",
+        "ext-zip": "*",
+        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.5",
+        "doctrine/migrations": "^3.9",
+        "symfony/cache": "^8.1",
+        "dompdf/dompdf": "^3.1",
+        "setasign/fpdi": "^2.6",
+        "setasign/fpdf": "^1.9"
+    },
+    "config": {
+        "platform": {
+            "php": "8.5.11"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Biolab\\Model\\": "model/",
+            "Biolab\\Core\\": "core/",
+            "BIO\\": "model/Entity/BIO/",
+            "Biolab\\Migrations\\": "model/migration/"
+        }
+    }
+}

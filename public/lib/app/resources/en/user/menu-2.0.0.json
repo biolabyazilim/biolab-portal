@@ -1,0 +1,16 @@
+{
+    "BOX_TITLE":"Menu Definition",
+    "PAGE_TITLE":"Menu Definition",
+    "MENU_ID":"Menu Id",
+    "PARENT_MENU_ID":"Parent Menu",
+    "PARENT_MENU_NAME":"Parent Menu",
+    "FORM_ID":"Form Id",
+    "FORM_NAME":"Form Name",
+    "MENU_NAME":"Menu Name",
+    "MENU_NAME_EN":"Menu Name EN",
+    "MENU_NAME_COMMENT":"Menu Comment",
+    "MENU_ORDER":"Menu Order",
+    "MENU_GROUP":"Menu Group",
+    "MENU_IN_HEAD_FL":"Menu In Head FL"
+}
+            

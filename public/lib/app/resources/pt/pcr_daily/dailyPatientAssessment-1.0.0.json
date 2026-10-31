@@ -1,0 +1,13 @@
+{
+  "BOX_TITLE":"Avaliação Diária do Paciente",
+  "NAV_PATIENT_CARE":"Cuidados com o Paciente",
+  "NAV_PCR_DAILY":"Tratamento",
+  "NAV_PAGE":"Avaliação Diária do Paciente",
+  "PAGE_TITLE":"Avaliação Diária do Paciente",
+  "DAILY_PATIENT_ASSESSMENT_ID":"Id",
+  "DAILY_PATIENT_ASSESSMENT_RESULT_ID":"Id do Resultado da Avaliação Diária do Paciente",
+  "DAILY_PATIENT_ASSESSMENT_RESULT_NAME":"Resultado da Avaliação",
+  "PATIENT_ID":"Id do Paciente",
+  "DAILY_PATIENT_ASSESSMENT_DATE":"Data",
+  "DAILY_PATIENT_ASSESSMENT_COMMENT":"Comentário"
+}

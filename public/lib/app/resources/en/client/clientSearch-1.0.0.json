@@ -1,0 +1,8 @@
+{
+  "GRID_PATIENT_NUNMBER": "Patient Number",
+  "GRID_PATIENT_NAME": "Name",
+  "GRID_PATIENT_SURNAME": "Surname",
+  "GRID_PATIENT_AGE": "Age",
+  "GRID_BIRTH_DATE": "Birth Date",
+  "GRID_PATIENT_ID": "Patient Id"
+}

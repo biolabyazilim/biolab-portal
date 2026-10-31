@@ -1,0 +1,175 @@
+.fb-uploader{
+    border:solid 1px #eee;
+    display: block;
+    /*min-height: 50px;*/
+    border-radius: 2px;
+    background-color: #f5f5f5;
+    width: 100%;
+    /*padding: 8px;*/
+}
+.fb-uploader .fb-input{
+    position: relative;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    border: 1px solid transparent;
+    /*border-radius: 7px;*/
+    cursor: pointer;
+    overflow: hidden;
+
+    /*border-bottom: solid 1px #aeaeae;*/
+}
+.fb-uploader .fb-input .fb-input-caption{
+    position: relative;
+    display: inline-block;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    -ms-flex-item-align: start;
+    align-self: flex-start;
+    padding: 4px 8px 5px;
+    margin-right: 10px;
+    background: #fff;
+    border: 1px solid #ebeef1;
+    border-radius: 2px;
+    color: #789bec;
+    /*font-weight: 700;*/
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.fb-uploader .fb-input .fb-input-button{
+
+    display: inline-block;
+    margin: 1px 0;
+    padding: 0;
+
+}
+.fb-uploader .fb-input .fb-input-button .input-group label{
+    margin-bottom: 0;
+}
+.fb-uploader .fb-input .fb-input-button .btn.btn-upload{
+    margin-left: 4px;
+}
+.fb-uploader .fb-input .fb-input-button .btn{
+    border-radius: 2px;
+    display: inline-block;
+    padding: 5px 8px 6px;
+    margin: 0;
+    /*width: 100%;*/
+    vertical-align: middle;
+    text-decoration: none;
+    font-weight: normal;
+    line-height: 16px;
+
+    cursor: pointer;
+}
+.fb-uploader .fb-items{
+    display: block;
+}
+.fb-uploader .fb-items ul.fb-item-list{
+    border: solid 1px transparent;
+    display: block;
+    /*margin: 0 0px;*/
+    padding: 0;
+    list-style: none;
+}
+.fb-uploader .fb-items ul.fb-item-list li.fb-item{
+    position: relative;
+    margin: 0 0px;
+    padding: 10px 0px;
+    border-bottom: 1px solid #e2e5e8;
+    animation-duration: .6s;
+}
+
+.fb-uploader .fb-items .fb-item-row{
+
+    /* border-bottom: solid 1px #cccccc;*/
+}
+.fb-uploader .fb-items .fb-item-row .fb-item-row-first{
+    position: relative;
+    /*border: solid 1px red;*/
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+}
+.fb-uploader .fb-items .fb-item-row .fb-item-row-second{
+    position: relative;
+    display: block;
+    width: 100%;
+    /*display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;*/
+    z-index: 2;
+    /*border: solid 1px green;*/
+    padding-top: 5px;
+}
+.fb-uploader .fb-items .fb-item-row .item-thumbnail{
+    position: relative;
+    width: 36px;
+    height: 36px;
+}
+.fb-uploader .fb-items .fb-item-row .item-thumbnail .item-image{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+}
+.fb-uploader .fb-items .fb-item-row .item-thumbnail .item-image .icon{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    color: #fff;
+    font-size: 11px;
+    background: #dd000c;
+    border-radius: 4px;
+    cursor: default;
+    line-height: 34px;
+}
+.fb-uploader .fb-items .fb-item-row .item-thumbnail .icon i{
+    position: absolute;
+    display: block;
+    width: 90%;
+    font-style: normal;
+    font-weight: 700;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.fb-uploader .fb-items .fb-item-row .item-title{
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    padding-left: 16px;
+    padding-right: 16px;
+    color: #74809d;
+    overflow: hidden;
+}
+.fb-uploader .fb-items .fb-item-row .file-name{
+    display: block;
+}
+.fb-uploader .fb-items .fb-item-row .file-size{
+    display: block;
+    font-size: 10px;
+    font-weight: normal;
+}
+.fb-uploader .fb-items .fb-item-row .item-actions{
+    margin: 0 2px;
+    line-height: 34px;
+}
+.fb-uploader .fb-items .fb-item-row .item-actions .action-button i {
+    position: relative;
+    display: inline-block;
+    color: #a3a9b5;
+    cursor: pointer;
+    vertical-align: middle;
+    font-size: 30px;
+}
+.fb-uploader .fb-items .fb-item-row .item-actions a.action-button:hover i{
+    color:red;
+}
+.fb-uploader .progress {
+    margin-bottom: 0px;
+}

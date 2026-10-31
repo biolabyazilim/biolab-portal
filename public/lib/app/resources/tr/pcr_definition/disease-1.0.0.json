@@ -1,0 +1,13 @@
+{
+    "BOX_TITLE":"Disease Definition",
+    "PAGE_TITLE":"Disease Definition",
+    "DISEASE_ID":"Disease Id",
+    "CC_QUESTION_ID":"Charson C.I Question Id",
+    "CC_QUESTION_NAME":"Charson C.I Question Name",
+    "PARENT_DISEASE_ID":"Parent Disease Id",
+    "DISEASE_NAME":"Disease Name",
+    "COMPANY_ID":"Company Id",
+    "PARENT_DISEASE_NAME":"Parent Disease Name",
+    "CHARSON_INDEX_SCORE":"Charson Index Score"
+}
+            

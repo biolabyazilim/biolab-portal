@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Dashboard · HbRapor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+    <!--[if lt IE 9]>
+    <script src="../../../lib/plugins/html5shiv-3.7.3/html5shiv.min.js"></script>
+    <script src="../../../lib/plugins/respond-1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+
+    <style>
+        body.db-page { background: var(--hb-bg); color: var(--hb-text); font-family: var(--hb-font); font-size: 14px; }
+        .db-wrap { max-width: 1240px; padding: 20px 24px 32px; }
+
+        .db-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+        .db-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--hb-navy); }
+        .db-sub { color: var(--hb-muted); font-size: 13px; }
+
+        .db-card { background: #fff; border: 1px solid #e3e8ef; border-radius: 10px; box-shadow: 0 4px 14px rgba(15, 40, 70, .05); }
+        .db-card-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #edf0f4; }
+        .db-card-head h2 { margin: 0; font-size: 14px; font-weight: 700; color: var(--hb-navy); }
+        .db-card-body { padding: 14px 16px; }
+
+        /* Sayaç kartları */
+        .db-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
+        .db-kpi { display: flex; align-items: center; gap: 14px; padding: 16px; cursor: pointer; transition: border-color .15s, transform .15s; }
+        .db-kpi:hover { border-color: var(--hb-navy); transform: translateY(-2px); }
+        .db-kpi-icon { width: 46px; height: 46px; border-radius: 12px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 19px; }
+        .db-kpi-value { font-size: 28px; font-weight: 700; line-height: 1; }
+        .db-kpi-label { margin-top: 4px; color: var(--hb-muted); font-size: 12.5px; }
+        .db-kpi.warn .db-kpi-icon  { background: #fff1d6; color: #9a6200; }
+        .db-kpi.info .db-kpi-icon  { background: #e8f1f9; color: #1d4f7c; }
+        .db-kpi.wait .db-kpi-icon  { background: #eceff3; color: #475467; }
+        .db-kpi.ok .db-kpi-icon    { background: #e3f4e9; color: #1e6b3a; }
+
+        .db-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .db-chart { position: relative; height: 260px; }
+        .db-chart-sm { position: relative; height: 190px; }
+
+        .db-stat { display: flex; align-items: baseline; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #edf0f4; }
+        .db-stat:last-child { border-bottom: 0; }
+        .db-stat b { font-size: 18px; color: var(--hb-navy); }
+        .db-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+        .db-dot.ok { background: #1e9b4f; } .db-dot.err { background: #c0392b; }
+
+        .db-table { width: 100%; margin: 0; font-size: 13px; }
+        .db-table th { padding: 9px 16px; background: #fafbfc; color: #667085; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid #e3e8ef; }
+        .db-table td { padding: 9px 16px; border-top: 1px solid #edf0f4; vertical-align: middle; }
+        .db-table tbody tr { cursor: pointer; }
+        .db-table tbody tr:hover { background: #f8fafc; }
+        .db-mono { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+        .db-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #e3f4e9; color: #1e6b3a; }
+        .db-empty { padding: 26px 16px; text-align: center; color: var(--hb-muted); }
+
+        @media (max-width: 991px) { .db-kpis { grid-template-columns: repeat(2, 1fr); } .db-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body class="hb-frame-page frame-block db-page">
+<input type="hidden" id="clientId" name="clientId"/>
+
+<div class="container-fluid db-wrap">
+    <div class="db-head">
+        <div>
+            <h1 class="db-title">Hoş geldiniz<span class="js-user-fullname-wrap">, <span class="js-user-fullname"></span></span></h1>
+            <div class="db-sub">Hb Elektroforez · <span class="js-today"></span></div>
+        </div>
+        <div class="db-sub">Sayılar son 30 günü kapsar · kartlara tıklayınca iş listesi açılır</div>
+    </div>
+
+    <!-- Sayaç kartları: iş akışı sırasıyla -->
+    <div class="db-kpis">
+        <div class="db-card db-kpi warn" data-tab="unmatched">
+            <span class="db-kpi-icon"><i class="fas fa-unlink"></i></span>
+            <div><div class="db-kpi-value" data-count="unmatched">–</div><div class="db-kpi-label">Kabulü olmayan sonuç</div></div>
+        </div>
+        <div class="db-card db-kpi info" data-tab="pending">
+            <span class="db-kpi-icon"><i class="fas fa-user-md"></i></span>
+            <div><div class="db-kpi-value" data-count="pending">–</div><div class="db-kpi-label">Onay bekleyen</div></div>
+        </div>
+        <div class="db-card db-kpi wait" data-tab="waiting">
+            <span class="db-kpi-icon"><i class="fas fa-hourglass-half"></i></span>
+            <div><div class="db-kpi-value" data-count="waiting">–</div><div class="db-kpi-label">Sonucu gelmeyen</div></div>
+        </div>
+        <div class="db-card db-kpi ok" data-tab="approved">
+            <span class="db-kpi-icon"><i class="fas fa-file-medical"></i></span>
+            <div><div class="db-kpi-value" data-count="approvedToday">–</div><div class="db-kpi-label">Bugün onaylanan rapor</div></div>
+        </div>
+    </div>
+
+    <div class="db-grid">
+        <div class="db-card">
+            <div class="db-card-head"><h2>Son 14 gün</h2><span class="db-sub">Cihaz çalışması ve onaylanan rapor</span></div>
+            <div class="db-card-body"><div class="db-chart"><canvas id="chartDays"></canvas></div></div>
+        </div>
+        <div class="db-card">
+            <div class="db-card-head"><h2>Özet</h2><span class="db-sub">Son 30 gün</span></div>
+            <div class="db-card-body">
+                <div class="db-stat"><span>Onaylanan rapor</span><b data-stat="reports30">–</b></div>
+                <div class="db-stat"><span>Ort. sonuç süresi <small class="db-sub">(çalışma → onay)</small></span><b data-stat="tat">–</b></div>
+                <div class="db-stat"><span>D-10 bağlantısı</span><span data-stat="fetch" class="db-sub">–</span></div>
+                <div class="db-chart-sm mt-2"><canvas id="chartBlocks"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="db-card">
+        <div class="db-card-head"><h2>Son onaylanan raporlar</h2><a href="#" class="db-sub js-open-reports">Tümü <i class="fas fa-angle-right"></i></a></div>
+        <table class="table db-table">
+            <thead><tr><th>Onay</th><th>Barkod</th><th>Hasta</th><th>Blok</th><th>Rev.</th><th>Onaylayan</th></tr></thead>
+            <tbody id="dbRecent"><tr><td colspan="6" class="db-empty">Yükleniyor…</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/plugins/chart.js-3.1.1/chart.min.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="./js/dashboard-1.0.0.js?v=1.1.0"></script>
+</body>
+</html>

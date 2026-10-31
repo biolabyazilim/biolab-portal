@@ -1,0 +1,28 @@
+{
+  "INCIDENT_NOTIFICATION_TITLE": "INCIDENT NOTIFICATION",
+  "WHERE_IN": "Location :",
+  "WHO_INTERVENTED": "Report made by :",
+  "PATIENT_ID": "Patient Id",
+  "PATIENT_NAME": "Patient Name",
+  "PATIENT_SURNAME": "Patient Surname",
+  "GENDER": "Gender",
+  "PATIENT_NAME_SURNAME": "Name/Surname of Patient :",
+  "BIRTH_DATE": "Date of Birth",
+  "ADDRESS": "Address of patient :",
+  "HMC_NUMBER": "Health Insurance data :",
+  "USER_ID": "Responsible person :",
+  "EVENT_DATE": "Date of incident :",
+  "EVENT_TIME": "Time of Incident :",
+  "WHAT_WAS_DOING": "Site of incident:",
+  "DESCRIPTION": "Description of the incident :",
+  "DETAILS_TITLE": "DETAILS",
+  "WITNESS": "Name(s) of witness(es) :",
+  "INJURED_BODY_PART": "Injured body part(s) :",
+  "TYPE_OF_INJURY": "Type of injury",
+  "ACTION_IF_ANY": "Immediate action taken :",
+  "EXISTING_PREVENTION": "Existing / Preventive measures/ Planned measures :",
+  "REPORT_DATE": "Date :",
+  "PHYSCIAN_USER_ID": "Sign of responsible physician/manager"
+
+
+}

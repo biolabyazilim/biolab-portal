@@ -1,0 +1,14 @@
+{
+    "BOX_TITLE":"Temperature And Humidity Check",
+    "PAGE_TITLE":"Temperature And Humidity Check",
+    "NAV_PAGE":"Temperature And Humidity Check",
+    "PATIENT_PLACE_CONDITION_ID":"Id",
+    "PATIENT_PLACE_TYPE_ID":"Type",
+    "PATIENT_PLACE_TYPE_NAME":"Type Name",
+    "PATIENT_ID":"Patient Id",
+    "PATIENT_NAME":"Patient Name",
+    "PATIENT_PLACE_CONDITION_DATE":"Date",
+    "PATIENT_PLACE_CONDITION_TEMP":"Temperature",
+    "PATIENT_PLACE_CONDITION_HUMUDITY":"Humudity"
+}
+            

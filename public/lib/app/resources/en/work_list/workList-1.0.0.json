@@ -1,0 +1,17 @@
+{
+    "PAGE_TITLE":"Work list",
+    "DATE_RANGE":"Date",
+    "BTN_FETCH_DEVICE":"Fetch from device now",
+
+    "TAB_PENDING":"Awaiting approval",
+    "TAB_UNMATCHED":"Results without acceptance",
+    "TAB_WAITING":"Awaiting result",
+    "TAB_APPROVED":"Approved",
+
+    "STATUS_WAITING":"Awaiting result",
+    "STATUS_RESULTED":"Awaiting approval",
+    "STATUS_RERUN":"Re-run",
+    "STATUS_APPROVED":"Approved",
+    "STATUS_REPORTED":"Reported",
+    "STATUS_REJECTED":"Rejected"
+}

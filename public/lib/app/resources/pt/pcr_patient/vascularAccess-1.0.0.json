@@ -1,0 +1,21 @@
+{
+    "BOX_TITLE":"Acesso Vascular",
+    "PAGE_TITLE":"Acesso Vascular",
+    "VASCULAR_ACCESS_ID":"Id do Acesso Vascular",
+    "PATIENT_ID":"Id do Paciente",
+    "PATIENT_NAME":"Nome do Paciente",
+    "VASCULAR_ACCESS_LOCATION_ID":"Id da Localização do Acesso Vascular",
+    "VASCULAR_ACCESS_LOCATION_NAME":"Nome da Localização do Acesso Vascular",
+    "PRIMARY_FL": "É Primário",
+    "COMPANY_ID":"Id da Empresa",
+    "VASCULAR_ACCESS_TYPE_ID":"Id do Tipo de Acesso Vascular",
+    "VASCULAR_ACCESS_TYPE_NAME":"Nome do Tipo de Acesso Vascular",
+    "LOCK_SOLUTION_NAME":"Nome da Solução de Selagem",
+    "LOCK_SOLUTION_AMOUNT_VEIN":"Quantidade da Solução de Selagem na Veia",
+    "LOCK_SOLUTION_AMOUNT_ARTERY":"Quantidade da Solução de Selagem na Artéria",
+    "START_DATE":"Data de Início",
+    "APPLICATION_DATE":"Data do Primeiro Uso",
+    "TERMINATION_DATE":"Data do Fim do Uso",
+    "NAV_PAGE": "Acesso Vascular",
+    "VATR_NAME":"Motivo da Terminação do Acesso Vascular"
+}
