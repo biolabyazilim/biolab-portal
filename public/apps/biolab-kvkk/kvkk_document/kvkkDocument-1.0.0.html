@@ -47,10 +47,10 @@
         <div class="row">
 
             <!-- Sol: belge listesi -->
-            <div class="col-lg-7">
+            <div class="col-lg-6 col-sm-6">
                 <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title" data-tr="LIST_TITLE">Belgeler</h3>
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" data-tr="LIST_TITLE" >Belgeler</h3>
                     </div>
                     <div class="card-body">
 
@@ -84,9 +84,9 @@
             </div>
 
             <!-- Sağ: belge formu ve PDF versiyonları -->
-            <div class="col-lg-5 kv-col-form">
+            <div class="col-lg-6 col-sm-6 kv-col-form">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header" style="background-color: #c53cb61f">
                         <h3 class="card-title" data-tr="FORM_TITLE">Belge bilgisi</h3>
                     </div>
                     <div class="card-body">
@@ -135,7 +135,27 @@
                         <button type="button" class="btn btn-sm btn-success btn-new" id="btnNewDocument"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">Yeni</span></button>
                         <button type="button" class="btn btn-sm btn-default btn-cancel" id="btnCancelDocument"><i class="fas fa-ban"></i> <span data-tr="BTN_CANCEL_TEXT">İptal</span></button>
                         <button type="button" class="btn btn-sm btn-danger btn-delete" id="btnDeleteDocument"><i class="fas fa-trash-alt"></i> <span data-tr="BTN_DELETE_TEXT">Sil</span></button>
-                        <button type="button" class="btn btn-sm btn-primary" id="btnSaveDocument"><i class="fas fa-save"></i> <span data-tr="BTN_SAVE_TEXT">Kaydet</span></button>
+                        <!-- Kaydet: seçili belgeyi günceller (seçili yoksa ekler) · Ekle: her zaman yeni belge ekler (D.Sys menuWithTree düzeni) -->
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnSaveDocument">
+                                <i class="fas fa-save"></i>
+                                <span data-tr="BTN_SAVE_TEXT">Kaydet</span>
+                            </button>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggleDocument">
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right btn-add">
+                                    <a class="dropdown-item btn-add" href="javascript:">
+                                        <button class="btn btn-sm btn-primary btn-add" type="button" id="btnAddDocument">
+                                            <i class="fas fa-plus"></i>
+                                            <span data-tr="BTN_ADD_TEXT">Ekle</span>
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -169,6 +189,6 @@
 <script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
 <script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
-<script src="js/kvkkDocument-1.0.0.js?v=1.0.1"></script>
+<script src="js/kvkkDocument-1.0.0.js?v=1.0.2"></script>
 </body>
 </html>

@@ -111,6 +111,13 @@ body {
 .hb-btn-ghost:hover { background: rgba(255, 255, 255, .12); }
 .hb-btn-ghost:disabled { opacity: .6; cursor: wait; }
 
+/* Üst bardaki "KVKK yayın sayfası" bağlantısı (düğme görünümünde) */
+.kv-public-link { margin: 0 8px 0 0; color: #fff; text-decoration: none; white-space: nowrap; }
+.kv-public-link:hover, .kv-public-link:focus { color: #fff; text-decoration: none; }
+@media (max-width: 767px) {
+    .kv-public-link .kv-public-text { display: none; }   /* dar ekranda yalnızca ikon */
+}
+
 .hb-app-main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px; }
 .hb-panel {
     padding: 24px;
