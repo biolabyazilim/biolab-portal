@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!--
+    Biolab — KVKK sayfası (herkese açık, giriş yok)
+    Adres: https://kvkk.biolabltd.com.tr  (biolabltd.com.tr'deki KVKK butonu buraya gelir)
+
+    Sayfa boş iskelettir; başlıklar ve belgeler js/kvkk.js ile php/api.php'den (JSON) alınıp #kvkkTree içine çizilir.
+    Başlık ve belge görünümü aşağıdaki <template> etiketlerindedir; JS her başlık / belge için bunları kopyalayıp doldurur.
+    Açılıp kapanma tarayıcının kendi <details>/<summary> etiketiyle olur (ayrı JS gerekmez).
+    PDF bağlantıları php/doc.php?k=<anahtar> biçimindedir ve yeni sekmede açılır.
+-->
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KVKK · Biolab Laboratuvarlar Grubu</title>
+    <meta name="description" content="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Biolab politikaları, aydınlatma metinleri ve açık rıza metinleri.">
+    <!-- Dışarıya giden bağlantılarda bu sayfanın adresi gönderilmesin -->
+    <meta name="referrer" content="no-referrer">
+    <link rel="icon" type="image/png" href="img/biolab-mark.png">
+
+    <!-- Dışarıdan font / ikon kütüphanesi yüklenmez (ziyaretçi verisi üçüncü taraflara gitmesin); ikonlar sayfadaki SVG'ler -->
+    <link rel="stylesheet" href="css/kvkk.css?v=2.2.0">
+</head>
+<body>
+
+<!-- Üst çubuk: ortada büyük logo ve kurum adı, sağ üstte ana siteye dönüş -->
+<header class="kv-topbar">
+    <div class="kv-wrap kv-topbar-inner">
+        <a href="https://www.biolabltd.com.tr" class="kv-logo" title="Biolab ana sayfa">
+            <img src="img/biolab-logo.png" alt="Biolab Laboratuvarlar Grubu">
+        </a>
+        <div class="kv-brand-name">BİOLAB</div>
+        <a href="https://www.biolabltd.com.tr" class="kv-back">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+            biolabltd.com.tr
+        </a>
+    </div>
+</header>
+
+<!-- Başlık alanı: logo mavisi zemin -->
+<section class="kv-hero">
+    <div class="kv-wrap">
+        <span class="kv-eyebrow">KVKK</span>
+       <!-- <h1 class="kv-hero-title">Kişisel Verilerin Korunması</h1> -->
+        <p class="kv-hero-text">
+            6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) kapsamında kişisel verileri işlenen belgelere aşağıdan ulaşabilirsiniz.
+        </p>
+    </div>
+</section>
+
+<main class="kv-wrap kv-main">
+    <div class="kv-panel">
+
+        <!-- Veri gelene kadar görünür; js/kvkk.js veriyi alınca gizler -->
+        <div id="kvkkLoading" class="kv-state">
+            <span class="kv-spinner" aria-hidden="true"></span> Yükleniyor…
+        </div>
+
+        <!-- Yayında hiç belge yoksa -->
+        <div id="kvkkEmpty" class="kv-state" hidden>Şu anda yayında belge bulunmamaktadır.</div>
+
+        <!-- Sunucuya ulaşılamazsa -->
+        <div id="kvkkError" class="kv-state kv-state-error" role="alert" hidden>
+            Belgeler şu anda yüklenemedi. Lütfen daha sonra tekrar deneyin.
+        </div>
+
+        <!-- Başlık ağacı buraya çizilir -->
+        <div id="kvkkTree" class="kv-tree"></div>
+
+    </div>
+</main>
+
+<!-- Alt: veri sorumlusu iletişim bilgisi -->
+<footer class="kv-footer">
+    <div class="kv-wrap kv-footer-inner">
+        <div>
+            <div class="kv-footer-label">Veri sorumlusu</div>
+            <strong>BİOLAB ÖZEL SAĞLIK HİZMETLERİ VE TİC. LTD. ŞTİ.</strong><br>
+            1399 Sok. No: 8/1-B Alsancak – İZMİR
+        </div>
+        <div>
+            <div class="kv-footer-label">İletişim</div>
+            Tel: 0232 464 91 91<br>
+            <a href="mailto:info@biolabltd.com.tr">info@biolabltd.com.tr</a>
+        </div>
+    </div>
+</footer>
+
+
+<!--
+    Başlık şablonu (her başlık için bir kopya). İçine önce belgeleri, sonra alt başlıkları koyar.
+      .kv-node-name  → başlık adı
+      .kv-node-desc  → açıklama (yoksa gizli), ör. "İş, yardım, burs vb. başvuru alanı değildir"
+      .kv-docs       → bu başlığın belgeleri (belge şablonu)
+      .kv-children   → alt başlıklar (yine bu şablon)
+-->
+<template id="tplNode">
+    <details class="kv-node">
+        <summary class="kv-node-head">
+            <!-- Solda ince logo mavisi şerit (açık başlıkta dolu renk) -->
+            <span class="kv-node-icon" aria-hidden="true"></span>
+            <span class="kv-node-text">
+                <span class="kv-node-name"></span>
+                <span class="kv-node-desc"></span>
+            </span>
+            <span class="kv-node-chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+            </span>
+        </summary>
+        <div class="kv-node-body">
+            <ul class="kv-docs"></ul>
+            <div class="kv-children"></div>
+        </div>
+    </details>
+</template>
+
+<!--
+    Belge şablonu (her PDF için bir kopya).
+      a[href]        → php/doc.php?k=<anahtar> (her zaman son versiyon)
+      .kv-doc-name   → belge adı
+-->
+<template id="tplDocument">
+    <li class="kv-doc">
+        <a class="kv-doc-link" href="#" target="_blank" rel="noopener">
+            <span class="kv-doc-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+                <span>PDF</span>
+            </span>
+            <span class="kv-doc-name"></span>
+            <span class="kv-doc-open">
+                Görüntüle
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+            </span>
+        </a>
+    </li>
+</template>
+
+<!-- jQuery ve ajaxq portaldan kopyalandı (bu site portalın lib klasörüne erişemez) -->
+<script src="js/lib/jquery-3.1.1.min.js"></script>
+<script src="js/lib/jquery.ajaxq.min.js"></script>
+<script src="js/kvkk.js?v=1.2.0"></script>
+</body>
+</html>

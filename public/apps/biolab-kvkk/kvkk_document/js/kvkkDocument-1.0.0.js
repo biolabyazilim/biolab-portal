@@ -101,6 +101,7 @@ $.DLNFrame = {
         $('#btnCancelDocument').click($t.clickCancelDocument);
         $('#btnDeleteDocument').click($t.clickDeleteDocument);
         $('#btnSaveDocument').click($t.clickSaveDocument);
+        $('#btnAddDocument').click($t.clickAddDocument);
 
         $('#FILTER_NODE_ID').on('change', $t.clickQGrid);
         $('#btnGridSearch').click($t.clickQGrid);
@@ -160,8 +161,8 @@ $.DLNFrame = {
             ],
             pager: '#jqGridPager',
             fluidHeight:false,
-            height:'360',
-            rowNum: 20,
+            height:'400',
+            rowNum: 25,
             rowList: [10, 20, 50, 100],
             onSelectRow: function (rowid) {
                 const data = $(this).getRowData(rowid);
@@ -345,20 +346,22 @@ $.DLNFrame = {
         $t.setButtonAfterSelectDocument();
     },
 
-    // Yeni kayıt durumu: form boş, sadece Kaydet ve İptal açık
+    // Yeni kayıt durumu: form boş, Kaydet / Ekle ve İptal açık
     setButtonAfterNewDocument: function () {
         $('#btnNewDocument').prop('disabled', true);
         $('#btnCancelDocument').prop('disabled', false);
         $('#btnDeleteDocument').prop('disabled', true);
         $('#btnSaveDocument').prop('disabled', false);
+        $('#btnAddToggleDocument').prop('disabled', false);
     },
 
-    // Listeden belge seçildi: güncelleme ve silme açık
+    // Listeden belge seçildi: güncelleme, silme ve (formdaki bilgilerle) yeni ekleme açık
     setButtonAfterSelectDocument: function () {
         $('#btnNewDocument').prop('disabled', false);
         $('#btnCancelDocument').prop('disabled', false);
         $('#btnDeleteDocument').prop('disabled', false);
         $('#btnSaveDocument').prop('disabled', false);
+        $('#btnAddToggleDocument').prop('disabled', false);
     },
 
     // Yeni: form temizlenir. Listede bir başlık süzülmüşse yeni belgenin başlığı o olarak gelir
@@ -466,6 +469,84 @@ $.DLNFrame = {
                             $.ajaxq('frame',
                                 {
                                     url: proxyPath + modulePath + 'setSave',
+                                    type: 'POST',
+                                    dataType: 'json',
+                                    data: new FormData($($t.opt.editFormDocument)[0]),
+                                    processData: false,
+                                    contentType: false,
+                                    beforeSend: function () {
+                                        $('.frame-block').blk();
+                                    },
+                                    success: function (result) {
+                                        if (result != null && result['resCode'] === 0) {
+                                            $.fn.ntyi({ type: 'information',layout: 'topRight',text: result['resCode'] + ' : ' + result['resMsg']});
+                                            $t.clickQGrid();
+                                            $d.selectedId = result['resObject']['DOCUMENT_ID'];
+                                            $t.getSelectedId();
+                                        }else{
+                                            $.fn.ntyp({
+                                                type: 'error',
+                                                text: $d.lang['INF_ERROR']+': #' + result['resCode'] + ' : ' + result['resMsg'],
+                                                modal: true,
+                                                buttons: [
+                                                    {
+                                                        addClass: 'btn btn-sm btn-danger',
+                                                        text: $d.lang['BTN_OK_TEXT'],
+                                                    }
+                                                ]
+                                            })
+                                        }
+                                    },
+                                    complete: function () {
+                                        $('.frame-block').ublk();
+                                    },
+                                    error: function (xhr) {
+                                        $('.frame-block').ublk();
+                                        $.fn.ntyp({
+                                            type: 'error',
+                                            text: xhr,
+                                            modal: true,
+                                            buttons: [
+                                                {
+                                                    addClass: 'btn btn-sm btn-danger',
+                                                    text: $d.lang['BTN_OK_TEXT'],
+                                                }
+                                            ]
+                                        })
+                                    }
+                                }
+                            );
+                        }
+                    },
+                    {
+                        text: $d.lang['BTN_NO_TEXT'],
+                    }
+                ]
+            });
+        }
+    },
+
+    // Ekle: formdaki bilgilerle her zaman YENİ belge eklenir (seçili belge değişmez) (setAdd).
+    // Yeni belgede PDF zorunlu; form doğrulaması seçili belgede dosyayı istemediği için burada ayrıca bakılır.
+    clickAddDocument: function () {
+        const $t = $.DLNFrame;
+        const $d = $t.data;
+        if ($('#DOCUMENT_FILE').val() === '') {
+            $.fn.ntyi({ type: 'error',layout: 'topRight',text: $d.lang['ERR_DOCUMENT_FILE']});
+            return;
+        }
+        if($($t.opt.editFormDocument).valid()) {
+            $.fn.nty({
+                type: 'information',
+                text: $d.lang['INF_ADD_WARNING_MESSAGE'],
+                buttons: [
+                    {
+                        text: $d.lang['BTN_YES_TEXT'],
+                        onClick: function($noty){
+                            $noty.close();
+                            $.ajaxq('frame',
+                                {
+                                    url: proxyPath + modulePath + 'setAdd',
                                     type: 'POST',
                                     dataType: 'json',
                                     data: new FormData($($t.opt.editFormDocument)[0]),

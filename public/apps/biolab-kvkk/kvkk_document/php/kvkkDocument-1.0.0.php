@@ -8,6 +8,7 @@
  *   getFileGridList  → seçili belgenin PDF versiyonları (jqGrid)
  *   getFilePdf       → bir versiyonun PDF'ini yeni sekmede açmak için adres (/api/pdf.php?t=…)
  *   setSave          → belge ekle / güncelle; PDF seçildiyse yeni versiyon olarak ekler (multipart/form-data)
+ *   setAdd           → formdaki bilgilerle her zaman yeni belge ekler (setSave ile aynı kod)
  *   setDelete        → belgeyi siler (RECORD_FL = 0) ve yayından kaldırır; PDF'leri arşivde kalır
  *
  * Bütün kayıtlar oturumdaki şirkete göredir (COMPANY_ID). C_BY/U_BY/D_BY ve tarihler AuditListener ile dolar.
@@ -244,6 +245,10 @@ switch ($query) {
             $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
         }
         break;
+
+    // Ekle: formda seçili bir belge olsa bile yeni belge eklenir. DOCUMENT_ID boşaltılıp setSave'e devam edilir (break yok).
+    case "setAdd":
+        $_POST["DOCUMENT_ID"] = "";
 
     case "setSave":
         $execType = ET_SAVE;

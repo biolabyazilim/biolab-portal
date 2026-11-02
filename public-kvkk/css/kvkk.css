@@ -1,0 +1,415 @@
+/*
+ * Biolab — KVKK sayfası görünümü (public-kvkk/index.html)
+ *
+ * Düzen: üstte beyaz çubuk (logo), altında logo mavisi geçişli başlık alanı,
+ * onun üzerine binen beyaz panelde açılır-kapanır başlık listesi ve PDF satırları, en altta iletişim.
+ * Renkler Biolab logosundan alındı (logo mavisi #3A8AC4; portal temasında --bl-brand #3C8DC5).
+ * Dışarıdan font yüklenmez; sistem yazı tipi kullanılır.
+ */
+
+/* ---------- Renkler ve ölçüler ---------- */
+:root {
+    --kv-brand:        #3C8DC5;   /* logo mavisi: vurgu, ikon, başlık alanı */
+    --kv-brand-dark:   #1F6FA8;   /* koyu ton: başlık alanı geçişi, bağlantı yazısı */
+    --kv-brand-deep:   #154F7A;   /* en koyu: başlıklar, üzerine gelince */
+    --kv-brand-soft:   #EAF4FB;   /* açık zemin: ikon kutusu, satır üzerine gelince */
+    --kv-brand-line:   #CFE3F2;   /* ağaç çizgisi, ince kenarlıklar */
+    --kv-bg:           #F4F7FB;   /* sayfa zemini */
+    --kv-surface:      #FFFFFF;   /* panel, kart */
+    --kv-border:       #E3E8EF;
+    --kv-text:         #1E293B;
+    --kv-muted:        #64748B;   /* açıklama, alt bilgi */
+    --kv-pdf:          #D9534F;   /* PDF etiketi */
+    --kv-danger:       #B42318;
+    --kv-danger-bg:    #FDE8E6;
+    --kv-radius:       12px;
+    --kv-radius-sm:    8px;
+    --kv-width:        980px;     /* içerik genişliği */
+    --kv-font:         "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- Genel ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+    background: var(--kv-bg);
+    color: var(--kv-text);
+    font-family: var(--kv-font);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    /* İçerik kısa olsa da alt bilgi sayfanın dibinde dursun */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.kv-main { flex: 1 0 auto; width: 100%; }
+
+/* hidden özniteliği her zaman gizlesin (aşağıdaki display kuralları ezmesin) */
+[hidden] { display: none !important; }
+
+a { color: var(--kv-brand-dark); }
+
+/* Bütün SVG ikonlar: çizgi ikon, rengi yazı renginden */
+svg {
+    width: 1em;
+    height: 1em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Sayfa içeriğini ortalayan kap */
+.kv-wrap {
+    max-width: var(--kv-width);
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ---------- Üst çubuk ---------- */
+.kv-topbar {
+    background: var(--kv-surface);
+    border-bottom: 1px solid var(--kv-border);
+}
+
+.kv-topbar-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 18px;
+    padding-bottom: 14px;
+    text-align: center;
+}
+
+/* Logo ortada ve büyük. Not: logo dosyası 219×63 px; daha büyüğü bulanıklaşır (yüksek çözünürlüklü/SVG logo gelirse büyütülebilir) */
+.kv-logo img {
+    display: block;
+    height: 63px;
+    width: auto;
+}
+
+/* Logonun altında kurum adı */
+.kv-brand-name {
+    margin-top: 8px;
+    color: var(--kv-text);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+
+/* Ana siteye dönüş: sağ üst köşede küçük bağlantı */
+.kv-back {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--kv-muted);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.kv-back:hover { color: var(--kv-brand-dark); }
+
+/* ---------- Başlık alanı (logo mavisi) ---------- */
+.kv-hero {
+    padding: 18px 0 50px;   /* alttaki boşluğa beyaz panel biner */
+    background: linear-gradient(135deg, var(--kv-brand) 0%, var(--kv-brand-dark) 100%);
+    color: #FFFFFF;
+}
+
+.kv-eyebrow {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .18);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .12em;
+}
+
+.kv-hero-title {
+    margin: 8px 0 4px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.kv-hero-text {
+    /*max-width: 640px;*/
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, .88);
+}
+
+/* ---------- İçerik paneli ---------- */
+.kv-main {
+    margin-top: -34px;      /* başlık alanının üzerine biner */
+    padding-bottom: 28px;
+}
+
+.kv-panel {
+    padding: 6px;
+    border: 1px solid var(--kv-border);
+    border-radius: var(--kv-radius);
+    background: var(--kv-surface);
+    box-shadow: 0 12px 32px rgba(21, 79, 122, .10);
+}
+
+/* Yükleniyor / belge yok / hata mesajı */
+.kv-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 22px 16px;
+    color: var(--kv-muted);
+    text-align: center;
+}
+
+.kv-state-error {
+    margin: 4px;
+    border-radius: var(--kv-radius-sm);
+    background: var(--kv-danger-bg);
+    color: var(--kv-danger);
+}
+
+/* Yükleniyor dönen halkası */
+.kv-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--kv-brand-line);
+    border-top-color: var(--kv-brand);
+    border-radius: 50%;
+    animation: kv-spin .8s linear infinite;
+}
+
+@keyframes kv-spin { to { transform: rotate(360deg); } }
+
+/* ---------- Başlık (<details class="kv-node">) ---------- */
+.kv-node + .kv-node {
+    border-top: 1px solid var(--kv-border);
+}
+
+/* Tıklanan satır */
+.kv-node-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: var(--kv-radius-sm);
+    cursor: pointer;
+    list-style: none;          /* tarayıcının kendi üçgen işaretini kaldırır */
+    user-select: none;
+    transition: background-color .15s ease;
+}
+
+.kv-node-head::-webkit-details-marker { display: none; }   /* Safari / eski Chrome üçgeni */
+
+.kv-node-head:hover { background: var(--kv-brand-soft); }
+
+.kv-node-head:focus-visible {
+    outline: 2px solid var(--kv-brand);
+    outline-offset: 2px;
+}
+
+/* Soldaki ince logo mavisi şerit: kapalıyken açık ton, açıkken dolu renk */
+.kv-node-icon {
+    flex: 0 0 auto;
+    align-self: stretch;
+    width: 4px;
+    min-height: 20px;
+    border-radius: 4px;
+    background: var(--kv-brand-line);
+    transition: background-color .2s ease;
+}
+
+.kv-node-head:hover .kv-node-icon,
+.kv-node[open] > .kv-node-head .kv-node-icon {
+    background: var(--kv-brand);
+}
+
+/* Başlık adı ve altında açıklama */
+.kv-node-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.kv-node-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--kv-brand-deep);
+}
+
+.kv-node-desc {
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--kv-muted);
+}
+
+.kv-node-desc:empty { display: none; }
+
+/* Sağdaki ok: kapalıyken sağa, açıkken aşağı bakar */
+.kv-node-chevron {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--kv-muted);
+    font-size: 18px;
+    transition: transform .2s ease, color .2s ease;
+}
+
+.kv-node[open] > .kv-node-head .kv-node-chevron {
+    transform: rotate(90deg);
+    color: var(--kv-brand);
+}
+
+/* Açılan içerik: belgeler ve alt başlıklar, solda ince mavi çizgiyle girintili */
+.kv-node-body {
+    margin: 0 0 6px 13px;    /* soldaki şeridin hizasında çizgi */
+    padding-left: 14px;
+    border-left: 2px solid var(--kv-brand-line);
+}
+
+/* Alt başlıklar arasında çizgi yok, daha sıkı */
+.kv-children .kv-node + .kv-node { border-top: 0; }
+.kv-children .kv-node-head { padding: 7px 12px; }
+.kv-children .kv-node-icon { min-height: 16px; }
+.kv-children .kv-node-name { font-size: 14px; }
+.kv-children .kv-node-body { margin-left: 13px; }
+
+/* ---------- Belgeler (PDF bağlantıları) ---------- */
+.kv-docs {
+    margin: 4px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.kv-docs:empty { display: none; }
+
+.kv-doc-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: var(--kv-radius-sm);
+    color: var(--kv-text);
+    text-decoration: none;
+    transition: background-color .15s ease;
+}
+
+.kv-doc-link:hover { background: var(--kv-brand-soft); }
+
+.kv-doc-link:focus-visible {
+    outline: 2px solid var(--kv-brand);
+    outline-offset: 2px;
+}
+
+/* PDF ikonu ve küçük "PDF" yazısı */
+.kv-doc-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    color: var(--kv-pdf);
+    font-size: 18px;
+    line-height: 1;
+}
+
+.kv-doc-icon span {
+    margin-top: 1px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+
+.kv-doc-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 14px;
+}
+
+/* Sağdaki "Görüntüle ↗" (üzerine gelince belirginleşir) */
+.kv-doc-open {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    color: var(--kv-brand-dark);
+    font-size: 13px;
+    font-weight: 600;
+    opacity: .7;
+    transition: opacity .15s ease;
+}
+
+.kv-doc-link:hover .kv-doc-open { opacity: 1; }
+
+/* ---------- Alt: iletişim ---------- */
+.kv-footer {
+    border-top: 1px solid var(--kv-border);
+    background: var(--kv-surface);
+    color: var(--kv-muted);
+    font-size: 13px;
+}
+
+.kv-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 48px;
+    padding-top: 16px;
+    padding-bottom: 20px;
+}
+
+.kv-footer-label {
+    margin-bottom: 4px;
+    color: var(--kv-brand);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.kv-footer strong { color: var(--kv-text); font-weight: 600; }
+
+/* ---------- Tablet ---------- */
+@media (max-width: 900px) {
+    .kv-wrap { padding: 0 16px; }
+}
+
+/* ---------- Telefon ---------- */
+@media (max-width: 600px) {
+    body { font-size: 14px; }
+    .kv-wrap { padding: 0 12px; }
+
+    .kv-topbar-inner { padding-top: 14px; padding-bottom: 10px; }
+    .kv-logo img { height: 46px; }
+    .kv-brand-name { margin-top: 6px; font-size: 17px; }
+    .kv-back { display: none; }   /* dar ekranda logo zaten ana siteye götürüyor */
+
+    .kv-hero { padding: 14px 0 42px; }
+    .kv-hero-title { font-size: 20px; }
+    .kv-hero-text { font-size: 13px; }
+
+    .kv-main { margin-top: -28px; padding-bottom: 20px; }
+    .kv-panel { padding: 4px; border-radius: 10px; }
+
+    .kv-node-head { gap: 10px; padding: 8px; }
+    .kv-node-name { font-size: 14px; }
+    .kv-node-body { margin-left: 9px; padding-left: 10px; }
+    .kv-children .kv-node-head { padding: 6px 8px; }
+    .kv-children .kv-node-body { margin-left: 9px; }
+
+    .kv-doc-link { padding: 6px 8px; }
+    .kv-doc-name { font-size: 13px; overflow-wrap: anywhere; }
+    .kv-doc-open { display: none; }   /* dar ekranda yalnızca ad; satırın tamamı tıklanır */
+
+    .kv-footer-inner { gap: 10px; padding-top: 12px; padding-bottom: 16px; font-size: 12px; }
+}
