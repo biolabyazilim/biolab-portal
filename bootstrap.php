@@ -10,7 +10,7 @@ require __DIR__ . '/vendor/autoload.php';
 $settings = require __DIR__ . '/config.php';
 
 $config = ORMSetup::createAttributeMetadataConfiguration(
-    paths: [__DIR__ . '/model/Entity'],
+    paths: [__DIR__ . '/model/Entity/BIO'],   // model/Entity/QMS ayrı veritabanında (bootstrap-qms.php)
     isDevMode: $settings['dev_mode'],
 );
 //$config->setNamingStrategy(new UnderscoreNamingStrategy(CASE_LOWER, true));

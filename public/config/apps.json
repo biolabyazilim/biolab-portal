@@ -35,6 +35,16 @@
       "url": "./apps/biolab-kvkk/login.html",
       "status": "active",
       "target": "_blank"
+    },
+
+    {
+      "code": "QMS",
+      "name": "Biolab QMS",
+      "description": "Management of documents",
+      "icon": "fa-file-signature",
+      "url": "./apps/biolab-qms/login.html",
+      "status": "active",
+      "target": "_blank"
     }
   ]
 }

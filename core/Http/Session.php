@@ -6,13 +6,16 @@ namespace Biolab\Core\Http;
 /**
  * Portal ve içindeki bütün uygulamalar (HB Elektroforez vb.) aynı oturumu kullanır.
  * Çerez kök yola (/) yazılır; 30 dk işlem yapılmazsa oturum kapanır.
+ * Biolab QMS ayrı veritabanı ve ayrı kullanıcılarla çalıştığı için kendi oturumunu kullanır (QMS_NAME):
+ * portaldaki USER_ID ile QMS'teki USER_ID farklı kişiler olabilir, aynı oturumda karışmamalı.
  */
 final class Session
 {
     public const NAME         = 'BIOLABSID';
-    public const IDLE_MINUTES = 30;
+    public const QMS_NAME     = 'BIOLABQMSSID';
+    public const IDLE_MINUTES = 20;
 
-    public static function start(): void
+    public static function start(string $name = self::NAME): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
@@ -24,7 +27,7 @@ final class Session
         ini_set('session.use_only_cookies', '1');
         ini_set('session.gc_maxlifetime', (string) (self::IDLE_MINUTES * 60));
 
-        session_name(self::NAME);
+        session_name($name);
         session_set_cookie_params([
             'lifetime' => 0,
             'path'     => '/',
