@@ -51,6 +51,7 @@ class Position
     public function getDepartment(): ?Department   { return $this->department; }
     public function setDepartment(?Department $v): self { $this->department = $v; return $this; }
     public function getCode(): string              { return $this->code; }
+    public function setCode(string $v): self      { $this->code = $v; return $this; }
     public function getPositionName(): string      { return $this->positionName; }
     public function setPositionName(string $v): self { $this->positionName = $v; return $this; }
 }

@@ -8,9 +8,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Biolab\Model\Common\Qms\QmsAuditTrait;
 
 /**
- * Doküman tipi (ör. İSG Talimatı, Prosedür, Risk Değerlendirmesi). Kalite bir kez tanımlar, sistemin geri kalanı
- * bu tanımdan çalışır:
- *   CODE_PATTERN     yeni doküman kodu bu kalıba uymalı (regex, ör. ^İSG-TL-\d{3}$); öneri için CODE_PREFIX kullanılır
+ * Doküman tipi (ör. Talimat, Prosedür, Liste). Kalite bir kez tanımlar, sistemin geri kalanı bu tanımdan çalışır:
+ *   CATEGORY_ID      tipin göründüğü klasör (ör. TALİMATLAR); dokümanın klasörü buradan gelir
+ *   CODE_PREFIX      kodun öneki (ör. TL); toplu yüklemede dosya adındaki koddan tip bulunur
+ *   CODE_PATTERN     doküman kodu bu kalıba uymalı (regex, ör. ^TL\d{2,3}$); kod kalite uzmanınca girilir, sistem üretmez
+ *   EXTERNAL_FL      'Y': dış kaynaklı doküman (GBF, mevzuat, kılavuz); şablon yok, tek adımlı kalite kontrolü
  *   TEMPLATE_FILE    şirketin antetli Word şablonu (yer tutucular: ${doc_no}, ${rev_no}, ${approved_sign} …)
  *   REVIEW_MONTHS    yürürlüğe girişten kaç ay sonra gözden geçirilecek
  *   RETENTION_YEARS  geçersiz olan revizyon kaç yıl saklanacak
@@ -34,8 +36,12 @@ class DocType
     #[ORM\JoinColumn(name: 'COMPANY_ID', referencedColumnName: 'COMPANY_ID', nullable: false)]
     private ?Company $company = null;              // COMPANY_ID → mng_company
 
+    #[ORM\ManyToOne(targetEntity: DocCategory::class)]
+    #[ORM\JoinColumn(name: 'CATEGORY_ID', referencedColumnName: 'CATEGORY_ID', nullable: false)]
+    private DocCategory $category;                 // CATEGORY_ID → qms_doc_category
+
     #[ORM\Column(length: 20, options: ['collation' => 'Turkish_CI_AS'])]
-    private string $codePrefix;                    // CODE_PREFIX (ör. İSG-TL; öneri: İSG-TL-015)
+    private string $codePrefix;                    // CODE_PREFIX (ör. TL)
 
     #[ORM\Column(length: 150, options: ['collation' => 'Turkish_CI_AS'])]
     private string $docTypeName;                   // DOC_TYPE_NAME
@@ -58,8 +64,12 @@ class DocType
     #[ORM\Column(length: 1, options: ['fixed' => true, 'default' => 'Y'])]
     private string $readAckFl = 'Y';               // READ_ACK_FL
 
-    public function __construct(string $codePrefix, string $docTypeName, string $codePattern)
+    #[ORM\Column(length: 1, options: ['fixed' => true, 'default' => 'N'])]
+    private string $externalFl = 'N';              // EXTERNAL_FL
+
+    public function __construct(DocCategory $category, string $codePrefix, string $docTypeName, string $codePattern)
     {
+        $this->category    = $category;
         $this->codePrefix  = $codePrefix;
         $this->docTypeName = $docTypeName;
         $this->codePattern = $codePattern;
@@ -68,6 +78,10 @@ class DocType
     public function getDocTypeId(): ?int           { return $this->docTypeId; }
     public function getCompany(): ?Company         { return $this->company; }
     public function setCompany(Company $v): self   { $this->company = $v; return $this; }
+    public function getCategory(): DocCategory     { return $this->category; }
+    public function setCategory(DocCategory $v): self { $this->category = $v; return $this; }
+    public function isExternal(): bool             { return $this->externalFl === 'Y'; }
+    public function setExternal(bool $v): self     { $this->externalFl = $v ? 'Y' : 'N'; return $this; }
     public function getCodePrefix(): string        { return $this->codePrefix; }
     public function getDocTypeName(): string       { return $this->docTypeName; }
     public function setDocTypeName(string $v): self { $this->docTypeName = $v; return $this; }

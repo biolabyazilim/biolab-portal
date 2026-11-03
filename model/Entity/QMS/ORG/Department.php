@@ -44,6 +44,7 @@ class Department
     public function getCompany(): ?Company         { return $this->company; }
     public function setCompany(Company $v): self   { $this->company = $v; return $this; }
     public function getCode(): string              { return $this->code; }
+    public function setCode(string $v): self      { $this->code = $v; return $this; }
     public function getDepartmentName(): string    { return $this->departmentName; }
     public function setDepartmentName(string $v): self { $this->departmentName = $v; return $this; }
 }

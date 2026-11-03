@@ -1,0 +1,40 @@
+{
+    "PAGE_TITLE":"Organizasyon",
+    "LIST_TITLE":"Organizasyon tanımları",
+    "FORM_TITLE":"Tanım bilgisi",
+
+    "TYPE":"Tanım türü",
+    "TYPE_DEPARTMENT":"Departmanlar",
+    "TYPE_POSITION":"Pozisyonlar",
+    "TYPE_LOCATION":"Lokasyonlar",
+    "FORM_TITLE_DEPARTMENT":"Departman Kaydı",
+    "FORM_TITLE_POSITION":"Pozisyon Kaydı",
+    "FORM_TITLE_LOCATION":"Lokasyon Kaydı",
+    "SHOW_PASSIVE":"Pasifleri de göster",
+
+    "CODE":"Kod",
+    "NAME":"Adı",
+    "NAME_DEPARTMENT":"Departman Adı",
+    "NAME_POSITION":"Pozisyon Adı",
+    "NAME_LOCATION":"Lokasyon Adı",
+    "DEPARTMENT_ID":"Departman",
+    "DEPARTMENT_NAME":"Departman",
+    "DEPARTMENT_NONE":"Şirket geneli (departmansız)",
+    "ACTIVE_FL":"Aktif",
+    "STATUS_ACTIVE":"Aktif",
+    "STATUS_PASSIVE":"Pasif",
+
+    "INFO_DEPARTMENT":"Departmanlar doküman sahipliği ve dağıtım için kullanılır.",
+    "INFO_POSITION":"Pozisyonlar imza yetki matrisinin temelidir: kim hangi dokümanı hazırlayabilir, kontrol edebilir, onaylayabilir. Genel Müdür gibi şirket geneli pozisyonlarda departman boş bırakılır.",
+    "INFO_LOCATION":"Lokasyonlar dağıtım için kullanılır (ör. bir talimat yalnızca bir laboratuvara açılır).",
+    "INFO_PASSIVE":"Kullanılmış bir tanım silinemez; pasife alın. Pasif tanım yeni seçimlerde çıkmaz, geçmiş kayıtlarda görünmeye devam eder.",
+
+    "ERR_REQUIRED":"Kod ve ad girilmeli.",
+    "ERR_LENGTH":"Kod en fazla 20, ad en fazla 150 karakter olabilir.",
+    "ERR_CODE":"Kodu girin.",
+    "ERR_NAME":"Adı girin.",
+    "ERR_CODE_TAKEN":"%s kodu zaten kullanılıyor (pasif ya da silinmiş bir kayıtta olabilir).",
+    "ERR_DEPARTMENT_NOT_FOUND":"Departman bulunamadı.",
+    "ERR_DEPARTMENT_PASSIVE":"Pasif departman seçilemez.",
+    "ERR_IN_USE":"Bu tanım %d yerde kullanılıyor, silinemez. Kullanılmayacaksa Aktif = Hayır yapıp kaydedin."
+}

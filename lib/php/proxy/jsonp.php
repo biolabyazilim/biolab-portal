@@ -21,7 +21,13 @@ $lang = array();
 //Start session and close writing
 // Girişle aynı oturum (BIOLABSID, 30 dk); varsayılan PHPSESSID açılırsa giriş görülmez
 require_once __DIR__ . '/../../../vendor/autoload.php';
-\Biolab\Core\Http\Session::start();
+// Biolab QMS ekranları (apps/biolab-qms/...) ayrı veritabanı ve ayrı oturumla çalışır:
+// oturum BIOLABQMSSID, EntityManager bootstrap-qms.php (db.inc.php), yetki QmsFormAccess (checkAuthorization)
+$qmsTarget = \Biolab\Core\Auth\FormAccess::targetFromDataSource(
+    (string) explode('@', (string) ($_GET['app'] ?? $_POST['app'] ?? $_GET['uyg'] ?? $_POST['uyg'] ?? ''))[0]
+);
+define('QMS_REQUEST', $qmsTarget !== null && $qmsTarget['app'] === 'biolab-qms');
+\Biolab\Core\Http\Session::start(QMS_REQUEST ? \Biolab\Core\Http\Session::QMS_NAME : \Biolab\Core\Http\Session::NAME);
 //$_SESSION["lang"] = "tr";
 //$_SESSION["langCultureInfo"] = "tr";/**/
 if(!isset($_SESSION["langCultureInfo"])){
@@ -71,8 +77,10 @@ function checkAuthorization(){
 
         // 1. Uygulama yetkisi (bütün uygulamalar): kullanıcının bu uygulamaya ait (mng_role.APP_CODE) bir rolü olmalı.
         // 2. Ekran yetkisi (mng_user_role → mng_role_form → mng_form): yalnızca FormAccess::ENFORCED_APPS'te.
+        // QMS: kullanıcı, rol ve ekran tabloları Biolab_QMS'te; ekran yetkisi her zaman kontrol edilir
         $target = \Biolab\Core\Auth\FormAccess::targetFromDataSource((string) $dataSource);
-        $access = $target !== null ? new \Biolab\Core\Auth\FormAccess($db) : null;
+        $access = $target === null ? null
+            : (QMS_REQUEST ? new \Biolab\Core\Qms\Auth\QmsFormAccess($db) : new \Biolab\Core\Auth\FormAccess($db));
         if ($target !== null && !$access->canEnterApp((int) $_SESSION["USER_ID"], (int) $_SESSION["COMPANY_ID"], $target["app"])) {
             $returnValue = new returnStd();
             $returnValue->resCode = "9997";
@@ -81,7 +89,7 @@ function checkAuthorization(){
             echo $json->encode($returnValue);
             exit;
         }
-        if ($target !== null && \Biolab\Core\Auth\FormAccess::isEnforced($target["app"])
+        if ($target !== null && (QMS_REQUEST || \Biolab\Core\Auth\FormAccess::isEnforced($target["app"]))
             && !$access->canAccess((int) $_SESSION["USER_ID"], (int) $_SESSION["COMPANY_ID"], $target["path"])) {
             $returnValue = new returnStd();
             $returnValue->resCode = "9998";
