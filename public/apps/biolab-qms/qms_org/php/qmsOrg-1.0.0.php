@@ -15,7 +15,8 @@
  * Veritabanı: Biolab_QMS (proxy, apps/biolab-qms isteklerinde bootstrap-qms.php'yi kullanır).
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords, $resourceFile;
 
 use Biolab\Core\Qms\AuditLogger;
 use QMS\ORG\Department;

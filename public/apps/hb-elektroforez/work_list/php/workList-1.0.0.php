@@ -11,7 +11,8 @@
  * Ekran cihaza doğrudan bağlanmaz; çekme kısa adımlarla bu case'ler üzerinden yapılır (cihaz çok yavaş).
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $resourceFile;
 
 use Biolab\Core\Hb\HbReportRules;
 use BIO\BCR\DeviceFetchLog;

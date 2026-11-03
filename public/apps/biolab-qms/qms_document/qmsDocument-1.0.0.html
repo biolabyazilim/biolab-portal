@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Doküman yükleme</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.0.0">
+    <style>
+        .qm-info{ margin-bottom: 8px; font-size: 12px; color: #667085; }
+        .qm-drop{ border: 2px dashed #b9c2d0; border-radius: 8px; padding: 28px 12px; text-align: center; color: #475467; background: #fafbfc; transition: background .15s, border-color .15s; }
+        .qm-drop.is-over{ background: #eef6ff; border-color: #3b82f6; }
+        .qm-drop i{ font-size: 28px; color: #98a2b3; display: block; margin-bottom: 8px; }
+        .qm-badge{ display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .qm-badge-ok   { background: #e3f4e9; color: #1e6b3a; }
+        .qm-badge-err  { background: #fde8e8; color: #9b1c1c; }
+        .qm-badge-wait { background: #fff4d6; color: #8a5a00; }
+        .qm-badge-done { background: #e0ecff; color: #1d4ed8; }
+        .qm-badge-new  { background: #eceff3; color: #475467; }
+        .qm-filters .btn{ font-size: 12px; }
+        .qm-table-wrap{ max-height: 640px; overflow: auto; border: 1px solid #eef0f3; border-radius: 4px; }
+        .qm-table{ width: 100%; font-size: 12px; border-collapse: separate; border-spacing: 0; }
+        .qm-table th{ position: sticky; top: 0; z-index: 1; background: #f7f8fa; color: #475467; font-weight: 600; padding: 6px; border-bottom: 1px solid #e4e7ec; white-space: nowrap; }
+        .qm-table td{ padding: 4px 6px; border-bottom: 1px solid #f2f4f7; vertical-align: top; }
+        .qm-table tr.is-error td{ background: #fff8f8; }
+        .qm-table tr.is-done td{ background: #f5f9ff; color: #667085; }
+        .qm-table input.form-control, .qm-table select.form-control{ height: 26px; padding: 2px 6px; font-size: 12px; }
+        .qm-table .c-code{ width: 80px; } .qm-table .c-rev{ width: 52px; } .qm-table .c-type{ width: 120px; }
+        .qm-table .c-title{ min-width: 190px; } .qm-table .c-variant{ min-width: 120px; }
+        .qm-files{ list-style: none; margin: 0; padding: 0; }
+        .qm-files li{ white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+        .qm-files .qm-x{ color: #b42318; cursor: pointer; margin-right: 4px; }
+        .qm-table td.qm-status{ white-space: nowrap; }
+        .qm-why{ margin-left: 4px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .qm-why.is-err{ color: #b42318; } .qm-why.is-warn{ color: #8a5a00; }
+        .qm-signers div{ white-space: nowrap; } .qm-signers span{ color: #98a2b3; }
+        .qm-summary{ font-size: 12px; color: #475467; }
+        @media (max-width: 991px){ .qm-col-list{ margin-top: 16px; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+        <div class="row">
+
+            <!-- Sol: dosyalar + imza ve sahiplik -->
+            <div class="col-xl-3 col-lg-4">
+                <div class="card">
+                    <div class="card-header" style="background-color: #c53cb61f">
+                        <h3 class="card-title" data-tr="DROP_TITLE">Dosyalar</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="qm-drop" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div data-tr="DROP_TEXT">Klasörü ya da dosyaları buraya sürükleyin</div>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-default" id="btnPickFolder"><i class="fas fa-folder-open"></i> <span data-tr="BTN_PICK_FOLDER">Klasör seç</span></button>
+                                <button type="button" class="btn btn-sm btn-default" id="btnPickFiles"><i class="fas fa-file"></i> <span data-tr="BTN_PICK_FILES">Dosya seç</span></button>
+                            </div>
+                        </div>
+                        <input type="file" id="pickFiles" multiple hidden accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.docx,.doc">
+                        <input type="file" id="pickFolder" multiple hidden webkitdirectory>
+                        <small class="form-text text-muted" data-tr="DROP_INFO"></small>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="SETTINGS_TITLE">İmza ve sahiplik</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="qm-info" data-tr="SETTINGS_INFO"></div>
+                        <div class="form-group"><!--OWNER_DEPARTMENT_ID-->
+                            <label for="OWNER_DEPARTMENT_ID" data-tr="OWNER_DEPARTMENT_ID" class="col-form-label-sm">§§OWNER_DEPARTMENT_ID</label>
+                            <select id="OWNER_DEPARTMENT_ID" class="form-control form-control-sm"></select>
+                        </div>
+                        <div class="form-group"><!--PREPARED_ID-->
+                            <label for="PREPARED_ID" data-tr="PREPARED_ID" class="col-form-label-sm">§§PREPARED_ID</label>
+                            <select id="PREPARED_ID" class="form-control form-control-sm"></select>
+                        </div>
+                        <div class="form-group"><!--CHECKED_ID-->
+                            <label for="CHECKED_ID" data-tr="CHECKED_ID" class="col-form-label-sm">§§CHECKED_ID</label>
+                            <select id="CHECKED_ID" class="form-control form-control-sm"></select>
+                        </div>
+                        <div class="form-group"><!--APPROVED_ID-->
+                            <label for="APPROVED_ID" data-tr="APPROVED_ID" class="col-form-label-sm">§§APPROVED_ID</label>
+                            <select id="APPROVED_ID" class="form-control form-control-sm"></select>
+                            <small class="form-text text-muted" data-tr="EXTERNAL_NOTE"></small>
+                        </div>
+                        <div class="form-group mb-1"><!--CHANGE_REASON (bütün yükleme için)-->
+                            <label for="CHANGE_REASON" data-tr="CHANGE_REASON" class="col-form-label-sm">§§CHANGE_REASON</label>
+                            <input type="text" id="CHANGE_REASON" class="form-control form-control-sm" maxlength="1000"/>
+                        </div>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-primary" id="btnApply"><i class="fas fa-check-double"></i> <span data-tr="BTN_APPLY">Seçili satırlara uygula</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ: kontrol tablosu -->
+            <div class="col-xl-9 col-lg-8 qm-col-list">
+                <div class="card">
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" data-tr="TABLE_TITLE">Kontrol tablosu</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap align-items-center mb-2" style="gap: 8px;">
+                            <div class="btn-group btn-group-sm qm-filters" role="group" id="filters">
+                                <button type="button" class="btn btn-default active" data-filter="ALL" data-tr="FILTER_ALL">Hepsi</button>
+                                <button type="button" class="btn btn-default" data-filter="ERROR" data-tr="FILTER_ERRORS">Hatalı</button>
+                                <button type="button" class="btn btn-default" data-filter="READY" data-tr="FILTER_READY">Hazır</button>
+                                <button type="button" class="btn btn-default" data-filter="DONE" data-tr="FILTER_DONE">Yüklendi</button>
+                            </div>
+                            <span class="qm-summary ml-auto" id="summary"></span>
+                        </div>
+                        <div class="qm-table-wrap">
+                            <table class="qm-table">
+                                <thead><tr>
+                                    <th><input type="checkbox" id="checkAll"></th>
+                                    <th data-tr="COL_STATUS">Durum</th>
+                                    <th data-tr="COL_CODE">Kod</th>
+                                    <th data-tr="COL_TITLE">Doküman adı</th>
+                                    <th data-tr="COL_VARIANT">Varyant</th>
+                                    <th data-tr="COL_REV">Rev</th>
+                                    <th data-tr="COL_TYPE">Tip</th>
+                                    <th data-tr="COL_FILES">Dosyalar</th>
+                                    <th data-tr="COL_OWNER">Sahip</th>
+                                    <th data-tr="COL_SIGNERS">İmzacılar</th>
+                                </tr></thead>
+                                <tbody id="rows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-default" id="btnClear"><i class="fas fa-eraser"></i> <span data-tr="BTN_CLEAR">Temizle</span></button>
+                        <button type="button" class="btn btn-sm btn-default" id="btnCheck"><i class="fas fa-sync-alt"></i> <span data-tr="BTN_CHECK">Yeniden kontrol et</span></button>
+                        <button type="button" class="btn btn-sm btn-primary" id="btnUpload"><i class="fas fa-upload"></i> <span data-tr="BTN_UPLOAD">Hazır satırları yükle</span></button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/qmsDocument-1.0.0.js?v=1.0.5"></script>
+</body>
+</html>

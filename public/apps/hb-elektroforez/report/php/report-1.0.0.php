@@ -10,7 +10,8 @@
  * Onaylı rapor değiştirilmez; düzeltme uzman onay ekranından yeni revizyon olarak yapılır.
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $resourceFile;
 
 use BIO\BCR\SampleReport;
 

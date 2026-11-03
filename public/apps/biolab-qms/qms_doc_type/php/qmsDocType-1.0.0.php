@@ -21,7 +21,8 @@
  * Kayıtlar oturumdaki şirkete göredir; her değişiklik qms_audit_log'a yazılır.
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords, $resourceFile;
 
 use Biolab\Core\Qms\AuditLogger;
 use QMS\DOC\DocCategory;

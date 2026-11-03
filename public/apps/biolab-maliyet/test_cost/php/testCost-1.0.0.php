@@ -15,7 +15,8 @@
  * Hesaplamalı (birleşik) testlerin bileşenleri burada değiştirilmez; maliyetleri bileşenlerin toplamıdır.
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords, $resourceFile;
 
 use Biolab\Core\Mlyt\CostCalculator;
 use BIO\MLYT\Material;

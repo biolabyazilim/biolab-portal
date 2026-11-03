@@ -9,15 +9,18 @@ use Doctrine\ORM\Mapping as ORM;
 use Biolab\Model\Common\Qms\QmsAuditTrait;
 
 /**
- * Dokümanın kimliği (ör. İSG-TL-014 Kimyasal dökülme talimatı). Kod verildikten sonra değişmez;
+ * Dokümanın kimliği (ör. TL14 Kimyasal dökülme talimatı). Kod ve varyant verildikten sonra değişmez;
  * içerik, imza, dağıtım ve okuma kayıtları revizyona bağlıdır (qms_revision).
+ * VARIANT_NAME: aynı kodun alt dokümanı (ör. FR06 altında "Numune alma", "İK"…; paylaşımlı klasörde FR06 bir klasördür).
+ *   Her varyant ayrı dokümandır: imzacıları ve revizyonu kendine aittir. Tek dosyalı dokümanda boştur ('').
+ * DOC_CODE: dış kaynaklı dokümanda (tipte EXTERNAL_FL = 'Y') kuruluşun kodu yoksa boş (NULL) kalabilir.
  * CURRENT_REVISION_ID: yürürlükteki revizyon (ilk yayından önce boş).
  * CONFIDENTIALITY: PUBLIC (dağıtıma göre), CONFIDENTIAL (yalnızca dağıtımda adı geçen kullanıcılar).
  * DOC_STATUS: ACTIVE ya da CANCELLED (gözden geçirmede iptal kararı; revizyonlar arşivde kalır).
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'qms_document')]
-#[ORM\UniqueConstraint(name: 'UQ_qms_document_COMPANY_CODE', columns: ['COMPANY_ID', 'DOC_CODE'])]
+#[ORM\UniqueConstraint(name: 'UQ_qms_document_COMPANY_CODE', columns: ['COMPANY_ID', 'DOC_CODE', 'VARIANT_NAME'])]
 #[ORM\Index(name: 'IX_qms_document_TYPE', columns: ['DOC_TYPE_ID'])]
 class Document
 {
@@ -42,8 +45,11 @@ class Document
     #[ORM\JoinColumn(name: 'DOC_TYPE_ID', referencedColumnName: 'DOC_TYPE_ID', nullable: false)]
     private DocType $docType;                      // DOC_TYPE_ID → qms_doc_type
 
-    #[ORM\Column(length: 30, options: ['collation' => 'Turkish_CI_AS'])]
-    private string $docCode;                       // DOC_CODE (ör. İSG-TL-014)
+    #[ORM\Column(length: 30, nullable: true, options: ['collation' => 'Turkish_CI_AS'])]
+    private ?string $docCode;                      // DOC_CODE (ör. TL14; dosya adından okunur)
+
+    #[ORM\Column(length: 150, options: ['collation' => 'Turkish_CI_AS', 'default' => ''])]
+    private string $variantName = '';              // VARIANT_NAME
 
     #[ORM\Column(length: 250, options: ['collation' => 'Turkish_CI_AS'])]
     private string $docTitle;                      // DOC_TITLE
@@ -65,15 +71,17 @@ class Document
     #[ORM\Column(length: 20, options: ['default' => self::STATUS_ACTIVE])]
     private string $docStatus = self::STATUS_ACTIVE;   // DOC_STATUS
 
-    public function __construct(DocType $docType, string $docCode, string $docTitle, Department $ownerDepartment)
+    public function __construct(DocType $docType, ?string $docCode, string $docTitle, Department $ownerDepartment, string $variantName = '')
     {
-        if (!$docType->matchesCode($docCode)) {
+        $docCode = ($docCode === null || trim($docCode) === '') ? null : trim($docCode);
+        if ($docCode === null ? !$docType->isExternal() : !$docType->matchesCode($docCode)) {
             throw new \InvalidArgumentException('Doküman kodu, doküman tipinin kod kalıbına uymuyor: ' . $docCode);
         }
         $this->docType         = $docType;
         $this->docCode         = $docCode;
         $this->docTitle        = $docTitle;
         $this->ownerDepartment = $ownerDepartment;
+        $this->variantName     = trim($variantName);
     }
 
     public function getDocumentId(): ?int
@@ -84,7 +92,8 @@ class Document
     public function getCompany(): ?Company         { return $this->company; }
     public function setCompany(Company $v): self   { $this->company = $v; return $this; }
     public function getDocType(): DocType          { return $this->docType; }
-    public function getDocCode(): string           { return $this->docCode; }   // kod değişmez: setter yok
+    public function getDocCode(): ?string          { return $this->docCode; }   // kod ve varyant değişmez: setter yok
+    public function getVariantName(): string       { return $this->variantName; }
     public function getDocTitle(): string          { return $this->docTitle; }
     public function setDocTitle(string $v): self   { $this->docTitle = $v; return $this; }
     public function getOwnerDepartment(): Department { return $this->ownerDepartment; }
