@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Kullanıcılar</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.0.0">
+    <style>
+        .qm-info{ margin-bottom: 8px; font-size: 12px; color: #667085; }
+        .qm-badge{ display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .qm-badge-on  { background: #e3f4e9; color: #1e6b3a; }
+        .qm-badge-off { background: #eceff3; color: #475467; }
+        .qm-roles{ display: flex; flex-wrap: wrap; gap: 6px 24px; }
+        .qm-history{ width: 100%; font-size: 12px; }
+        .qm-history th{ color: #667085; font-weight: 600; padding: 4px 6px; border-bottom: 1px solid #eef0f3; }
+        .qm-history td{ padding: 4px 6px; border-bottom: 1px solid #f4f5f7; }
+        @media (max-width: 991px){ .qm-col-list{ margin-top: 16px; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+        <div class="row">
+
+            <!-- Sol: kullanıcı formu (kart + görev + roller; tek Kaydet) -->
+            <div class="col-lg-6 col-sm-6">
+                <form name="editFormUser" id="editFormUser" class="form-horizontal" method="post" action="javascript:" autocomplete="off" novalidate>
+                <input type="hidden" id="USER_ID" name="USER_ID"/>
+                <input type="hidden" id="ACTIVE_FL" name="ACTIVE_FL" value="Y"/>
+
+                <div class="card">
+                    <div class="card-header" style="background-color: #c53cb61f">
+                        <h3 class="card-title" data-tr="FORM_TITLE">Kullanıcı Kaydı</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-5"><!--USERNAME-->
+                                <div class="form-group">
+                                    <label for="USERNAME" data-tr="USERNAME" class="col-form-label-sm">§§USERNAME</label>
+                                    <input type="text" id="USERNAME" name="USERNAME" class="form-control form-control-sm" maxlength="50" autocomplete="off"/>
+                                    <small class="form-text text-muted" data-tr="USERNAME_INFO"></small>
+                                </div>
+                            </div>
+                            <div class="col-sm-7"><!--FULL_NAME-->
+                                <div class="form-group">
+                                    <label for="FULL_NAME" data-tr="FULL_NAME" class="col-form-label-sm">§§FULL_NAME</label>
+                                    <input type="text" id="FULL_NAME" name="FULL_NAME" class="form-control form-control-sm" maxlength="100"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5"><!--TITLE-->
+                                <div class="form-group">
+                                    <label for="TITLE" data-tr="TITLE" class="col-form-label-sm">§§TITLE</label>
+                                    <input type="text" id="TITLE" name="TITLE" class="form-control form-control-sm" maxlength="50"/>
+                                    <small class="form-text text-muted" data-tr="TITLE_INFO"></small>
+                                </div>
+                            </div>
+                            <div class="col-sm-7"><!--REGISTRY_NO-->
+                                <div class="form-group">
+                                    <label for="REGISTRY_NO" data-tr="REGISTRY_NO" class="col-form-label-sm">§§REGISTRY_NO</label>
+                                    <input type="text" id="REGISTRY_NO" name="REGISTRY_NO" class="form-control form-control-sm" maxlength="20"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5"><!--PHONE-->
+                                <div class="form-group">
+                                    <label for="PHONE" data-tr="PHONE" class="col-form-label-sm">§§PHONE</label>
+                                    <input type="tel" id="PHONE" name="PHONE" class="form-control form-control-sm" maxlength="20" placeholder="05321234567"/>
+                                    <small class="form-text text-muted" data-tr="PHONE_INFO"></small>
+                                </div>
+                            </div>
+                            <div class="col-sm-7"><!--EMAIL-->
+                                <div class="form-group">
+                                    <label for="EMAIL" data-tr="EMAIL" class="col-form-label-sm">§§EMAIL</label>
+                                    <input type="email" id="EMAIL" name="EMAIL" class="form-control form-control-sm" maxlength="150"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5"><!--PASSWORD-->
+                                <div class="form-group">
+                                    <label for="PASSWORD" data-tr="PASSWORD" class="col-form-label-sm">§§PASSWORD</label>
+                                    <input type="password" id="PASSWORD" name="PASSWORD" class="form-control form-control-sm" autocomplete="new-password"/>
+                                    <small class="form-text text-muted" id="passwordInfo"></small>
+                                </div>
+                            </div>
+                            <div class="col-sm-7 pt-4"><!--ACTIVE_FL (onay kutusu → gizli Y/N)-->
+                                <div class="custom-control custom-checkbox mt-2">
+                                    <input type="checkbox" class="custom-control-input" id="CB_ACTIVE_FL" checked>
+                                    <label class="custom-control-label" for="CB_ACTIVE_FL" data-tr="ACTIVE_FL">Aktif</label>
+                                </div>
+                                <small class="form-text text-muted" data-tr="ACTIVE_INFO"></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Görev: tarihli. Değişirse eski görev kapanır, yenisi açılır -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="ASSIGN_TITLE">Görev</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-6"><!--DEPARTMENT_ID-->
+                                <div class="form-group">
+                                    <label for="DEPARTMENT_ID" data-tr="DEPARTMENT_ID" class="col-form-label-sm">§§DEPARTMENT_ID</label>
+                                    <select id="DEPARTMENT_ID" name="DEPARTMENT_ID" class="form-control form-control-sm"></select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6"><!--POSITION_ID-->
+                                <div class="form-group">
+                                    <label for="POSITION_ID" data-tr="POSITION_ID" class="col-form-label-sm">§§POSITION_ID</label>
+                                    <select id="POSITION_ID" name="POSITION_ID" class="form-control form-control-sm"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6"><!--LOCATION_ID-->
+                                <div class="form-group">
+                                    <label for="LOCATION_ID" data-tr="LOCATION_ID" class="col-form-label-sm">§§LOCATION_ID</label>
+                                    <select id="LOCATION_ID" name="LOCATION_ID" class="form-control form-control-sm"></select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6"><!--ASSIGN_DATE-->
+                                <div class="form-group">
+                                    <label for="ASSIGN_DATE" data-tr="ASSIGN_DATE" class="col-form-label-sm">§§ASSIGN_DATE</label>
+                                    <input type="date" id="ASSIGN_DATE" name="ASSIGN_DATE" class="form-control form-control-sm"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-1"><!--ASSIGN_REASON-->
+                            <label for="ASSIGN_REASON" data-tr="ASSIGN_REASON" class="col-form-label-sm">§§ASSIGN_REASON</label>
+                            <input type="text" id="ASSIGN_REASON" name="ASSIGN_REASON" class="form-control form-control-sm" maxlength="500"/>
+                        </div>
+                        <small class="form-text text-muted" data-tr="ASSIGN_INFO"></small>
+                    </div>
+                </div>
+
+                <!-- Roller: onay kutuları getOptions'tan kurulur (ROLES[]) -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="ROLE_TITLE">Yetkiler (roller)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="qm-info" data-tr="ROLE_INFO"></div>
+                        <div class="qm-roles" id="roleBoxes"></div>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-success btn-new" id="btnNewUser"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">Yeni</span></button>
+                        <button type="button" class="btn btn-sm btn-default btn-cancel" id="btnCancelUser"><i class="fas fa-ban"></i> <span data-tr="BTN_CANCEL_TEXT">İptal</span></button>
+                        <!-- Silme yok: kullanıcı pasife alınır. Kaydet seçiliyi günceller (seçili yoksa ekler) · Ekle her zaman yeni kullanıcı -->
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnSaveUser">
+                                <i class="fas fa-save"></i>
+                                <span data-tr="BTN_SAVE_TEXT">Kaydet</span>
+                            </button>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggleUser">
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right btn-add">
+                                    <a class="dropdown-item btn-add" href="javascript:">
+                                        <button class="btn btn-sm btn-primary btn-add" type="button" id="btnAddUser">
+                                            <i class="fas fa-plus"></i>
+                                            <span data-tr="BTN_ADD_TEXT">Ekle</span>
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </form>
+
+                <!-- Seçili kullanıcının görev geçmişi -->
+                <div class="card mt-3" id="historyCard" hidden>
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="HISTORY_TITLE">Görev geçmişi</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="qm-history">
+                            <thead><tr>
+                                <th data-tr="HISTORY_FROM">Başlangıç</th>
+                                <th data-tr="HISTORY_TO">Bitiş</th>
+                                <th data-tr="DEPARTMENT_ID">Departman</th>
+                                <th data-tr="POSITION_ID">Pozisyon</th>
+                                <th data-tr="LOCATION_ID">Lokasyon</th>
+                                <th data-tr="ASSIGN_REASON">Açıklama</th>
+                            </tr></thead>
+                            <tbody id="historyRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ: kullanıcı listesi -->
+            <div class="col-lg-6 col-sm-6 qm-col-list">
+                <div class="card">
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" data-tr="LIST_TITLE">Kullanıcılar</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row grid-search mb-1">
+                            <div class="col-sm-5"><!--FILTER_DEPARTMENT_ID-->
+                                <label for="FILTER_DEPARTMENT_ID" class="sr-only" data-tr="FILTER_DEPARTMENT_ID"></label>
+                                <select id="FILTER_DEPARTMENT_ID" class="form-control form-control-sm"></select>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="input-group input-group-sm">
+                                    <label for="gridSearchField" class="sr-only" data-tr="PH_GRID_SEARCH_FIELD"></label>
+                                    <input type="text" id="gridSearchField" class="form-control form-control-sm" data-trph="PH_GRID_SEARCH_FIELD" placeholder="" autocomplete="off">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-default btn-sm" type="button" data-tr="BTN_SEARCH_TEXT" id="btnGridSearch"></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3 pt-1">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="SHOW_PASSIVE">
+                                    <label class="custom-control-label small" for="SHOW_PASSIVE" data-tr="SHOW_PASSIVE">Pasifleri de göster</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-sm-12">
+                                <table id="jqGrid"></table>
+                                <div id="jqGridPager"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/qmsUser-1.0.0.js?v=1.0.0"></script>
+</body>
+</html>
