@@ -16,7 +16,8 @@
  * Ekranda maliyet yöntemi, tedarikçi, patoloji düzeyi, SUT kodu, numune tipi, sorumlu, not ve aktiflik düzenlenir.
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords, $resourceFile;
 
 use BIO\MLYT\ServiceGroup;
 use BIO\MLYT\Supplier;

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Organizasyon</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.0.0">
+    <style>
+        .qm-info{
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #667085;
+        }
+        .qm-badge{
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .qm-badge-on  { background: #e3f4e9; color: #1e6b3a; }
+        .qm-badge-off { background: #eceff3; color: #475467; }
+        .qm-type-btn.active{ font-weight: 600; }
+        @media (max-width: 991px){
+            .qm-col-list{ margin-top: 16px; }
+        }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+
+        <!-- Üst: tanım türü. Form ve liste bu seçime göre değişir -->
+        <div class="row">
+            <div class="col-12">
+                <div class="btn-group btn-group-sm mb-1" role="group" id="typeButtons">
+                    <button type="button" class="btn btn-outline-primary qm-type-btn active" data-type="DEPARTMENT"><i class="fas fa-building"></i> <span data-tr="TYPE_DEPARTMENT">Departmanlar</span></button>
+                    <button type="button" class="btn btn-outline-primary qm-type-btn" data-type="POSITION"><i class="fas fa-user-tie"></i> <span data-tr="TYPE_POSITION">Pozisyonlar</span></button>
+                    <button type="button" class="btn btn-outline-primary qm-type-btn" data-type="LOCATION"><i class="fas fa-map-marker-alt"></i> <span data-tr="TYPE_LOCATION">Lokasyonlar</span></button>
+                </div>
+                <div class="qm-info" id="typeInfo"></div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <!-- Sol: kayıt formu. Kaydedilen kayıt sağdaki listede işaretli görünür -->
+            <div class="col-lg-5 col-sm-6">
+                <div class="card">
+                    <div class="card-header" style="background-color: #c53cb61f">
+                        <h3 class="card-title" id="formTitle">Departman Kaydı</h3>
+                    </div>
+                    <div class="card-body">
+                        <form name="editFormOrg" id="editFormOrg" class="form-horizontal" method="post" action="javascript:" autocomplete="off" novalidate>
+
+                            <input type="hidden" id="RECORD_ID" name="RECORD_ID"/>
+                            <input type="hidden" id="TYPE" name="TYPE" value="DEPARTMENT"/>
+
+                            <div class="row">
+                                <div class="col-sm-4"><!--CODE-->
+                                    <div class="form-group">
+                                        <label for="CODE" data-tr="CODE" class="col-form-label-sm">§§CODE</label>
+                                        <input type="text" id="CODE" name="CODE" class="form-control form-control-sm" maxlength="20"/>
+                                    </div>
+                                </div>
+                                <div class="col-sm-8"><!--NAME (etiketi türe göre: Departman Adı / Pozisyon Adı / Lokasyon Adı)-->
+                                    <div class="form-group">
+                                        <label for="NAME" id="labelNAME" class="col-form-label-sm">Departman Adı</label>
+                                        <input type="text" id="NAME" name="NAME" class="form-control form-control-sm" maxlength="150"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Yalnızca pozisyonda görünür -->
+                            <div class="form-group" id="groupDEPARTMENT_ID" hidden><!--DEPARTMENT_ID-->
+                                <label for="DEPARTMENT_ID" data-tr="DEPARTMENT_ID" class="col-form-label-sm">§§DEPARTMENT_ID</label>
+                                <select id="DEPARTMENT_ID" name="DEPARTMENT_ID" class="form-control form-control-sm"></select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-4"><!--ACTIVE_FL-->
+                                    <div class="form-group">
+                                        <label for="ACTIVE_FL" data-tr="ACTIVE_FL" class="col-form-label-sm">§§ACTIVE_FL</label>
+                                        <select id="ACTIVE_FL" name="ACTIVE_FL" class="form-control form-control-sm base">
+                                            <option value="Y" data-tr="FL_YES_TEXT" selected></option>
+                                            <option value="N" data-tr="FL_NO_TEXT"></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted" data-tr="INFO_PASSIVE"></small>
+                        </form>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-success btn-new" id="btnNewOrg"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">Yeni</span></button>
+                        <button type="button" class="btn btn-sm btn-default btn-cancel" id="btnCancelOrg"><i class="fas fa-ban"></i> <span data-tr="BTN_CANCEL_TEXT">İptal</span></button>
+                        <button type="button" class="btn btn-sm btn-danger btn-delete" id="btnDeleteOrg"><i class="fas fa-trash-alt"></i> <span data-tr="BTN_DELETE_TEXT">Sil</span></button>
+                        <!-- Kaydet: seçili kaydı günceller (seçili yoksa ekler) · Ekle: her zaman yeni kayıt ekler (D.Sys düzeni) -->
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnSaveOrg">
+                                <i class="fas fa-save"></i>
+                                <span data-tr="BTN_SAVE_TEXT">Kaydet</span>
+                            </button>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggleOrg">
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right btn-add">
+                                    <a class="dropdown-item btn-add" href="javascript:">
+                                        <button class="btn btn-sm btn-primary btn-add" type="button" id="btnAddOrg">
+                                            <i class="fas fa-plus"></i>
+                                            <span data-tr="BTN_ADD_TEXT">Ekle</span>
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ: seçili türün listesi -->
+            <div class="col-lg-7 col-sm-6 qm-col-list">
+                <div class="card">
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" id="listTitle">Departmanlar</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="row grid-search mb-1">
+                            <div class="col-sm-7">
+                                <div class="input-group input-group-sm">
+                                    <label for="gridSearchField" class="sr-only" data-tr="PH_GRID_SEARCH_FIELD"></label>
+                                    <input type="text" id="gridSearchField" name="gridSearchField" class="form-control form-control-sm" data-trph="PH_GRID_SEARCH_FIELD" placeholder="" autocomplete="off">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-default btn-sm" type="button" data-tr="BTN_SEARCH_TEXT" id="btnGridSearch"></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-5 pt-1">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="SHOW_PASSIVE">
+                                    <label class="custom-control-label small" for="SHOW_PASSIVE" data-tr="SHOW_PASSIVE">Pasifleri de göster</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="form-group col-sm-12">
+                                <table id="jqGrid"></table>
+                                <div id="jqGridPager"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/qmsOrg-1.0.0.js?v=1.0.1"></script>
+</body>
+</html>

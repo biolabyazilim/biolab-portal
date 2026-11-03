@@ -20,7 +20,9 @@
             "Biolab\\Model\\": "model/",
             "Biolab\\Core\\": "core/",
             "BIO\\": "model/Entity/BIO/",
-            "Biolab\\Migrations\\": "model/migration/"
+            "Biolab\\Migrations\\": "model/migration/",
+            "QMS\\": "model/Entity/QMS/",
+            "Biolab\\MigrationsQms\\": "model/migration-qms/"
         }
     }
 }

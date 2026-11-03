@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>QMS · Biolab</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="../../lib/app/images/brand/biolab-mark.png">
+
+    <link rel="stylesheet" href="../../lib/plugins/fontawesome-free-5.14.0-web/css/all.min.css">
+
+    <link rel="stylesheet" href="../../lib/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/hb.css?v=1.0.0">
+
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../lib/app/css/biolab-theme.css?v=1.0.1">
+    <!-- Ortak menü: temadan sonra (renkleri temadan alır) -->
+    <link rel="stylesheet" href="../../lib/app/css/portal-menu.css?v=1.0.1">
+</head>
+<body class="hb-app-page" hidden>
+
+<header class="hb-header">
+    <button type="button" id="menuToggle" class="pm-toggle" aria-controls="appSidebar" aria-expanded="false" title="Menü">
+        <i class="fas fa-bars" aria-hidden="true"></i><span class="sr-only">Menü</span>
+    </button>
+    <span class="bl-logo-box hb-logo">
+        <img src="../../lib/app/images/brand/biolab-logo.png" alt="Biolab Laboratuvarlar Grubu">
+    </span>
+    <span class="hb-brand">QMS</span>
+    <span class="hb-brand-sub">· Doküman yönetimi ve dijital imza</span>
+
+    <div class="hb-user">
+        <i class="fas fa-user-circle"></i>
+        <span class="js-user-fullname"></span>
+        <span class="js-user-company" style="opacity:.8"></span>
+        <button type="button" id="logoutBtn" class="hb-btn-ghost" title="Çıkış yap">
+            <i class="fas fa-sign-out-alt"></i> Çıkış
+        </button>
+    </div>
+</header>
+<!-- Menü veritabanından gelir (Biolab_QMS.mng_menu), kullanıcının rolüne göre süzülür; ekranlar sağdaki çerçevede açılır -->
+<div class="pm-layout" id="appLayout">
+    <aside class="pm-sidebar" id="appSidebar" aria-label="Uygulama menüsü">
+        <ul class="pm-nav" id="appMenu"></ul>
+        <div class="pm-foot">
+            <button type="button" id="menuCollapse" class="pm-group-btn pm-collapse-btn" title="Menüyü daralt / genişlet">
+                <i class="pm-icon fas fa-angle-double-left" aria-hidden="true"></i><span class="pm-label">Daralt</span>
+            </button>
+        </div>
+    </aside>
+    <div class="pm-backdrop" id="menuBackdrop"></div>
+
+    <main class="pm-content hb-frame-main">
+        <nav class="pm-crumbs" id="appCrumbs" aria-label="Konum"></nav>
+        <iframe id="mainContentFrame" name="mainContentFrame" class="hb-main-frame" title="İçerik"></iframe>
+    </main>
+</div>
+
+<script src="../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../lib/app/js/portal-menu.js?v=1.0.1"></script>
+<script src="./js/app.js?v=1.0.0"></script>
+</body>
+</html>

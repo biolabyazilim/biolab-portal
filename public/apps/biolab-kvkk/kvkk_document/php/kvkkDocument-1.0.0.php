@@ -17,7 +17,8 @@
  *   php.ini → upload_max_filesize = 20M, post_max_size = 25M  (IIS'te ayrıca maxAllowedContentLength)
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords, $resourceFile;
 
 use BIO\KVK\KvkkDocument;
 use BIO\KVK\KvkkDocumentFile;

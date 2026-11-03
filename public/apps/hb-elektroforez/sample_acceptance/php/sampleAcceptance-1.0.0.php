@@ -9,7 +9,8 @@
  *      getD10Status  → D-10 cihaz bağlantı durumu
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $dateFormat;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $dateFormat, $resourceFile;
 //global $dbm, $db, $lm, $lang, $accessType, $query, $dateFormat, $dateTimeFormat, $resourceFile;
 
 use BIO\BCR\SampleAcceptance;

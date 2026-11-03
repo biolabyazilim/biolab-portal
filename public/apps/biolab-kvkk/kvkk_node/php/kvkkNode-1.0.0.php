@@ -12,7 +12,8 @@
  * Bütün kayıtlar oturumdaki şirkete göredir (COMPANY_ID). C_BY/U_BY/D_BY ve tarihler AuditListener ile dolar.
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $resourceFile;
 
 use BIO\KVK\KvkkNode;
 

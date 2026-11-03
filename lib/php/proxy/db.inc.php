@@ -13,8 +13,8 @@ final class DBManager
     public function __construct()
     {
         if (self::$em === null) {
-            // proxy → php → lib → public → biolab-portal kökü
-            self::$em = require __DIR__ . '/../../../bootstrap.php';
+            // proxy → php → lib → biolab-portal kökü; QMS ekranları Biolab_QMS veritabanına bağlanır (jsonp.php → QMS_REQUEST)
+            self::$em = require __DIR__ . '/../../../' . (defined('QMS_REQUEST') && QMS_REQUEST ? 'bootstrap-qms.php' : 'bootstrap.php');
         }
         $this->connected = true;
     }

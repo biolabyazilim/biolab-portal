@@ -14,7 +14,8 @@
  * Sekmeler: HIGH (yüksek güven), MEDIUM (orta), NONE (öneri yok), LINKED (kit bağlı)
  */
 
-global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords;
+// Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
+global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords, $resourceFile;
 
 use Biolab\Core\Mlyt\KitMatcher;
 use BIO\MLYT\Material;

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Doküman tipleri</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.0.0">
+    <style>
+        .qm-info{ margin-bottom: 8px; font-size: 12px; color: #667085; }
+        .qm-badge{ display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .qm-badge-on  { background: #e3f4e9; color: #1e6b3a; }
+        .qm-badge-off { background: #eceff3; color: #475467; }
+        .qm-badge-warn{ background: #fff1d6; color: #9a6200; }
+        .qm-badge-ext { background: #e8eefc; color: #2b4aa6; }
+        .qm-dist-row{ display: flex; gap: 6px; margin-bottom: 6px; }
+        .qm-dist-row select{ flex: 1; }
+        .qm-code-test{ font-size: 12px; margin-left: 6px; }
+        @media (max-width: 991px){ .qm-col-list{ margin-top: 16px; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+        <div class="row">
+
+            <!-- Sol: doküman tipi formu (kurallar + imza akışı + dağıtım; tek Kaydet) -->
+            <div class="col-lg-6 col-sm-6">
+                <form name="editFormDocType" id="editFormDocType" class="form-horizontal" method="post" action="javascript:" autocomplete="off" novalidate>
+                <input type="hidden" id="DOC_TYPE_ID" name="DOC_TYPE_ID"/>
+
+                <div class="card">
+                    <div class="card-header" style="background-color: #c53cb61f">
+                        <h3 class="card-title" data-tr="FORM_TITLE">Doküman Tipi Kaydı</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="form-group"><!--CATEGORY_ID-->
+                            <label for="CATEGORY_ID" data-tr="CATEGORY_ID" class="col-form-label-sm">§§CATEGORY_ID</label>
+                            <select id="CATEGORY_ID" name="CATEGORY_ID" class="form-control form-control-sm"></select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-8"><!--DOC_TYPE_NAME (yeni kayıtta klasör seçilince dolar)-->
+                                <div class="form-group">
+                                    <label for="DOC_TYPE_NAME" data-tr="DOC_TYPE_NAME" class="col-form-label-sm">§§DOC_TYPE_NAME</label>
+                                    <input type="text" id="DOC_TYPE_NAME" name="DOC_TYPE_NAME" class="form-control form-control-sm" maxlength="150"/>
+                                </div>
+                            </div>
+                            <div class="col-sm-4"><!--CODE_PREFIX-->
+                                <div class="form-group">
+                                    <label for="CODE_PREFIX" data-tr="CODE_PREFIX" class="col-form-label-sm">§§CODE_PREFIX</label>
+                                    <input type="text" id="CODE_PREFIX" name="CODE_PREFIX" class="form-control form-control-sm" maxlength="20" placeholder="TL ya da RH, KEK"/>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted mb-2" data-tr="CODE_PREFIX_INFO"></small>
+
+                        <!-- Kod kalıbı ekranda sorulmaz: sunucu önekten üretir (TL → TL + 1–4 hane) -->
+                        <div class="row">
+                            <div class="col-sm-6"><!--REVIEW_MONTHS-->
+                                <div class="form-group">
+                                    <label for="REVIEW_MONTHS" data-tr="REVIEW_MONTHS" class="col-form-label-sm">§§REVIEW_MONTHS</label>
+                                    <input type="number" id="REVIEW_MONTHS" name="REVIEW_MONTHS" class="form-control form-control-sm" min="1" max="120" value="24"/>
+                                    <small class="form-text text-muted" data-tr="REVIEW_MONTHS_INFO"></small>
+                                </div>
+                            </div>
+                            <div class="col-sm-6"><!--RETENTION_YEARS-->
+                                <div class="form-group">
+                                    <label for="RETENTION_YEARS" data-tr="RETENTION_YEARS" class="col-form-label-sm">§§RETENTION_YEARS</label>
+                                    <input type="number" id="RETENTION_YEARS" name="RETENTION_YEARS" class="form-control form-control-sm" min="1" max="100" value="10"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Evet/hayır alanları onay kutusu; sunucuya gizli alanlar (Y/N) gider -->
+                        <input type="hidden" id="READ_ACK_FL" name="READ_ACK_FL" value="Y"/>
+                        <input type="hidden" id="EXTERNAL_FL" name="EXTERNAL_FL" value="N"/>
+                        <input type="hidden" id="ACTIVE_FL" name="ACTIVE_FL" value="Y"/>
+                        <div class="d-flex flex-wrap" style="gap: 24px">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input qm-flag" id="CB_READ_ACK_FL" data-target="#READ_ACK_FL" checked>
+                                <label class="custom-control-label" for="CB_READ_ACK_FL" data-tr="READ_ACK_FL">Okudum onayı iste</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input qm-flag" id="CB_EXTERNAL_FL" data-target="#EXTERNAL_FL">
+                                <label class="custom-control-label" for="CB_EXTERNAL_FL" data-tr="EXTERNAL_FL">Dış kaynaklı</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input qm-flag" id="CB_ACTIVE_FL" data-target="#ACTIVE_FL" checked>
+                                <label class="custom-control-label" for="CB_ACTIVE_FL" data-tr="ACTIVE_FL">Aktif</label>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted" id="externalInfo" data-tr="EXTERNAL_INFO" hidden></small>
+                    </div>
+                </div>
+
+                <!-- İmzacılar doküman tipinde tanımlanmaz: her dokümanın imzacıları yüklemede seçilir ve doküman onları hatırlar -->
+
+                <!-- Varsayılan dağıtım: satırlar JS ile eklenir (tür + hedef) -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="DIST_TITLE">Varsayılan dağıtım</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="qm-info" data-tr="DIST_INFO"></div>
+                        <div id="distRows"></div>
+                        <div class="qm-info" id="distEmpty" data-tr="DIST_EMPTY"></div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnDistAdd"><i class="fas fa-plus"></i> <span data-tr="DIST_ADD">Dağıtım ekle</span></button>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-success btn-new" id="btnNewDocType"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">Yeni</span></button>
+                        <button type="button" class="btn btn-sm btn-default btn-cancel" id="btnCancelDocType"><i class="fas fa-ban"></i> <span data-tr="BTN_CANCEL_TEXT">İptal</span></button>
+                        <button type="button" class="btn btn-sm btn-danger btn-delete" id="btnDeleteDocType"><i class="fas fa-trash-alt"></i> <span data-tr="BTN_DELETE_TEXT">Sil</span></button>
+                        <!-- Kaydet: seçili tipi günceller (seçili yoksa ekler) · Ekle: her zaman yeni tip ekler (D.Sys düzeni) -->
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnSaveDocType">
+                                <i class="fas fa-save"></i>
+                                <span data-tr="BTN_SAVE_TEXT">Kaydet</span>
+                            </button>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggleDocType">
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right btn-add">
+                                    <a class="dropdown-item btn-add" href="javascript:">
+                                        <button class="btn btn-sm btn-primary btn-add" type="button" id="btnAddDocType">
+                                            <i class="fas fa-plus"></i>
+                                            <span data-tr="BTN_ADD_TEXT">Ekle</span>
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </form>
+            </div>
+
+            <!-- Sağ: doküman tipleri listesi -->
+            <div class="col-lg-6 col-sm-6 qm-col-list">
+                <div class="card">
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" data-tr="LIST_TITLE">Doküman tipleri</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row grid-search mb-1">
+                            <div class="col-sm-5"><!--FILTER_CATEGORY_ID-->
+                                <label for="FILTER_CATEGORY_ID" class="sr-only" data-tr="FILTER_CATEGORY_ID"></label>
+                                <select id="FILTER_CATEGORY_ID" name="FILTER_CATEGORY_ID" class="form-control form-control-sm"></select>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="input-group input-group-sm">
+                                    <label for="gridSearchField" class="sr-only" data-tr="PH_GRID_SEARCH_FIELD"></label>
+                                    <input type="text" id="gridSearchField" name="gridSearchField" class="form-control form-control-sm" data-trph="PH_GRID_SEARCH_FIELD" placeholder="" autocomplete="off">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-default btn-sm" type="button" data-tr="BTN_SEARCH_TEXT" id="btnGridSearch"></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3 pt-1">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="SHOW_PASSIVE">
+                                    <label class="custom-control-label small" for="SHOW_PASSIVE" data-tr="SHOW_PASSIVE">Pasifleri de göster</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-sm-12">
+                                <table id="jqGrid"></table>
+                                <div id="jqGridPager"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/qmsDocType-1.0.0.js?v=1.0.2"></script>
+</body>
+</html>
