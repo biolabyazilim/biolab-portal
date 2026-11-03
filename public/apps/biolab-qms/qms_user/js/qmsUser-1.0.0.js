@@ -144,7 +144,7 @@ $.DLNFrame = {
             rules: {
                 USERNAME: { required: isNew, maxlength: 50 },
                 FULL_NAME: { required: true, maxlength: 100 },
-                PASSWORD: { required: isNew, minlength: 10 },
+                PASSWORD: { required: isNew, minlength: 6 },
                 DEPARTMENT_ID: { required: true },
                 POSITION_ID: { required: true },
                 ASSIGN_DATE: { required: true }
@@ -152,7 +152,7 @@ $.DLNFrame = {
             messages: {
                 USERNAME: $d.lang['ERR_USERNAME'],
                 FULL_NAME: $d.lang['ERR_FULL_NAME'],
-                PASSWORD: $d.lang['ERR_PASSWORD'].replace('%d', '10'),
+                PASSWORD: $d.lang['ERR_PASSWORD'].replace('%d', '6'),
                 DEPARTMENT_ID: $d.lang['ERR_ASSIGNMENT'],
                 POSITION_ID: $d.lang['ERR_ASSIGNMENT'],
                 ASSIGN_DATE: $d.lang['ERR_ASSIGN_DATE']

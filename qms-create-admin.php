@@ -33,8 +33,8 @@ $again    = $ask('Şifre (tekrar)');
 if ($username === '' || $fullName === '') {
     exit("Kullanıcı adı ve ad soyad girilmeli.\n");
 }
-if (mb_strlen($password) < 10) {
-    exit("Şifre en az 10 karakter olmalı.\n");
+if (mb_strlen($password) < 6) {
+    exit("Şifre en az 6 karakter olmalı.\n");
 }
 if ($password !== $again) {
     exit("Şifreler aynı değil.\n");

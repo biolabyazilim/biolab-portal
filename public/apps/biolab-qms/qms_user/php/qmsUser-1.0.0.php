@@ -40,7 +40,7 @@ checkAuthorization();
 $companyId = (int) $_SESSION["COMPANY_ID"];
 $sessionUserId = (int) $_SESSION["USER_ID"];
 
-const QMS_USER_MIN_PASSWORD = 10;
+const QMS_USER_MIN_PASSWORD = 6;
 
 switch ($query) {
 

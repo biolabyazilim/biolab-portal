@@ -20,7 +20,7 @@
     "PHONE": "Cep telefonu",
     "PHONE_INFO": "İmza anında SMS doğrulama kodu bu numaraya gider.",
     "PASSWORD": "Şifre",
-    "PASSWORD_INFO_NEW": "En az 10 karakter. Kullanıcıya iletin.",
+    "PASSWORD_INFO_NEW": "En az 6 karakter. Kullanıcıya iletin.",
     "PASSWORD_INFO_EDIT": "Boş bırakılırsa şifre değişmez.",
     "ACTIVE_FL": "Aktif",
     "ACTIVE_INFO": "Kullanıcı silinmez; ayrılan kullanıcı pasife alınır, geçmiş imzaları korunur.",
