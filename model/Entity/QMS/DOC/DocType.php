@@ -10,7 +10,8 @@ use Biolab\Model\Common\Qms\QmsAuditTrait;
 /**
  * Doküman tipi (ör. Talimat, Prosedür, Liste). Kalite bir kez tanımlar, sistemin geri kalanı bu tanımdan çalışır:
  *   CATEGORY_ID      tipin göründüğü klasör (ör. TALİMATLAR); dokümanın klasörü buradan gelir
- *   CODE_PREFIX      kodun öneki (ör. TL); toplu yüklemede dosya adındaki koddan tip bulunur
+ *   CODE_PREFIX      kodun öneki (ör. TL) ya da virgülle önekleri (REHBERLER: RH,KEK,KP,NEK); toplu yüklemede
+ *                    dosya adındaki koddan tip bulunur. Bir önek yalnızca bir tipte olabilir.
  *   CODE_PATTERN     doküman kodu bu kalıba uymalı (regex, ör. ^TL\d{2,3}$); kod kalite uzmanınca girilir, sistem üretmez
  *   EXTERNAL_FL      'Y': dış kaynaklı doküman (GBF, mevzuat, kılavuz); şablon yok, tek adımlı kalite kontrolü
  *   TEMPLATE_FILE    şirketin antetli Word şablonu (yer tutucular: ${doc_no}, ${rev_no}, ${approved_sign} …)
@@ -41,7 +42,7 @@ class DocType
     private DocCategory $category;                 // CATEGORY_ID → qms_doc_category
 
     #[ORM\Column(length: 20, options: ['collation' => 'Turkish_CI_AS'])]
-    private string $codePrefix;                    // CODE_PREFIX (ör. TL)
+    private string $codePrefix;                    // CODE_PREFIX (ör. TL; birden fazla: RH,KEK,KP,NEK)
 
     #[ORM\Column(length: 150, options: ['collation' => 'Turkish_CI_AS'])]
     private string $docTypeName;                   // DOC_TYPE_NAME
@@ -83,6 +84,7 @@ class DocType
     public function isExternal(): bool             { return $this->externalFl === 'Y'; }
     public function setExternal(bool $v): self     { $this->externalFl = $v ? 'Y' : 'N'; return $this; }
     public function getCodePrefix(): string        { return $this->codePrefix; }
+    public function setCodePrefix(string $v): self { $this->codePrefix = $v; return $this; }
     public function getDocTypeName(): string       { return $this->docTypeName; }
     public function setDocTypeName(string $v): self { $this->docTypeName = $v; return $this; }
     public function getStandardCode(): ?string     { return $this->standardCode; }
@@ -97,6 +99,35 @@ class DocType
     public function setRetentionYears(int $v): self { $this->retentionYears = $v; return $this; }
     public function requiresReadAck(): bool        { return $this->readAckFl === 'Y'; }
     public function setReadAck(bool $v): self      { $this->readAckFl = $v ? 'Y' : 'N'; return $this; }
+
+    /** @return list<string> CODE_PREFIX'teki önekler (ör. "RH,KEK,KP,NEK" → [RH, KEK, KP, NEK]) */
+    public function getPrefixes(): array
+    {
+        return self::splitPrefixes($this->codePrefix);
+    }
+
+    /**
+     * "rh, kek; KP" → [RH, KEK, KP]: virgül / noktalı virgül / boşlukla ayrılır, büyük harfe çevrilir, tekrarlar atılır.
+     * @return list<string>
+     */
+    public static function splitPrefixes(string $value): array
+    {
+        $parts = preg_split('/[\s,;]+/u', mb_strtoupper(trim($value), 'UTF-8'), -1, PREG_SPLIT_NO_EMPTY);
+        return array_values(array_unique($parts));
+    }
+
+    /**
+     * Öneklerden kod kalıbı: [TL] → ^TL\d{1,4}$, [RH, KEK] → ^(RH|KEK)\d{1,4}$; dış kaynaklıda kod serbest.
+     * @param list<string> $prefixes
+     */
+    public static function patternFor(array $prefixes, bool $external): string
+    {
+        if ($external) {
+            return '^.{1,30}$';
+        }
+        $quoted = array_map(fn (string $p): string => preg_quote($p, '/'), $prefixes);
+        return '^' . (count($quoted) > 1 ? '(' . implode('|', $quoted) . ')' : $quoted[0]) . '\d{1,4}$';
+    }
 
     // Kod kalıba uyuyor mu (Türkçe karakterler için u bayrağı)
     public function matchesCode(string $docCode): bool
