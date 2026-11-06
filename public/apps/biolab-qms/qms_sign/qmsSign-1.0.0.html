@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">İmzalarım</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.0.0">
+    <style>
+        .qm-info{ margin-bottom: 8px; font-size: 12px; color: #667085; }
+        .qm-list{ width: 100%; font-size: 12px; }
+        .qm-list td{ padding: 6px; border-bottom: 1px solid #f2f4f7; vertical-align: top; cursor: pointer; }
+        .qm-list tr.is-current td{ background: #eef6ff; }
+        .qm-list .code{ font-weight: 600; }
+        .qm-list .title{ color: #475467; }
+        .qm-badge{ display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .qm-badge-ok   { background: #e3f4e9; color: #1e6b3a; }
+        .qm-badge-wait { background: #fff4d6; color: #8a5a00; }
+        .qm-badge-new  { background: #eceff3; color: #475467; }
+        .qm-badge-done { background: #e0ecff; color: #1d4ed8; }
+        .qm-tabs .btn{ font-size: 12px; }
+        .qm-head{ font-size: 13px; }
+        .qm-head .meta{ font-size: 12px; color: #667085; }
+        .qm-flow{ display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+        .qm-step{ border: 1px solid #e4e7ec; border-radius: 6px; padding: 4px 8px; font-size: 12px; background: #fff; }
+        .qm-step.is-signed{ border-color: #a6d8b8; background: #f3fbf6; }
+        .qm-step.is-active{ border-color: #f2c94c; background: #fffaeb; }
+        .qm-step b{ display: block; font-size: 11px; color: #667085; font-weight: 600; }
+        .qm-viewer{ height: 65vh; overflow: auto; background: #525659; border-radius: 4px; padding: 10px 0; }
+        .qm-viewer canvas{ display: block; margin: 0 auto 10px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); max-width: calc(100% - 20px); }
+        .qm-viewer .qm-sep{ color: #fff; text-align: center; font-size: 12px; margin: 6px 0 10px; }
+        .qm-viewer .qm-msg{ color: #fff; text-align: center; padding: 40px 10px; }
+        .qm-read{ font-size: 12px; margin-top: 6px; }
+        .qm-pad-wrap{ border: 1px dashed #98a2b3; border-radius: 6px; background: #fff; position: relative; }
+        .qm-pad{ display: block; width: 100%; height: 170px; touch-action: none; cursor: crosshair; }
+        .qm-pad-line{ position: absolute; left: 16px; right: 16px; bottom: 40px; border-bottom: 1px solid #e4e7ec; pointer-events: none; }
+        @media (max-width: 1199px){ .qm-col-detail{ margin-top: 16px; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+        <div class="row">
+
+            <!-- Sol: imzamı bekleyenler -->
+            <div class="col-xl-4">
+                <div class="card">
+                    <!-- İki liste: imzamı bekleyenler (imza atılır) · imzaladıklarım (salt okunur) -->
+                    <div class="card-header" style="background-color: #c53cb61f">
+                        <div class="btn-group btn-group-sm qm-tabs" role="group" id="tabs">
+                            <button type="button" class="btn btn-default active" data-tab="PENDING"><span data-tr="LIST_TITLE">İmzamı bekleyenler</span> <span id="pendingCount"></span></button>
+                            <button type="button" class="btn btn-default" data-tab="SIGNED" data-tr="SIGNED_TITLE">İmzaladıklarım</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="qm-info" id="listInfo"></div>
+                        <table class="qm-list">
+                            <tbody id="listRows"></tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-default" id="btnRefresh"><i class="fas fa-sync-alt"></i> <span data-tr="BTN_REFRESH">Yenile</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ: belge, imza akışı, imza alanı -->
+            <div class="col-xl-8 qm-col-detail">
+                <div class="card">
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" data-tr="DETAIL_TITLE">Belge</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="detailEmpty" class="text-muted" data-tr="DETAIL_EMPTY">Soldan bir belge seçin.</div>
+                        <div id="detail" hidden>
+                            <div class="qm-head" id="detailHead"></div>
+                            <div class="qm-flow" id="detailFlow"></div>
+                            <div class="qm-viewer" id="viewer"></div>
+                            <div class="qm-read" id="readState"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3" id="signCard" hidden>
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="SIGN_TITLE">İmza</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="qm-info" data-tr="SIGN_INFO"></div>
+                        <div class="qm-pad-wrap">
+                            <canvas class="qm-pad" id="pad"></canvas>
+                            <div class="qm-pad-line"></div>
+                        </div>
+                        <div class="text-right mt-1">
+                            <button type="button" class="btn btn-sm btn-default" id="btnClearPad"><i class="fas fa-eraser"></i> <span data-tr="BTN_CLEAR_PAD">Temizle</span></button>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm-6"><!--PASSWORD-->
+                                <div class="form-group mb-1">
+                                    <label for="PASSWORD" data-tr="PASSWORD" class="col-form-label-sm">§§PASSWORD</label>
+                                    <input type="password" id="PASSWORD" class="form-control form-control-sm" autocomplete="current-password"/>
+                                    <small class="form-text text-muted" data-tr="PASSWORD_INFO"></small>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="rejectBox" hidden>
+                            <div class="form-group mb-1 mt-2"><!--REJECT_NOTE-->
+                                <label for="REJECT_NOTE" data-tr="REJECT_NOTE" class="col-form-label-sm">§§REJECT_NOTE</label>
+                                <textarea id="REJECT_NOTE" class="form-control form-control-sm" rows="3" maxlength="1000"></textarea>
+                                <small class="form-text text-muted" data-tr="REJECT_INFO"></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-default" id="btnReject"><i class="fas fa-times"></i> <span data-tr="BTN_REJECT">Reddet…</span></button>
+                        <button type="button" class="btn btn-sm btn-danger" id="btnRejectConfirm" hidden><i class="fas fa-times"></i> <span data-tr="BTN_REJECT_CONFIRM">Reddet</span></button>
+                        <button type="button" class="btn btn-sm btn-primary" id="btnSign"><i class="fas fa-signature"></i> <span id="btnSignText">İmzala</span></button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/plugins/pdfjs-2.6.347/pdf.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/qmsSign-1.0.0.js?v=1.0.3"></script>
+</body>
+</html>

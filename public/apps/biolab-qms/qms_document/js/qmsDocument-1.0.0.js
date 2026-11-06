@@ -12,6 +12,8 @@
  */
 // Proxy klasörüne (public/lib/php/proxy) göre ekran PHP'sinin yolu. proxyPath lib.js'te site kökünden tanımlı.
 const modulePath = 'app=../../../apps/biolab-qms/qms_document/php/qmsDocument-1.0.0@';
+// Belge dosyası (web kökü dışındaki depodan, yetki kontrolüyle)
+const fileApi = '../../../api/qms-file.php';
 
 $(document).ready(function () {
     $.DLNFrame.init();
@@ -75,6 +77,8 @@ $.DLNFrame = {
         });
         $('#btnPickFiles').click(function () { $('#pickFiles').val('').trigger('click'); });
         $('#btnPickFolder').click(function () { $('#pickFolder').val('').trigger('click'); });
+        // Reddedilen satırdan: düzeltilmiş dosya seçilir, tabloya eklenir; sunucu aynı kod/başlıktan düzeltme olarak tanır
+        $('#rows').on('click', '.qm-corrected', function () { $('#pickFiles').val('').trigger('click'); });
         $('#pickFiles, #pickFolder').on('change', function () {
             $t.addFiles(Array.prototype.map.call(this.files, function (f) { return { file: f, path: f.webkitRelativePath || f.name }; }));
         });
@@ -85,7 +89,9 @@ $.DLNFrame = {
         $('#btnClear').click($t.clickClear);
         $('#checkAll').on('change', function () {
             $('#rows .qm-sel:enabled').prop('checked', this.checked);
+            $t.updateSignerPanel();
         });
+        $('#rows').on('change', '.qm-sel', function () { $t.updateSignerPanel(); });
         $('#filters').on('click', '.btn', function () {
             $('#filters .btn').removeClass('active');
             $(this).addClass('active');
@@ -99,6 +105,12 @@ $.DLNFrame = {
             row[$(this).data('field')] = $(this).val();
             row.dirty = true;
             $(this).closest('tr').find('.qm-status').html($t.statusHtml(row));
+        });
+        // Doldurulur: kullanıcının seçimi artık tip değişse de korunur
+        $('#rows').on('change', '.qm-fill', function () {
+            const row = $d.rows[$(this).closest('tr').data('i')];
+            row.fillableFl = this.checked ? 'Y' : 'N';
+            row.fillableTouched = true;
         });
         $('#rows').on('click', '.qm-why', function () {
             $t.showRowMessages($d.rows[$(this).closest('tr').data('i')]);
@@ -177,16 +189,23 @@ $.DLNFrame = {
         });
     },
 
-    // Aynı yol + boyuttaki dosya ikinci kez eklenmez
+    // Aynı yol + boyuttaki dosya ikinci kez eklenmez. Listeden çıkarılmış dosya yeniden seçilirse geri gelir
+    // (yeni seçilen dosya nesnesiyle); yüklenmiş dosya atlanır.
     addFiles: function (list) {
         const $t = $.DLNFrame;
         const $d = $t.data;
         const seen = {};
-        $d.files.forEach(function (f) { seen[f.path + '|' + f.file.size] = true; });
+        $d.files.forEach(function (f, i) { seen[f.path + '|' + f.file.size] = i; });
         list.forEach(function (f) {
-            if (!seen[f.path + '|' + f.file.size] && !/(^|\/)(\.|~\$|Thumbs\.db$)/i.test(f.path)) {
-                seen[f.path + '|' + f.file.size] = true;
+            if (/(^|\/)(\.|~\$|Thumbs\.db$)/i.test(f.path)) { return; }
+            const key = f.path + '|' + f.file.size;
+            const i = seen[key];
+            if (i === undefined) {
+                seen[key] = $d.files.length;
                 $d.files.push(f);
+            } else if ($d.removed[i] && !$d.used[i]) {
+                delete $d.removed[i];
+                $d.files[i] = f;
             }
         });
         $t.parseFiles();
@@ -246,6 +265,8 @@ $.DLNFrame = {
             PREPARED_ID: r.preparedId,
             CHECKED_ID: r.checkedId,
             APPROVED_ID: r.approvedId,
+            // Doldurulur: kullanıcı değiştirmediyse gönderilmez; sunucu tipin (ya da mevcut dokümanın) değerini verir
+            FILLABLE_FL: r.fillableTouched ? r.fillableFl : null,
             FILE_ERRORS: r.fileErrors || [],
             FILE_WARNINGS: r.fileWarnings || []
         };
@@ -269,8 +290,8 @@ $.DLNFrame = {
         chunks.forEach(function (chunk) {
             $t.request('checkRows', { ROWS: chunk.map($t.rowPost) }, function (result) {
                 (result['records'] || []).forEach(function (rec, i) {
-                    ['docTypeId', 'docTypeName', 'external', 'docCode', 'variantName', 'docTitle', 'revisionNo', 'documentId', 'currentRevisionNo',
-                     'ownerDepartmentId', 'preparedId', 'checkedId', 'approvedId', 'errors', 'warnings']
+                    ['docTypeId', 'docTypeName', 'external', 'esign', 'docCode', 'variantName', 'docTitle', 'revisionNo', 'documentId', 'currentRevisionNo',
+                     'ownerDepartmentId', 'preparedId', 'checkedId', 'approvedId', 'fillableFl', 'resubmitRevisionId', 'errors', 'warnings']
                         .forEach(function (k) { chunk[i][k] = rec[k]; });
                     chunk[i].dirty = false;
                 });
@@ -309,9 +330,32 @@ $.DLNFrame = {
     rowState: function (r) {
         if (r.done) { return 'DONE'; }
         if (r.errors && r.errors.length) { return 'ERROR'; }
-        const need = r.external ? ['approvedId'] : ['preparedId', 'checkedId', 'approvedId'];
+        // E-imzasız tipte (esign === false) imzacı istenmez; tip henüz kontrol edilmediyse imzacı aranır
+        const need = $.DLNFrame.signerFields(r);
         const missing = need.some(function (k) { return !r[k]; }) || (!r.documentId && !r.ownerDepartmentId);
         return missing ? 'MISSING' : 'READY';
+    },
+
+    // Sağdaki imzacı alanları satırların tipine göre: seçili satır varsa onlara, yoksa yüklenmemiş bütün satırlara bakılır.
+    // Hiçbirinde e-imza yoksa imzacı alanları gizlenir; dış kaynaklı (yalnızca onay) satırlarda yalnızca Onaylayan görünür.
+    // Tablo boşken (henüz dosya bırakılmadı) üçü de görünür.
+    updateSignerPanel: function () {
+        const $t = $.DLNFrame;
+        const $d = $t.data;
+        const picked = $('#rows .qm-sel:checked').map(function () { return $d.rows[$(this).closest('tr').data('i')]; }).get();
+        const rows = picked.length ? picked : $d.rows.filter(function (r) { return !r.done; });
+        const need = {};
+        rows.forEach(function (r) { $t.signerFields(r).forEach(function (k) { need[k] = true; }); });
+        const all = !rows.length;
+        [['preparedId', '#PREPARED_ID'], ['checkedId', '#CHECKED_ID'], ['approvedId', '#APPROVED_ID']].forEach(function (x) {
+            $(x[1]).closest('.form-group').prop('hidden', !all && !need[x[0]]);
+        });
+        $('#wetSignNote').prop('hidden', all || Object.keys(need).length > 0);
+    },
+
+    // Satırın imzacı alanları: e-imzasız tipte yok, dış kaynaklıda yalnızca onaylayan, diğerlerinde üçü
+    signerFields: function (r) {
+        return r.esign === false ? [] : (r.external ? ['approvedId'] : ['preparedId', 'checkedId', 'approvedId']);
     },
 
     statusHtml: function (r) {
@@ -327,7 +371,10 @@ $.DLNFrame = {
             MISSING: '<span class="qm-badge qm-badge-wait">' + L['STATUS_MISSING'] + '</span>',
             READY: '<span class="qm-badge qm-badge-ok">' + L['STATUS_READY'] + '</span>'
         }[state];
-        const kind = r.documentId
+        // Düzeltme: reddedilen revizyon aynı numarayla yeniden gönderilir; mevcut dokümanda yeni revizyon; değilse yeni doküman
+        const kind = r.resubmitRevisionId
+            ? ' <span class="qm-badge qm-badge-wait">' + $t.esc(L['RESUBMIT_BADGE'].replace('%s', $t.pad(r.revisionNo))) + '</span>'
+            : r.documentId
             ? ' <span class="qm-badge qm-badge-new">' + $t.esc(L['NEW_REVISION'].replace('%s', $t.pad(r.currentRevisionNo)).replace('%s', $t.pad(r.revisionNo))) + '</span>'
             : ' <span class="qm-badge qm-badge-new">' + L['NEW_DOC'] + '</span>';
         // Mesajlar tabloya yazılmaz: simgeye tıklanınca noty ile gösterilir
@@ -338,7 +385,7 @@ $.DLNFrame = {
             : '';
         const dirty = r.dirty ? ' <span class="qm-badge qm-badge-wait">' + L['STATUS_DIRTY'] + '</span>' : '';
         if (state === 'DONE') {
-            return badge + $t.revStatusHtml(r);
+            return badge + $t.revStatusHtml(r) + why;   // reddedilmişse gerekçe simgede
         }
         return badge + kind + dirty + why;
     },
@@ -443,10 +490,26 @@ $.DLNFrame = {
                 }
                 $files.append($li.append(document.createTextNode(r.fileNames[k])));
             });
+            // Yüklenmiş revizyon: PDF (imzalandıkça onay sayfası eklenmiş hali) ve özgün dosya yeni sekmede açılır
+            if (r.revisionId && r.revStatus === 'DRAFT') {
+                $files.append($('<li>').append($('<a href="javascript:" class="qm-corrected">')
+                    .append($('<i class="fas fa-redo">'), document.createTextNode(' ' + L['PICK_CORRECTED']))));
+            }
+            if (r.revisionId) {
+                $files.append($('<li>').append($('<a target="_blank" rel="noopener">')
+                    .attr('href', fileApi + '?revision=' + r.revisionId).append($('<i class="fas fa-file-pdf">'), document.createTextNode(' ' + L['OPEN_PDF']))));
+                if (r.fileNames.length > 1) {
+                    $files.append($('<li>').append($('<a>').attr('href', fileApi + '?revision=' + r.revisionId + '&kind=source')
+                        .append($('<i class="fas fa-file-download">'), document.createTextNode(' ' + r.fileNames[1]))));
+                }
+            }
 
             const $signers = $('<div class="qm-signers">');
-            const roles = r.external ? [['approvedId', 'APPROVED_ID']] : [['preparedId', 'PREPARED_ID'], ['checkedId', 'CHECKED_ID'], ['approvedId', 'APPROVED_ID']];
-            roles.forEach(function (x) {
+            const label = { preparedId: 'PREPARED_ID', checkedId: 'CHECKED_ID', approvedId: 'APPROVED_ID' };
+            if (r.esign === false) {
+                $signers.append($('<div class="text-muted">').attr('title', L['WET_SIGN_INFO']).text(L['WET_SIGN']));
+            }
+            $t.signerFields(r).map(function (k) { return [k, label[k]]; }).forEach(function (x) {
                 $signers.append($('<div>').append($('<span>').text(L[x[1]] + ': '), document.createTextNode(r[x[0]] ? ((r.signerNames || {})[x[0]] || userName[r[x[0]]] || '#' + r[x[0]]) : '—')));
             });
 
@@ -458,15 +521,17 @@ $.DLNFrame = {
                 $('<td>').append(input('variantName', 'c-variant')),
                 $('<td>').append(input('revisionNo', 'c-rev')),
                 $('<td>').append($type),
+                $('<td class="text-center">').append($('<input type="checkbox" class="qm-fill">').prop('checked', r.fillableFl === 'Y').prop('disabled', lock)),
                 $('<td>').append($files),
                 $('<td>').text(r.ownerName || (r.documentId ? '—' : (deptName[r.ownerDepartmentId] || '—'))),
                 $('<td>').append($signers)
             ));
         });
         if (!$d.rows.length) {
-            $body.append($('<tr>').append($('<td colspan="10" class="text-muted text-center p-3">').text(L['EMPTY'])));
+            $body.append($('<tr>').append($('<td colspan="11" class="text-muted text-center p-3">').text(L['EMPTY'])));
         }
         $('#checkAll').prop('checked', false);
+        $t.updateSignerPanel();
         $('#summary').text(L['SUMMARY'].replace('%d', counts.ALL).replace('%d', counts.READY).replace('%d', counts.ERROR).replace('%d', counts.DONE));
         $('#btnUpload, #btnCheck, #btnApply, #btnClear').prop('disabled', $d.uploading);
     },
@@ -488,7 +553,7 @@ $.DLNFrame = {
         }
         picked.forEach(function (r) {
             Object.keys(v).forEach(function (k) {
-                if (!v[k] || (r.external && (k === 'preparedId' || k === 'checkedId'))) { return; }
+                if (!v[k] || (k !== 'ownerDepartmentId' && $t.signerFields(r).indexOf(k) < 0)) { return; }
                 r[k] = parseInt(v[k], 10);
             });
         });
@@ -514,7 +579,10 @@ $.DLNFrame = {
         }
         $.fn.nty({
             type: 'information',
-            text: $d.lang['UPLOAD_CONFIRM'].replace('%d', ready.length),
+            // E-imzalılar imzaya gider, diğerleri yüklendiği gün yürürlüğe girer
+            text: $d.lang['UPLOAD_CONFIRM'].replace('%d', ready.length)
+                .replace('%d', ready.filter(function (r) { return r.esign !== false; }).length)
+                .replace('%d', ready.filter(function (r) { return r.esign === false; }).length),
             buttons: [
                 {
                     text: $d.lang['BTN_YES_TEXT'],

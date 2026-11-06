@@ -52,44 +52,64 @@ switch ($query) {
             $params = array("COMPANY_ID" => $companyId);
             $q = trim((string) ($_POST["Q"] ?? ""));
             if ($q !== "") {
-                $whereClause .= " AND (u.USERNAME LIKE :Q_LIKE OR u.FULL_NAME LIKE :Q_LIKE OR u.REGISTRY_NO LIKE :Q_LIKE)";
+                $whereClause .= " AND (u.username LIKE :Q_LIKE OR u.fullName LIKE :Q_LIKE OR u.registryNo LIKE :Q_LIKE)";
                 $params["Q_LIKE"] = "%" . $q . "%";
             }
             if ((int) ($_POST["DEPARTMENT_ID"] ?? 0) > 0) {
-                $whereClause .= " AND a.DEPARTMENT_ID = :DEPARTMENT_ID";
+                $whereClause .= " AND IDENTITY(a.department) = :DEPARTMENT_ID";
                 $params["DEPARTMENT_ID"] = (int) $_POST["DEPARTMENT_ID"];
             }
             if (($_POST["SHOW_PASSIVE"] ?? "N") !== "Y") {
-                $whereClause .= " AND u.ACTIVE_FL = 'Y'";
+                $whereClause .= " AND u.activeFl = 'Y'";
             }
             // Güncel görev: bitiş tarihi boş olan atama
-            $from = " FROM mng_user u
-                      JOIN mng_user_company uc ON uc.USER_ID = u.USER_ID AND uc.COMPANY_ID = :COMPANY_ID AND uc.RECORD_FL > 0
-                      LEFT JOIN qms_user_assignment a ON a.USER_ID = u.USER_ID AND a.COMPANY_ID = :COMPANY_ID
-                                                     AND a.VALID_TO IS NULL AND a.RECORD_FL > 0
-                      LEFT JOIN qms_department d ON d.DEPARTMENT_ID = a.DEPARTMENT_ID
-                      LEFT JOIN qms_position p ON p.POSITION_ID = a.POSITION_ID
-                     WHERE u.RECORD_FL > 0";
+            $from = " FROM QMS\MNG\AppUser u
+                      JOIN QMS\MNG\UserCompany uc WITH uc.user = u AND IDENTITY(uc.company) = :COMPANY_ID AND uc.recordFl > 0
+                      LEFT JOIN QMS\ORG\UserAssignment a WITH a.user = u AND IDENTITY(a.company) = :COMPANY_ID
+                                                          AND a.validTo IS NULL AND a.recordFl > 0
+                      LEFT JOIN a.department d
+                      LEFT JOIN a.position p
+                     WHERE u.recordFl > 0";
 
-            $conn = $db->getConnection();
-            $totalRecords = (int) $conn->fetchOne("SELECT COUNT(*)" . $from . $whereClause, $params);
+            $totalRecords = (int) $db->createQuery("SELECT COUNT(u.userId)" . $from . $whereClause)
+                ->setParameters($params)->getSingleScalarResult();
 
-            $sortable  = array("u.USERNAME" => "u.USERNAME", "u.FULL_NAME" => "u.FULL_NAME", "d.DEPARTMENT_NAME" => "d.DEPARTMENT_NAME",
-                               "p.POSITION_NAME" => "p.POSITION_NAME", "u.ACTIVE_FL" => "u.ACTIVE_FL");
-            $sortBy    = $sortable[$_POST["sidx"] ?? ""] ?? "u.FULL_NAME";
+            // jqGrid sütun adı → DQL alanı (izin listesi)
+            $sortable  = array("u.USERNAME" => "u.username", "u.FULL_NAME" => "u.fullName", "d.DEPARTMENT_NAME" => "d.departmentName",
+                               "p.POSITION_NAME" => "p.positionName", "u.ACTIVE_FL" => "u.activeFl");
+            $sortBy    = $sortable[$_POST["sidx"] ?? ""] ?? "u.fullName";
             $direction = strtoupper($_POST["sord"] ?? "") === "DESC" ? "DESC" : "ASC";
-            $orderBy   = " ORDER BY " . $sortBy . " " . $direction . ($sortBy !== "u.FULL_NAME" ? ", u.FULL_NAME ASC" : "");
+            $orderBy   = " ORDER BY " . $sortBy . " " . $direction . ($sortBy !== "u.fullName" ? ", u.fullName ASC" : "");
             $rows = max(1, (int) ($_POST["rows"] ?? 20));
             $page = max(1, (int) ($_POST["page"] ?? 1));
 
-            $dtResponse = $conn->fetchAllAssociative("
-                SELECT u.USER_ID u_userId, u.USERNAME u_username, u.FULL_NAME u_fullName, u.TITLE u_title,
-                       u.ACTIVE_FL u_activeFl, d.DEPARTMENT_NAME d_departmentName, p.POSITION_NAME p_positionName,
-                       (SELECT STRING_AGG(r.ROLE_NAME, ', ') WITHIN GROUP (ORDER BY r.ROLE_ID)
-                          FROM mng_user_role ur JOIN mng_role r ON r.ROLE_ID = ur.ROLE_ID
-                         WHERE ur.USER_ID = u.USER_ID AND ur.COMPANY_ID = :COMPANY_ID
-                           AND ur.ACTIVE_FL = 'Y' AND ur.RECORD_FL > 0) roleNames
-                " . $from . $whereClause . $orderBy . " OFFSET " . (($page - 1) * $rows) . " ROWS FETCH NEXT " . $rows . " ROWS ONLY", $params);
+            $dtResponse = $db->createQuery("
+                SELECT u.userId u_userId, u.username u_username, u.fullName u_fullName, u.title u_title,
+                       u.activeFl u_activeFl, d.departmentName d_departmentName, p.positionName p_positionName
+                " . $from . $whereClause . $orderBy)
+                ->setParameters($params)
+                ->setMaxResults($rows)
+                ->setFirstResult(($page - 1) * $rows)
+                ->getArrayResult();
+
+            // Roller (bu şirkette aktif olanlar): sayfadaki kullanıcılar için tek sorgu, adlar virgülle birleşir
+            $roleNames = array();
+            if ($dtResponse) {
+                foreach ($db->createQuery("
+                    SELECT IDENTITY(ur.user) userId, r.roleName
+                      FROM QMS\MNG\UserRole ur JOIN ur.role r
+                     WHERE IDENTITY(ur.user) IN (:IDS) AND IDENTITY(ur.company) = :COMPANY_ID
+                       AND ur.activeFl = 'Y' AND ur.recordFl > 0
+                     ORDER BY r.roleId")
+                    ->setParameters(array("IDS" => array_column($dtResponse, "u_userId"), "COMPANY_ID" => $companyId))
+                    ->getArrayResult() as $r) {
+                    $roleNames[$r["userId"]][] = $r["roleName"];
+                }
+            }
+            foreach ($dtResponse as &$row) {
+                $row["roleNames"] = implode(", ", $roleNames[$row["u_userId"]] ?? array());
+            }
+            unset($row);
 
             if (count($dtResponse) > 0) {
                 $resCode = 0;
@@ -127,13 +147,12 @@ switch ($query) {
     case "getOptions":
         $execType = ET_DEFAULT;
         try{
-            $conn = $db->getConnection();
             $p = array("COMPANY_ID" => $companyId);
             $resObject = array(
-                "DEPARTMENT" => $conn->fetchAllAssociative("SELECT DEPARTMENT_ID id, DEPARTMENT_NAME name, ACTIVE_FL activeFl FROM qms_department WHERE COMPANY_ID = :COMPANY_ID AND RECORD_FL > 0 ORDER BY DEPARTMENT_NAME", $p),
-                "POSITION"   => $conn->fetchAllAssociative("SELECT POSITION_ID id, POSITION_NAME name, DEPARTMENT_ID departmentId, ACTIVE_FL activeFl FROM qms_position WHERE COMPANY_ID = :COMPANY_ID AND RECORD_FL > 0 ORDER BY POSITION_NAME", $p),
-                "LOCATION"   => $conn->fetchAllAssociative("SELECT LOCATION_ID id, LOCATION_NAME name, ACTIVE_FL activeFl FROM qms_location WHERE COMPANY_ID = :COMPANY_ID AND RECORD_FL > 0 ORDER BY LOCATION_NAME", $p),
-                "ROLE"       => $conn->fetchAllAssociative("SELECT ROLE_CODE code, ROLE_NAME name FROM mng_role WHERE APP_CODE = 'biolab-qms' AND ACTIVE_FL = 'Y' AND RECORD_FL > 0 ORDER BY ROLE_ID"),
+                "DEPARTMENT" => $db->createQuery("SELECT d.departmentId id, d.departmentName name, d.activeFl activeFl FROM QMS\ORG\Department d WHERE IDENTITY(d.company) = :COMPANY_ID AND d.recordFl > 0 ORDER BY d.departmentName")->setParameters($p)->getArrayResult(),
+                "POSITION"   => $db->createQuery("SELECT p.positionId id, p.positionName name, IDENTITY(p.department) departmentId, p.activeFl activeFl FROM QMS\ORG\Position p WHERE IDENTITY(p.company) = :COMPANY_ID AND p.recordFl > 0 ORDER BY p.positionName")->setParameters($p)->getArrayResult(),
+                "LOCATION"   => $db->createQuery("SELECT l.locationId id, l.locationName name, l.activeFl activeFl FROM QMS\ORG\Location l WHERE IDENTITY(l.company) = :COMPANY_ID AND l.recordFl > 0 ORDER BY l.locationName")->setParameters($p)->getArrayResult(),
+                "ROLE"       => $db->createQuery("SELECT r.roleCode code, r.roleName name FROM QMS\MNG\Role r WHERE r.appCode = 'biolab-qms' AND r.activeFl = 'Y' AND r.recordFl > 0 ORDER BY r.roleId")->getArrayResult(),
             );
             $resCode = 0;
             $resMsg = "Ok";
@@ -311,8 +330,8 @@ function qmsUserRegistryTaken($db, string $registryNo, ?AppUser $self): bool
 // Kullanıcıyı bekleyen (henüz imzalanmamış) imza adımları; varsa pasife alınamaz, önce devredilmeli
 function qmsUserPendingSteps($db, AppUser $user): int
 {
-    return (int) $db->getConnection()->fetchOne(
-        "SELECT COUNT(*) FROM qms_sign_step WHERE USER_ID = ? AND STEP_STATUS IN ('WAITING', 'ACTIVE')", array($user->getUserId()));
+    return (int) $db->createQuery("SELECT COUNT(s.signStepId) FROM QMS\SIGN\SignStep s WHERE s.user = :USER AND s.stepStatus IN ('WAITING', 'ACTIVE')")
+        ->setParameter("USER", $user)->getSingleScalarResult();
 }
 
 /**
@@ -320,12 +339,11 @@ function qmsUserPendingSteps($db, AppUser $user): int
  */
 function qmsUserData($db, AppUser $user, int $companyId, bool $withHistory): array
 {
-    $conn = $db->getConnection();
     $a = qmsUserCurrentAssignment($db, $user, $companyId);
-    $roles = $conn->fetchFirstColumn("
-        SELECT r.ROLE_CODE FROM mng_user_role ur JOIN mng_role r ON r.ROLE_ID = ur.ROLE_ID
-         WHERE ur.USER_ID = ? AND ur.COMPANY_ID = ? AND ur.ACTIVE_FL = 'Y' AND ur.RECORD_FL > 0 ORDER BY r.ROLE_ID",
-        array($user->getUserId(), $companyId));
+    $roles = array_column($db->createQuery("
+        SELECT r.roleCode FROM QMS\MNG\UserRole ur JOIN ur.role r
+         WHERE ur.user = :USER AND IDENTITY(ur.company) = :COMPANY_ID AND ur.activeFl = 'Y' AND ur.recordFl > 0 ORDER BY r.roleId")
+        ->setParameters(array("USER" => $user, "COMPANY_ID" => $companyId))->getArrayResult(), "roleCode");
 
     $data = array(
         "USER_ID"       => $user->getUserId(),
@@ -343,15 +361,19 @@ function qmsUserData($db, AppUser $user, int $companyId, bool $withHistory): arr
         "ROLES"         => $roles,
     );
     if ($withHistory) {
-        $data["HISTORY"] = $conn->fetchAllAssociative("
-            SELECT FORMAT(a.VALID_FROM, 'dd.MM.yyyy') validFrom, FORMAT(a.VALID_TO, 'dd.MM.yyyy') validTo,
-                   d.DEPARTMENT_NAME departmentName, p.POSITION_NAME positionName, l.LOCATION_NAME locationName, a.REASON reason
-              FROM qms_user_assignment a
-              JOIN qms_department d ON d.DEPARTMENT_ID = a.DEPARTMENT_ID
-              JOIN qms_position p ON p.POSITION_ID = a.POSITION_ID
-              LEFT JOIN qms_location l ON l.LOCATION_ID = a.LOCATION_ID
-             WHERE a.USER_ID = ? AND a.COMPANY_ID = ? AND a.RECORD_FL > 0
-             ORDER BY a.VALID_FROM DESC, a.ASSIGNMENT_ID DESC", array($user->getUserId(), $companyId));
+        $data["HISTORY"] = array_map(fn ($h) => array(
+            "validFrom"      => $h["validFrom"]->format("d.m.Y"),
+            "validTo"        => $h["validTo"]?->format("d.m.Y"),
+            "departmentName" => $h["departmentName"],
+            "positionName"   => $h["positionName"],
+            "locationName"   => $h["locationName"],
+            "reason"         => $h["reason"],
+        ), $db->createQuery("
+            SELECT a.validFrom, a.validTo, d.departmentName, p.positionName, l.locationName, a.reason
+              FROM QMS\ORG\UserAssignment a JOIN a.department d JOIN a.position p LEFT JOIN a.location l
+             WHERE a.user = :USER AND IDENTITY(a.company) = :COMPANY_ID AND a.recordFl > 0
+             ORDER BY a.validFrom DESC, a.assignmentId DESC")
+            ->setParameters(array("USER" => $user, "COMPANY_ID" => $companyId))->getArrayResult());
     }
     return $data;
 }

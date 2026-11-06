@@ -193,6 +193,20 @@ class Revision
         return $this;
     }
 
+    // E-imza akışı olmayan tip (ıslak imza basılı nüshada): yüklenen PDF imzacısız, doğrudan yürürlüğe girer
+    public function publishWithoutSigning(\DateTimeImmutable $effectiveDate, int $reviewMonths): self
+    {
+        $this->assertStatus(self::DRAFT);
+        if ($this->pdfHash === null) {
+            throw new \LogicException('Yürürlüğe girmeden önce PDF oluşturulmalı.');
+        }
+        $this->revStatus      = self::EFFECTIVE;
+        $this->revisionDate ??= $effectiveDate;
+        $this->effectiveDate  = $effectiveDate;
+        $this->nextReviewDate = $effectiveDate->modify("+{$reviewMonths} months");
+        return $this;
+    }
+
     // Gözden geçirmede "geçerli" kararı: içerik aynı, yalnızca tarih ileri alınır
     public function extendReview(\DateTimeImmutable $nextReviewDate): self
     {

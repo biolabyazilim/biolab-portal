@@ -18,6 +18,9 @@ use Biolab\Model\Common\Qms\QmsAuditTrait;
  *   REVIEW_MONTHS    yürürlüğe girişten kaç ay sonra gözden geçirilecek
  *   RETENTION_YEARS  geçersiz olan revizyon kaç yıl saklanacak
  *   READ_ACK_FL      yayımlanınca dağıtımdakilerden "okudum, anladım" onayı istensin mi
+ *   FILLABLE_FL      bu tipteki dokümanlar varsayılan olarak doldurulacak form mu (yüklemede satır satır değiştirilebilir)
+ *   ESIGN_FL         'Y': yüklenen revizyon elektronik imza akışından geçer (Form, Liste). 'N': ıslak imza basılı nüshaya
+ *                    atılır; revizyon yüklendiği gün imzacısız yürürlüğe girer
  * İmza akışı şablonu: qms_doc_type_step (+ yetkili pozisyonlar qms_doc_type_step_position)
  * Varsayılan dağıtım: qms_doc_type_distribution
  */
@@ -68,6 +71,12 @@ class DocType
     #[ORM\Column(length: 1, options: ['fixed' => true, 'default' => 'N'])]
     private string $externalFl = 'N';              // EXTERNAL_FL
 
+    #[ORM\Column(length: 1, options: ['fixed' => true, 'default' => 'N'])]
+    private string $fillableFl = 'N';              // FILLABLE_FL
+
+    #[ORM\Column(length: 1, options: ['fixed' => true, 'default' => 'N'])]
+    private string $esignFl = 'N';                 // ESIGN_FL
+
     public function __construct(DocCategory $category, string $codePrefix, string $docTypeName, string $codePattern)
     {
         $this->category    = $category;
@@ -83,6 +92,10 @@ class DocType
     public function setCategory(DocCategory $v): self { $this->category = $v; return $this; }
     public function isExternal(): bool             { return $this->externalFl === 'Y'; }
     public function setExternal(bool $v): self     { $this->externalFl = $v ? 'Y' : 'N'; return $this; }
+    public function isFillable(): bool             { return $this->fillableFl === 'Y'; }
+    public function setFillable(bool $v): self     { $this->fillableFl = $v ? 'Y' : 'N'; return $this; }
+    public function isESign(): bool                { return $this->esignFl === 'Y'; }
+    public function setESign(bool $v): self        { $this->esignFl = $v ? 'Y' : 'N'; return $this; }
     public function getCodePrefix(): string        { return $this->codePrefix; }
     public function setCodePrefix(string $v): self { $this->codePrefix = $v; return $this; }
     public function getDocTypeName(): string       { return $this->docTypeName; }

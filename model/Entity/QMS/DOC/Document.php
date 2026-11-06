@@ -13,9 +13,11 @@ use Biolab\Model\Common\Qms\QmsAuditTrait;
  * içerik, imza, dağıtım ve okuma kayıtları revizyona bağlıdır (qms_revision).
  * VARIANT_NAME: aynı kodun alt dokümanı (ör. FR06 altında "Numune alma", "İK"…; paylaşımlı klasörde FR06 bir klasördür).
  *   Her varyant ayrı dokümandır: imzacıları ve revizyonu kendine aittir. Tek dosyalı dokümanda boştur ('').
- * DOC_CODE: dış kaynaklı dokümanda (tipte EXTERNAL_FL = 'Y') kuruluşun kodu yoksa boş (NULL) kalabilir.
+ * DOC_CODE: isteğe bağlı (NULL). ISO 45001 7.5.2 tanımlamayı ister, kodu şart koşmaz: kodu olmayan doküman
+ *   başlık + varyantla tanımlanır (yüklemede aynı başlık yeni revizyon sayılır). Kod verilirse tipin kalıbına uymalıdır.
  * CURRENT_REVISION_ID: yürürlükteki revizyon (ilk yayından önce boş).
  * CONFIDENTIALITY: PUBLIC (dağıtıma göre), CONFIDENTIAL (yalnızca dağıtımda adı geçen kullanıcılar).
+ * FILLABLE_FL: 'Y' doldurulacak form; yürürlükteyken Form doldur listesinde çıkar (varsayılanı tipten, yüklemede değiştirilebilir).
  * DOC_STATUS: ACTIVE ya da CANCELLED (gözden geçirmede iptal kararı; revizyonlar arşivde kalır).
  */
 #[ORM\Entity]
@@ -71,10 +73,13 @@ class Document
     #[ORM\Column(length: 20, options: ['default' => self::STATUS_ACTIVE])]
     private string $docStatus = self::STATUS_ACTIVE;   // DOC_STATUS
 
+    #[ORM\Column(length: 1, options: ['fixed' => true, 'default' => 'N'])]
+    private string $fillableFl = 'N';              // FILLABLE_FL
+
     public function __construct(DocType $docType, ?string $docCode, string $docTitle, Department $ownerDepartment, string $variantName = '')
     {
         $docCode = ($docCode === null || trim($docCode) === '') ? null : trim($docCode);
-        if ($docCode === null ? !$docType->isExternal() : !$docType->matchesCode($docCode)) {
+        if ($docCode !== null && !$docType->matchesCode($docCode)) {
             throw new \InvalidArgumentException('Doküman kodu, doküman tipinin kod kalıbına uymuyor: ' . $docCode);
         }
         $this->docType         = $docType;
@@ -113,6 +118,8 @@ class Document
     public function getFirstPublishDate(): ?\DateTimeImmutable { return $this->firstPublishDate; }
     public function getCurrentRevision(): ?Revision { return $this->currentRevision; }
     public function getDocStatus(): string         { return $this->docStatus; }
+    public function isFillable(): bool             { return $this->fillableFl === 'Y'; }
+    public function setFillable(bool $v): self     { $this->fillableFl = $v ? 'Y' : 'N'; return $this; }
     public function isCancelled(): bool            { return $this->docStatus === self::STATUS_CANCELLED; }
 
     // Revizyon yürürlüğe girince çağrılır; ilk yayın tarihi yalnızca bir kez yazılır

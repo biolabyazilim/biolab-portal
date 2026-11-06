@@ -17,6 +17,8 @@
     "RETENTION_YEARS": "Saklama (yıl)",
     "READ_ACK_FL": "Okudum onayı iste",
     "EXTERNAL_FL": "Dış kaynaklı",
+    "FILLABLE_FL": "Doldurulabilir form",
+    "FILLABLE_INFO": "Doldurulabilir form: bu tipte yüklenen dokümanlar yürürlüğe girince Form doldur listesinde çıkar. Yüklemede doküman bazında değiştirilebilir.",
     "EXTERNAL_INFO": "Dış kaynaklı dokümanlar (GBF, mevzuat, kılavuz) şablonsuz yüklenir; kodu yayımlayan kurumun kodudur ya da boş kalabilir.",
     "ACTIVE_FL": "Aktif",
     "STATUS_ACTIVE": "Aktif",
@@ -62,5 +64,10 @@
     "ERR_DISTRIBUTION": "Dağıtım satırlarından birinde hedef seçilmemiş ya da geçersiz.",
     "ERR_DISTRIBUTION_DUPLICATE": "Aynı dağıtım hedefi iki kez seçilmiş.",
     "ERR_IN_USE": "Bu tipte %d doküman var, silinemez. Kullanılmayacaksa Aktif = Hayır yapıp kaydedin.",
-    "ERR_PREFIX_FORMAT": "Önek yalnızca harflerden oluşmalı (en fazla 6 harf); birden fazla önek virgülle ayrılır."
+    "ERR_PREFIX_FORMAT": "Önek yalnızca harflerden oluşmalı (en fazla 6 harf); birden fazla önek virgülle ayrılır.",
+    "ESIGN_FL": "Electronic signature flow",
+    "ESIGN_INFO": "Electronic signature flow: revisions of this type go through Prepared → Checked → Approved signatures. If unchecked, the printed copy is wet-signed and the revision becomes effective on the upload day.",
+    "ESIGN_COL": "Signature",
+    "ESIGN_BADGE": "E-signature",
+    "WET_BADGE": "Wet signature"
 }

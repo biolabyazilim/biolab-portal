@@ -15,7 +15,8 @@ namespace Biolab\Core\Qms;
  *
  * Aynı kod + varyanttaki PDF (ya da görsel) imzaya giden ana dosyadır; Excel/Word aynı satıra özgün dosya olarak eklenir.
  * Satırın tipi kod önekinden bulunur; dosya başka bir tipin klasöründeyse uyarı verilir (tipi yine önek belirler).
- * Dış kaynaklı klasöründeki dosyanın kodu okunmaz (kuruluşun kodu varsa kontrol tablosunda girilir).
+ * Kod isteğe bağlıdır: kodu olmayan (ya da bilinen bir öneke uymayan) dosya adıyla tanımlanır, tipi bulunduğu klasörden alınır;
+ * klasörsüz sürüklendiyse tip kontrol tablosunda seçilir. Dış kaynaklı klasöründeki dosyanın kodu hiç okunmaz.
  *
  * Çıktı satırları veritabanına bakmaz; mevcut doküman, yinelenen satır ve imzacı kontrolleri ekran tarafında yapılır.
  */
@@ -48,6 +49,7 @@ final class FileNameParser
 
         // 1. Her dosya: uzantı, klasörler, kod, kalan ad, revizyon
         $files = [];
+        $noCode = [];
         $rows = [];
         foreach ($paths as $index => $path) {
             // Mac'te adlandırılan dosyalarda Ç, Ş… ayrık gelir (C + çengel); karşılaştırma için birleşik yazılır
@@ -78,12 +80,15 @@ final class FileNameParser
 
             [$revNo, $base] = self::takeRevision($base);
             $code = ($categoryType !== null && $categoryType['external']) ? null : self::splitCode($base);
+            // Bilinen bir öneke uymayan "kod" kod sayılmaz (ör. "COBAS 6000 Kullanım Kılavuzu"); ad olduğu gibi kalır
+            if ($code !== null && !isset($byPrefix[self::upper($code['prefix'])])) {
+                $code = null;
+            }
 
             $file += ['categoryType' => $categoryType, 'categoryFolder' => $categoryFolder, 'revNo' => $revNo];
             if ($code === null) {
-                // Kodsuz: dış kaynaklı klasöründeyse dış kaynaklı doküman, değilse kod okunamadı
-                $type = ($categoryType !== null && $categoryType['external']) ? $categoryType : null;
-                $rows[] = self::row($type, null, self::clean($base), '', $revNo, [$file], $type === null ? ['ERR_NO_CODE'] : [], []);
+                // Kodsuz: başlıkla tanımlanır; aynı başlıktaki PDF ve Excel/Word aşağıda tek satırda eşleşir
+                $noCode[self::fold(self::clean($base))][] = $file + ['title' => self::clean($base)];
                 continue;
             }
             $file += ['code' => $code['code'], 'prefix' => $code['prefix'], 'rest' => $code['rest'],
@@ -142,6 +147,28 @@ final class FileNameParser
                 $rows[] = self::row($type, $code, $g['title'], $g['variant'], $mainRev ?? ($revs[0] ?? null),
                                     $g['files'], $errors, array_values(array_unique($warnings)));
             }
+        }
+
+        // 3. Kodsuz dosyalar: aynı başlık tek satır (PDF + Excel/Word). Tip bulunduğu klasörden; klasörsüzse tabloda seçilir
+        foreach ($noCode as $list) {
+            $mains   = array_filter($list, fn ($f) => $f['kind'] === 'main');
+            $sources = array_filter($list, fn ($f) => $f['kind'] === 'source');
+            $type    = null;
+            foreach ($list as $f) {
+                $type ??= $f['categoryType'];
+            }
+            $errors = [];
+            if ($type === null) {
+                $errors[] = 'ERR_NO_TYPE';
+            }
+            if (count($mains) > 1 || count($sources) > 1) {
+                $errors[] = 'ERR_DUPLICATE_FILES';
+            } elseif (count($mains) === 0) {
+                $errors[] = 'ERR_NO_MAIN';
+            }
+            $mainRev = $mains ? array_values($mains)[0]['revNo'] : null;
+            $warnings = ($type !== null && $type['external']) ? [] : ['WRN_NO_CODE'];
+            $rows[] = self::row($type, null, $list[0]['title'], '', $mainRev ?? $list[0]['revNo'], $list, $errors, $warnings);
         }
 
         usort($rows, fn ($a, $b) => [$a['docCode'] === null, (string) $a['docCode'], $a['variantName'], $a['docTitle']]
