@@ -10,7 +10,7 @@
  *   getGridList     → tip listesi (jqGrid; klasör süzgeci CATEGORY_ID, arama Q, pasifler SHOW_PASSIVE)
  *   getSelectedId   → seçilen tip + varsayılan dağıtım (DISTRIBUTION)
  *   getSubjects     → pozisyon / departman / lokasyon / kullanıcı listeleri (imza akışı ve dağıtım seçimleri)
- *   setSave/setAdd  → tip ve dağıtım tek transaction'da kaydedilir (DISTRIBUTION JSON gelir)
+ *   setSave/setAdd  → tip ve dağıtım tek transaction'da kaydedilir (DISTRIBUTION[i][type], DISTRIBUTION[i][id] form alanları)
  *
  * İmzacılar tipte tanımlanmaz: dokümana göre değiştikleri için her dokümanın imzacıları yüklemede seçilir.
  * İmza yetkisi tabloları (qms_doc_type_step / _position) yerinde durur; ekran STEPS göndermediği sürece dokunulmaz.
@@ -49,12 +49,12 @@ switch ($query) {
         $execType = ET_DEFAULT;
         try{
             $paths = qmsCategoryPaths($db, $companyId);
-            $dtResponse = $db->getConnection()->fetchAllAssociative("
-                SELECT c.CATEGORY_ID categoryId, c.ACTIVE_FL activeFl
-                  FROM qms_doc_category c
-                 WHERE c.COMPANY_ID = :COMPANY_ID AND c.RECORD_FL > 0
-                   AND NOT EXISTS (SELECT 1 FROM qms_doc_category s WHERE s.PARENT_ID = c.CATEGORY_ID AND s.RECORD_FL > 0)
-            ", array("COMPANY_ID" => $companyId));
+            $dtResponse = $db->createQuery("
+                SELECT c.categoryId categoryId, c.activeFl activeFl
+                  FROM QMS\DOC\DocCategory c
+                 WHERE IDENTITY(c.company) = :COMPANY_ID AND c.recordFl > 0
+                   AND NOT EXISTS (SELECT s.categoryId FROM QMS\DOC\DocCategory s WHERE s.parent = c AND s.recordFl > 0)")
+                ->setParameter("COMPANY_ID", $companyId)->getArrayResult();
             foreach ($dtResponse as &$r) {
                 $r["categoryPath"] = $paths[$r["categoryId"]]["path"];
                 $r["sortKey"]      = $paths[$r["categoryId"]]["sortKey"];
@@ -82,40 +82,44 @@ switch ($query) {
             $whereClause = "";
             $params = array("COMPANY_ID" => $companyId);
             if ((int) ($_POST["CATEGORY_ID"] ?? 0) > 0) {
-                $whereClause .= " AND mt.CATEGORY_ID = :CATEGORY_ID";
+                $whereClause .= " AND IDENTITY(mt.category) = :CATEGORY_ID";
                 $params["CATEGORY_ID"] = (int) $_POST["CATEGORY_ID"];
             }
             $q = trim((string) ($_POST["Q"] ?? ""));
             if ($q !== "") {
-                $whereClause .= " AND (mt.CODE_PREFIX LIKE :Q_LIKE OR mt.DOC_TYPE_NAME LIKE :Q_LIKE)";
+                $whereClause .= " AND (mt.codePrefix LIKE :Q_LIKE OR mt.docTypeName LIKE :Q_LIKE)";
                 $params["Q_LIKE"] = "%" . $q . "%";
             }
             if (($_POST["SHOW_PASSIVE"] ?? "N") !== "Y") {
-                $whereClause .= " AND mt.ACTIVE_FL = 'Y'";
+                $whereClause .= " AND mt.activeFl = 'Y'";
             }
-            $from = " FROM qms_doc_type mt JOIN qms_doc_category c ON c.CATEGORY_ID = mt.CATEGORY_ID
-                     WHERE mt.COMPANY_ID = :COMPANY_ID AND mt.RECORD_FL > 0";
+            $from = " FROM QMS\DOC\DocType mt JOIN mt.category c
+                     WHERE IDENTITY(mt.company) = :COMPANY_ID AND mt.recordFl > 0";
 
-            $conn = $db->getConnection();
-            $totalRecords = (int) $conn->fetchOne("SELECT COUNT(*)" . $from . $whereClause, $params);
+            $totalRecords = (int) $db->createQuery("SELECT COUNT(mt.docTypeId)" . $from . $whereClause)
+                ->setParameters($params)->getSingleScalarResult();
 
-            // Sıralama alanı istemciden gelir; izin listesiyle kontrol edilir
-            $sortable  = array("c.SORT_NO" => "c.SORT_NO", "mt.CODE_PREFIX" => "mt.CODE_PREFIX", "mt.DOC_TYPE_NAME" => "mt.DOC_TYPE_NAME", "mt.ACTIVE_FL" => "mt.ACTIVE_FL");
-            $sortBy    = $sortable[$_POST["sidx"] ?? ""] ?? "c.SORT_NO";
+            // Sıralama alanı istemciden gelir (jqGrid sütun adı); izin listesiyle DQL alanına çevrilir
+            $sortable  = array("c.SORT_NO" => "c.sortNo", "mt.CODE_PREFIX" => "mt.codePrefix", "mt.DOC_TYPE_NAME" => "mt.docTypeName", "mt.ACTIVE_FL" => "mt.activeFl");
+            $sortBy    = $sortable[$_POST["sidx"] ?? ""] ?? "c.sortNo";
             $direction = strtoupper($_POST["sord"] ?? "") === "DESC" ? "DESC" : "ASC";
-            $orderBy   = " ORDER BY " . $sortBy . " " . $direction . ($sortBy !== "mt.CODE_PREFIX" ? ", mt.CODE_PREFIX ASC" : "");
+            $orderBy   = " ORDER BY " . $sortBy . " " . $direction . ($sortBy !== "mt.codePrefix" ? ", mt.codePrefix ASC" : "");
             $rows = max(1, (int) ($_POST["rows"] ?? 20));
             $page = max(1, (int) ($_POST["page"] ?? 1));
 
-            $dtResponse = $conn->fetchAllAssociative("
-                SELECT mt.DOC_TYPE_ID mt_docTypeId, mt.CODE_PREFIX mt_codePrefix, mt.DOC_TYPE_NAME mt_docTypeName,
-                       mt.STANDARD_CODE mt_standardCode, mt.EXTERNAL_FL mt_externalFl, mt.ACTIVE_FL mt_activeFl,
-                       c.CATEGORY_ID c_categoryId,
-                       (SELECT COUNT(*) FROM qms_doc_type_step s WHERE s.DOC_TYPE_ID = mt.DOC_TYPE_ID AND s.ACTIVE_FL = 'Y'
-                           AND s.SIGN_ROLE IN ('PREPARED','APPROVED')) flowRoles,
-                       (SELECT COUNT(*) FROM qms_doc_type_step s WHERE s.DOC_TYPE_ID = mt.DOC_TYPE_ID AND s.ACTIVE_FL = 'Y') flowSteps,
-                       (SELECT COUNT(*) FROM qms_document d WHERE d.DOC_TYPE_ID = mt.DOC_TYPE_ID AND d.RECORD_FL > 0) docCount
-                " . $from . $whereClause . $orderBy . " OFFSET " . (($page - 1) * $rows) . " ROWS FETCH NEXT " . $rows . " ROWS ONLY", $params);
+            $dtResponse = $db->createQuery("
+                SELECT mt.docTypeId mt_docTypeId, mt.codePrefix mt_codePrefix, mt.docTypeName mt_docTypeName,
+                       mt.standardCode mt_standardCode, mt.externalFl mt_externalFl, mt.esignFl mt_esignFl, mt.activeFl mt_activeFl,
+                       c.categoryId c_categoryId,
+                       (SELECT COUNT(s1.docTypeStepId) FROM QMS\DOC\DocTypeStep s1 WHERE s1.docType = mt AND s1.activeFl = 'Y'
+                           AND s1.signRole IN ('PREPARED', 'APPROVED')) flowRoles,
+                       (SELECT COUNT(s2.docTypeStepId) FROM QMS\DOC\DocTypeStep s2 WHERE s2.docType = mt AND s2.activeFl = 'Y') flowSteps,
+                       (SELECT COUNT(d.documentId) FROM QMS\DOC\Document d WHERE d.docType = mt AND d.recordFl > 0) docCount
+                " . $from . $whereClause . $orderBy)
+                ->setParameters($params)
+                ->setMaxResults($rows)
+                ->setFirstResult(($page - 1) * $rows)
+                ->getArrayResult();
 
             $paths = qmsCategoryPaths($db, $companyId);
             foreach ($dtResponse as &$r) {
@@ -160,16 +164,15 @@ switch ($query) {
     case "getSubjects":
         $execType = ET_DEFAULT;
         try{
-            $conn = $db->getConnection();
             $p = array("COMPANY_ID" => $companyId);
             $resObject = array(
-                "POSITION"   => $conn->fetchAllAssociative("SELECT POSITION_ID id, POSITION_NAME name, ACTIVE_FL activeFl FROM qms_position WHERE COMPANY_ID = :COMPANY_ID AND RECORD_FL > 0 ORDER BY POSITION_NAME", $p),
-                "DEPARTMENT" => $conn->fetchAllAssociative("SELECT DEPARTMENT_ID id, DEPARTMENT_NAME name, ACTIVE_FL activeFl FROM qms_department WHERE COMPANY_ID = :COMPANY_ID AND RECORD_FL > 0 ORDER BY DEPARTMENT_NAME", $p),
-                "LOCATION"   => $conn->fetchAllAssociative("SELECT LOCATION_ID id, LOCATION_NAME name, ACTIVE_FL activeFl FROM qms_location WHERE COMPANY_ID = :COMPANY_ID AND RECORD_FL > 0 ORDER BY LOCATION_NAME", $p),
-                "USER"       => $conn->fetchAllAssociative("
-                    SELECT u.USER_ID id, u.FULL_NAME name, u.ACTIVE_FL activeFl
-                      FROM mng_user u JOIN mng_user_company uc ON uc.USER_ID = u.USER_ID AND uc.RECORD_FL > 0
-                     WHERE uc.COMPANY_ID = :COMPANY_ID AND u.RECORD_FL > 0 ORDER BY u.FULL_NAME", $p),
+                "POSITION"   => $db->createQuery("SELECT x.positionId id, x.positionName name, x.activeFl activeFl FROM QMS\ORG\Position x WHERE IDENTITY(x.company) = :COMPANY_ID AND x.recordFl > 0 ORDER BY x.positionName")->setParameters($p)->getArrayResult(),
+                "DEPARTMENT" => $db->createQuery("SELECT x.departmentId id, x.departmentName name, x.activeFl activeFl FROM QMS\ORG\Department x WHERE IDENTITY(x.company) = :COMPANY_ID AND x.recordFl > 0 ORDER BY x.departmentName")->setParameters($p)->getArrayResult(),
+                "LOCATION"   => $db->createQuery("SELECT x.locationId id, x.locationName name, x.activeFl activeFl FROM QMS\ORG\Location x WHERE IDENTITY(x.company) = :COMPANY_ID AND x.recordFl > 0 ORDER BY x.locationName")->setParameters($p)->getArrayResult(),
+                "USER"       => $db->createQuery("
+                    SELECT u.userId id, u.fullName name, u.activeFl activeFl
+                      FROM QMS\MNG\AppUser u JOIN QMS\MNG\UserCompany uc WITH uc.user = u AND uc.recordFl > 0
+                     WHERE IDENTITY(uc.company) = :COMPANY_ID AND u.recordFl > 0 ORDER BY u.fullName")->setParameters($p)->getArrayResult(),
             );
             $resCode = 0;
             $resMsg = "Ok";
@@ -199,10 +202,13 @@ switch ($query) {
             $retention  = (int) ($_POST["RETENTION_YEARS"] ?? 0);
             $readAck    = ($_POST["READ_ACK_FL"] ?? "Y") === "N" ? "N" : "Y";
             $external   = ($_POST["EXTERNAL_FL"] ?? "N") === "Y" ? "Y" : "N";
+            $fillable   = ($_POST["FILLABLE_FL"] ?? "N") === "Y" ? "Y" : "N";
+            $esign      = ($_POST["ESIGN_FL"] ?? "N") === "Y" ? "Y" : "N";
             $activeFl   = ($_POST["ACTIVE_FL"] ?? "Y") === "N" ? "N" : "Y";
             // STEPS (imza yetkileri) ekrandan gelmez; gelirse eskisi gibi kontrol edilip kaydedilir
-            $steps      = isset($_POST["STEPS"]) ? json_decode((string) $_POST["STEPS"], true) : null;
-            $dists      = json_decode((string) ($_POST["DISTRIBUTION"] ?? "[]"), true);
+            // (STEPS[i][role], STEPS[i][stepOrder], STEPS[i][positions][]); dağıtım satırı yoksa alan hiç gelmez
+            $steps      = isset($_POST["STEPS"]) ? array_values(array_filter((array) $_POST["STEPS"], "is_array")) : null;
+            $dists      = array_values(array_filter((array) ($_POST["DISTRIBUTION"] ?? array()), "is_array"));
 
             $type     = $typeId > 0 ? qmsDocTypeFind($db, $typeId, $companyId) : null;
             $category = $categoryId > 0 ? $db->getRepository(DocCategory::class)->findOneBy(array("categoryId" => $categoryId, "company" => $companyId)) : null;
@@ -244,7 +250,7 @@ switch ($query) {
                 $resCode = 1;
                 $resMsg = $error;
             } else {
-                $db->wrapInTransaction(function () use ($db, &$type, $category, $prefix, $name, $pattern, $standard, $review, $retention, $readAck, $external, $activeFl, $steps, $dists, $lang, &$resMsg) {
+                $db->wrapInTransaction(function () use ($db, &$type, $category, $prefix, $name, $pattern, $standard, $review, $retention, $readAck, $external, $fillable, $esign, $activeFl, $steps, $dists, $lang, &$resMsg) {
                     $isNew  = $type === null;
                     $before = $isNew ? null : qmsDocTypeData($db, $type);
 
@@ -264,7 +270,9 @@ switch ($query) {
                     $type->setReviewMonths($review)
                          ->setRetentionYears($retention)
                          ->setReadAck($readAck === "Y")
-                         ->setExternal($external === "Y");
+                         ->setExternal($external === "Y")
+                         ->setFillable($fillable === "Y")
+                         ->setESign($esign === "Y");
                     $type->setActive($activeFl === "Y");
                     $db->flush();
 
@@ -292,8 +300,8 @@ switch ($query) {
         $execType = ET_DELETE;
         try{
             $type = qmsDocTypeFind($db, (int) ($_POST["DOC_TYPE_ID"] ?? 0), $companyId);
-            $docCount = $type !== null ? (int) $db->getConnection()->fetchOne(
-                "SELECT COUNT(*) FROM qms_document WHERE DOC_TYPE_ID = :ID", array("ID" => $type->getDocTypeId())) : 0;
+            $docCount = $type !== null ? (int) $db->createQuery("SELECT COUNT(d.documentId) FROM QMS\DOC\Document d WHERE d.docType = :TYPE")
+                ->setParameter("TYPE", $type)->getSingleScalarResult() : 0;
 
             if ($type === null) {
                 $resCode = 21;
@@ -352,27 +360,26 @@ function qmsDocTypePrefixTaken($db, array $prefixes, int $companyId, ?DocType $s
  */
 function qmsDocTypeData($db, DocType $type): array
 {
-    $conn = $db->getConnection();
-    $steps = $conn->fetchAllAssociative("
-        SELECT s.DOC_TYPE_STEP_ID id, s.SIGN_ROLE role, s.STEP_ORDER stepOrder
-          FROM qms_doc_type_step s
-         WHERE s.DOC_TYPE_ID = :ID AND s.ACTIVE_FL = 'Y'
-         ORDER BY s.STEP_ORDER, s.DOC_TYPE_STEP_ID", array("ID" => $type->getDocTypeId()));
+    $steps = $db->createQuery("
+        SELECT s.docTypeStepId id, s.signRole role, s.stepOrder stepOrder
+          FROM QMS\DOC\DocTypeStep s
+         WHERE s.docType = :TYPE AND s.activeFl = 'Y'
+         ORDER BY s.stepOrder, s.docTypeStepId")->setParameter("TYPE", $type)->getArrayResult();
     foreach ($steps as &$s) {
-        $s["positions"] = array_map("intval", $conn->fetchFirstColumn("
-            SELECT POSITION_ID FROM qms_doc_type_step_position
-             WHERE DOC_TYPE_STEP_ID = :ID AND ACTIVE_FL = 'Y' ORDER BY POSITION_ID", array("ID" => $s["id"])));
+        $s["positions"] = array_map("intval", array_column($db->createQuery("
+            SELECT IDENTITY(sp.position) positionId FROM QMS\DOC\DocTypeStepPosition sp
+             WHERE IDENTITY(sp.step) = :ID AND sp.activeFl = 'Y' ORDER BY positionId")->setParameter("ID", $s["id"])->getArrayResult(), "positionId"));
         $s["stepOrder"] = (int) $s["stepOrder"];
         unset($s["id"]);
     }
     unset($s);
 
     $dists = array_map(function ($d) {
-        return array("type" => $d["type"], "id" => $d["id"] !== null ? (int) $d["id"] : null);
-    }, $conn->fetchAllAssociative("
-        SELECT SUBJECT_TYPE type, SUBJECT_ID id FROM qms_doc_type_distribution
-         WHERE DOC_TYPE_ID = :ID AND ACTIVE_FL = 'Y'
-         ORDER BY SUBJECT_TYPE, SUBJECT_ID", array("ID" => $type->getDocTypeId())));
+        return array("type" => $d["subjectType"], "id" => $d["subjectId"] !== null ? (int) $d["subjectId"] : null);
+    }, $db->createQuery("
+        SELECT d.subjectType, d.subjectId FROM QMS\DOC\DocTypeDistribution d
+         WHERE d.docType = :TYPE AND d.activeFl = 'Y'
+         ORDER BY d.subjectType, d.subjectId")->setParameter("TYPE", $type)->getArrayResult());
 
     return array(
         "DOC_TYPE_ID"     => $type->getDocTypeId(),
@@ -385,6 +392,8 @@ function qmsDocTypeData($db, DocType $type): array
         "RETENTION_YEARS" => $type->getRetentionYears(),
         "READ_ACK_FL"     => $type->requiresReadAck() ? "Y" : "N",
         "EXTERNAL_FL"     => $type->isExternal() ? "Y" : "N",
+        "FILLABLE_FL"     => $type->isFillable() ? "Y" : "N",
+        "ESIGN_FL"        => $type->isESign() ? "Y" : "N",
         "ACTIVE_FL"       => $type->isActive() ? "Y" : "N",
         "STEPS"           => $steps,
         "DISTRIBUTION"    => $dists,
@@ -413,9 +422,8 @@ function qmsDocTypeCheckFlow($db, array $steps, bool $external, int $companyId, 
         if (!$positions) {
             return sprintf($lang["ERR_STEP_POSITIONS"], $lang["ROLE_" . $role]);
         }
-        $found = (int) $db->getConnection()->fetchOne(
-            "SELECT COUNT(*) FROM qms_position WHERE COMPANY_ID = ? AND RECORD_FL > 0 AND POSITION_ID IN (" . implode(",", $positions) . ")",
-            array($companyId));
+        $found = (int) $db->createQuery("SELECT COUNT(p.positionId) FROM QMS\ORG\Position p WHERE IDENTITY(p.company) = :COMPANY_ID AND p.recordFl > 0 AND p.positionId IN (:IDS)")
+            ->setParameters(array("COMPANY_ID" => $companyId, "IDS" => $positions))->getSingleScalarResult();
         if ($found !== count($positions)) {
             return $lang["ERR_POSITION_NOT_FOUND"];
         }
@@ -440,10 +448,10 @@ function qmsDocTypeCheckFlow($db, array $steps, bool $external, int $companyId, 
 function qmsDocTypeCheckDistribution($db, array $dists, int $companyId, array $lang): ?string
 {
     $tables = array(
-        "DEPARTMENT" => "SELECT COUNT(*) FROM qms_department WHERE DEPARTMENT_ID = ? AND COMPANY_ID = ? AND RECORD_FL > 0",
-        "POSITION"   => "SELECT COUNT(*) FROM qms_position WHERE POSITION_ID = ? AND COMPANY_ID = ? AND RECORD_FL > 0",
-        "LOCATION"   => "SELECT COUNT(*) FROM qms_location WHERE LOCATION_ID = ? AND COMPANY_ID = ? AND RECORD_FL > 0",
-        "USER"       => "SELECT COUNT(*) FROM mng_user_company WHERE USER_ID = ? AND COMPANY_ID = ? AND RECORD_FL > 0",
+        "DEPARTMENT" => "SELECT COUNT(x.departmentId) FROM QMS\ORG\Department x WHERE x.departmentId = :ID AND IDENTITY(x.company) = :COMPANY_ID AND x.recordFl > 0",
+        "POSITION"   => "SELECT COUNT(x.positionId) FROM QMS\ORG\Position x WHERE x.positionId = :ID AND IDENTITY(x.company) = :COMPANY_ID AND x.recordFl > 0",
+        "LOCATION"   => "SELECT COUNT(x.locationId) FROM QMS\ORG\Location x WHERE x.locationId = :ID AND IDENTITY(x.company) = :COMPANY_ID AND x.recordFl > 0",
+        "USER"       => "SELECT COUNT(x.userCompanyId) FROM QMS\MNG\UserCompany x WHERE IDENTITY(x.user) = :ID AND IDENTITY(x.company) = :COMPANY_ID AND x.recordFl > 0",
     );
     $seen = array();
     foreach ($dists as $d) {
@@ -459,7 +467,7 @@ function qmsDocTypeCheckDistribution($db, array $dists, int $companyId, array $l
             return $lang["ERR_DISTRIBUTION_DUPLICATE"];
         }
         $seen[$key] = true;
-        if ($id !== null && (int) $db->getConnection()->fetchOne($tables[$type], array($id, $companyId)) === 0) {
+        if ($id !== null && (int) $db->createQuery($tables[$type])->setParameters(array("ID" => $id, "COMPANY_ID" => $companyId))->getSingleScalarResult() === 0) {
             return $lang["ERR_DISTRIBUTION"];
         }
     }
@@ -534,10 +542,10 @@ function qmsDocTypeSyncDistribution($db, DocType $type, array $dists): void
  */
 function qmsCategoryPaths($db, int $companyId): array
 {
-    $rows = $db->getConnection()->fetchAllAssociative("
-        SELECT CATEGORY_ID id, PARENT_ID parentId, CATEGORY_NAME name, SORT_NO sortNo
-          FROM qms_doc_category WHERE COMPANY_ID = :COMPANY_ID AND RECORD_FL > 0
-    ", array("COMPANY_ID" => $companyId));
+    $rows = $db->createQuery("
+        SELECT c.categoryId id, IDENTITY(c.parent) parentId, c.categoryName name, c.sortNo sortNo
+          FROM QMS\DOC\DocCategory c WHERE IDENTITY(c.company) = :COMPANY_ID AND c.recordFl > 0")
+        ->setParameter("COMPANY_ID", $companyId)->getArrayResult();
     $byId = array();
     foreach ($rows as $r) {
         $byId[$r["id"]] = $r;

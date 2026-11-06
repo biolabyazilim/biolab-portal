@@ -90,6 +90,8 @@
                         <!-- Evet/hayır alanları onay kutusu; sunucuya gizli alanlar (Y/N) gider -->
                         <input type="hidden" id="READ_ACK_FL" name="READ_ACK_FL" value="Y"/>
                         <input type="hidden" id="EXTERNAL_FL" name="EXTERNAL_FL" value="N"/>
+                        <input type="hidden" id="FILLABLE_FL" name="FILLABLE_FL" value="N"/>
+                        <input type="hidden" id="ESIGN_FL" name="ESIGN_FL" value="N"/>
                         <input type="hidden" id="ACTIVE_FL" name="ACTIVE_FL" value="Y"/>
                         <div class="d-flex flex-wrap" style="gap: 24px">
                             <div class="custom-control custom-checkbox">
@@ -101,11 +103,21 @@
                                 <label class="custom-control-label" for="CB_EXTERNAL_FL" data-tr="EXTERNAL_FL">Dış kaynaklı</label>
                             </div>
                             <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input qm-flag" id="CB_FILLABLE_FL" data-target="#FILLABLE_FL">
+                                <label class="custom-control-label" for="CB_FILLABLE_FL" data-tr="FILLABLE_FL">Doldurulabilir form</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input qm-flag" id="CB_ESIGN_FL" data-target="#ESIGN_FL">
+                                <label class="custom-control-label" for="CB_ESIGN_FL" data-tr="ESIGN_FL">Elektronik imza akışı</label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input qm-flag" id="CB_ACTIVE_FL" data-target="#ACTIVE_FL" checked>
                                 <label class="custom-control-label" for="CB_ACTIVE_FL" data-tr="ACTIVE_FL">Aktif</label>
                             </div>
                         </div>
                         <small class="form-text text-muted" id="externalInfo" data-tr="EXTERNAL_INFO" hidden></small>
+                        <small class="form-text text-muted" data-tr="FILLABLE_INFO"></small>
+                        <small class="form-text text-muted" data-tr="ESIGN_INFO"></small>
                     </div>
                 </div>
 
@@ -208,6 +220,6 @@
 <script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
 <script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
-<script src="js/qmsDocType-1.0.0.js?v=1.0.2"></script>
+<script src="js/qmsDocType-1.0.0.js?v=1.0.5"></script>
 </body>
 </html>

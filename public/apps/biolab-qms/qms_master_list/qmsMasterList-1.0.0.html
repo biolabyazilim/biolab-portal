@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Doküman ana listesi</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.0.0">
+    <style>
+        .qm-tree{ list-style: none; margin: 0; padding: 0; font-size: 13px; }
+        .qm-tree li{ padding: 6px 8px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
+        .qm-tree li.is-child{ padding-left: 24px; }
+        .qm-tree li:hover{ background: #f2f4f7; }
+        .qm-tree li.is-current{ background: #e0ecff; color: #1d4ed8; font-weight: 600; }
+        .qm-tree .count{ color: #667085; font-size: 12px; }
+        .qm-badge{ display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; background: #eceff3; color: #475467; }
+        .qm-badge-ok  { background: #e3f4e9; color: #1e6b3a; }
+        .qm-badge-wait{ background: #fff4d6; color: #8a5a00; }
+        .qm-badge-err { background: #fde8e8; color: #9b1c1c; }
+        .qm-badge-sign{ background: #e0ecff; color: #1d4ed8; }
+        .qm-filters .btn{ font-size: 12px; }
+        .qm-table-wrap{ max-height: 46vh; overflow: auto; border: 1px solid #eef0f3; border-radius: 4px; }
+        .qm-table{ width: 100%; font-size: 12px; border-collapse: separate; border-spacing: 0; }
+        .qm-table th{ position: sticky; top: 0; z-index: 1; background: #f7f8fa; color: #475467; font-weight: 600; padding: 6px; border-bottom: 1px solid #e4e7ec; white-space: nowrap; }
+        .qm-table td{ padding: 6px; border-bottom: 1px solid #f2f4f7; vertical-align: top; }
+        .qm-table tbody tr{ cursor: pointer; }
+        .qm-table tbody tr:hover td{ background: #fafbfc; }
+        .qm-table tbody tr.is-current td{ background: #eef6ff; }
+        .qm-table .group td{ background: #f7f8fa; color: #475467; font-weight: 600; font-size: 11px; text-transform: uppercase; cursor: default; }
+        .qm-table .code{ font-weight: 600; white-space: nowrap; }
+        .qm-table .nowrap{ white-space: nowrap; }
+        .qm-head .meta{ font-size: 12px; color: #667085; }
+        .qm-viewer{ height: 70vh; overflow: auto; background: #525659; border-radius: 4px; padding: 10px 0; }
+        .qm-viewer canvas{ display: block; margin: 0 auto 10px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); max-width: calc(100% - 20px); }
+        .qm-viewer .qm-sep{ color: #fff; text-align: center; font-size: 12px; margin: 6px 0 10px; }
+        .qm-viewer .qm-msg{ color: #fff; text-align: center; padding: 40px 10px; }
+        .qm-revs{ max-height: 70vh; overflow: auto; }
+        .qm-rev{ border: 1px solid #e4e7ec; border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; cursor: pointer; font-size: 12px; }
+        .qm-rev.is-current{ border-color: #1d4ed8; box-shadow: 0 0 0 1px #1d4ed8 inset; }
+        .qm-rev .title{ font-weight: 600; font-size: 13px; }
+        .qm-rev .meta{ color: #667085; }
+        .qm-steps{ margin: 6px 0 0; padding: 0; list-style: none; }
+        .qm-steps li{ border-top: 1px dashed #eef0f3; padding: 4px 0; }
+        .qm-steps .role{ font-weight: 600; display: inline-block; min-width: 92px; }
+        .qm-steps .hash{ font-family: monospace; color: #98a2b3; font-size: 11px; }
+        .qm-hash{ font-family: monospace; font-size: 11px; color: #667085; word-break: break-all; }
+        @media (max-width: 1199px){ .qm-col-list{ margin-top: 16px; } }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir (bootstrap düğme rengini kurumsal renge çeker) -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+        <div class="row">
+
+            <!-- Sol: klasör ağacı -->
+            <div class="col-xl-3">
+                <div class="card">
+                    <div class="card-header" style="background-color: #c53cb61f">
+                        <h3 class="card-title" data-tr="TREE_TITLE">Klasörler</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="qm-tree" id="tree"></ul>
+                        <div class="custom-control custom-checkbox mt-3">
+                            <input type="checkbox" class="custom-control-input" id="SHOW_CANCELLED">
+                            <label class="custom-control-label small" for="SHOW_CANCELLED" data-tr="SHOW_CANCELLED">İptal edilenleri de göster</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ: doküman listesi -->
+            <div class="col-xl-9 qm-col-list">
+                <div class="card">
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" data-tr="LIST_TITLE">Dokümanlar</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap align-items-center mb-2" style="gap: 8px;">
+                            <div class="btn-group btn-group-sm qm-filters" role="group" id="filters">
+                                <button type="button" class="btn btn-default active" data-filter="ALL" data-tr="FILTER_ALL">Hepsi</button>
+                                <button type="button" class="btn btn-default" data-filter="EFFECTIVE" data-tr="FILTER_EFFECTIVE">Yürürlükte</button>
+                                <button type="button" class="btn btn-default" data-filter="SIGNING" data-tr="FILTER_SIGNING">İmzada</button>
+                                <button type="button" class="btn btn-default" data-filter="OVERDUE" data-tr="FILTER_OVERDUE">Gözden geçirmesi gecikmiş</button>
+                            </div>
+                            <input type="text" id="searchField" class="form-control form-control-sm" style="max-width: 260px" data-trph="PH_SEARCH" placeholder="" autocomplete="off">
+                            <span class="small text-muted ml-auto" id="count"></span>
+                        </div>
+                        <div class="qm-table-wrap">
+                            <table class="qm-table">
+                                <thead><tr>
+                                    <th data-tr="COL_CODE">Kod</th>
+                                    <th data-tr="COL_TITLE">Doküman adı</th>
+                                    <th data-tr="COL_REV">Rev</th>
+                                    <th data-tr="COL_STATUS">Durum</th>
+                                    <th data-tr="COL_EFFECTIVE">Yürürlük</th>
+                                    <th data-tr="COL_REVIEW">Gözden geçirme</th>
+                                    <th data-tr="COL_OWNER">Sahip</th>
+                                </tr></thead>
+                                <tbody id="docRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seçili doküman: PDF önizleme, revizyon geçmişi ve imzalar -->
+                <div class="card mt-3" id="detailCard" hidden>
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="DETAIL_TITLE">Doküman</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="qm-head mb-2" id="detailHead"></div>
+                        <div class="row">
+                            <div class="col-lg-7">
+                                <div class="qm-viewer" id="viewer"></div>
+                            </div>
+                            <div class="col-lg-5">
+                                <h6 class="mt-2 mt-lg-0" data-tr="REVISIONS_TITLE">Revizyon geçmişi</h6>
+                                <div class="qm-revs" id="revisions"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/plugins/pdfjs-2.6.347/pdf.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/qmsMasterList-1.0.0.js?v=1.0.1"></script>
+</body>
+</html>

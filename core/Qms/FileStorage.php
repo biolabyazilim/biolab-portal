@@ -44,6 +44,18 @@ final class FileStorage
         return $rel;
     }
 
+    // Sunucuda üretilen içerik (imza resmi, mühürlü PDF) depoya yazılır; depoya göre yolu döner
+    public static function putContent(string $bytes, string $dir, string $kind, string $ext): string
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'qms');
+        try {
+            file_put_contents($tmp, $bytes);
+            return self::put($tmp, $dir, $kind, $ext, false);
+        } finally {
+            @unlink($tmp);
+        }
+    }
+
     public static function absolute(string $rel): string
     {
         if (str_contains($rel, '..')) {

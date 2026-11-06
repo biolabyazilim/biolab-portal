@@ -99,6 +99,9 @@
                             <select id="APPROVED_ID" class="form-control form-control-sm"></select>
                             <small class="form-text text-muted" data-tr="EXTERNAL_NOTE"></small>
                         </div>
+                        <!-- İmzacı alanları satırların tipine göre gizlenir (JS updateSignerPanel); hiçbirinde e-imza yoksa bu not çıkar -->
+                        <div class="alert alert-secondary py-2 small" id="wetSignNote" data-tr="WET_SIGN_PANEL" hidden></div>
+                        <small class="form-text text-muted mb-2" data-tr="ESIGN_NOTE"></small>
                         <div class="form-group mb-1"><!--CHANGE_REASON (bütün yükleme için)-->
                             <label for="CHANGE_REASON" data-tr="CHANGE_REASON" class="col-form-label-sm">§§CHANGE_REASON</label>
                             <input type="text" id="CHANGE_REASON" class="form-control form-control-sm" maxlength="1000"/>
@@ -136,6 +139,7 @@
                                     <th data-tr="COL_VARIANT">Varyant</th>
                                     <th data-tr="COL_REV">Rev</th>
                                     <th data-tr="COL_TYPE">Tip</th>
+                                    <th data-tr="COL_FILLABLE">Doldurulur</th>
                                     <th data-tr="COL_FILES">Dosyalar</th>
                                     <th data-tr="COL_OWNER">Sahip</th>
                                     <th data-tr="COL_SIGNERS">İmzacılar</th>
@@ -170,6 +174,6 @@
 <script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
 <script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
-<script src="js/qmsDocument-1.0.0.js?v=1.0.5"></script>
+<script src="js/qmsDocument-1.0.0.js?v=1.0.12"></script>
 </body>
 </html>

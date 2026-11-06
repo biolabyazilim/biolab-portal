@@ -3,7 +3,7 @@
  *
  * - Solda tip formu: klasör, ad, kod öneki, süreler ve onay kutuları (okudum onayı, dış kaynaklı, aktif).
  *   Kod kalıbı sorulmaz; sunucu önekten üretir (TL → TL + 1–4 hane). Yeni kayıtta ad klasörden dolar.
- *   Altında varsayılan dağıtım; tek Kaydet ile tek transaction'da gider (DISTRIBUTION JSON olarak).
+ *   Altında varsayılan dağıtım; tek Kaydet ile tek transaction'da gider (DISTRIBUTION[i][type], DISTRIBUTION[i][id] form alanları).
  *   İmzacılar tipte tanımlanmaz: her dokümanın imzacıları yüklemede seçilir (dokümana göre değişir).
  * - Sağda tip listesi (klasör süzgeci, arama, pasifler).
  * - Kayıttan sonra liste yenilenir ve kaydedilen tip işaretlenir; yeni kayıtta form boşalır.
@@ -219,6 +219,9 @@ $.DLNFrame = {
                 ? '<span class="qm-badge qm-badge-on">' + $d.lang['STATUS_ACTIVE'] + '</span>'
                 : '<span class="qm-badge qm-badge-off">' + $d.lang['STATUS_PASSIVE'] + '</span>';
         }
+        function esignFormatter(cellvalue) {
+            return cellvalue === 'Y' ? '<span class="qm-badge qm-badge-on">' + $d.lang['ESIGN_BADGE'] + '</span>' : '<span class="text-muted small">' + $d.lang['WET_BADGE'] + '</span>';
+        }
         function externalFormatter(cellvalue) {
             return cellvalue === 'Y' ? '<span class="qm-badge qm-badge-ext">' + $d.lang['EXTERNAL_BADGE'] + '</span>' : '';
         }
@@ -233,6 +236,7 @@ $.DLNFrame = {
                 { label: $d.lang['CODE_PREFIX'],      name: 'mt_codePrefix',   index: 'mt.CODE_PREFIX',   width: 70 },
                 { label: $d.lang['DOC_TYPE_NAME'],    name: 'mt_docTypeName',  index: 'mt.DOC_TYPE_NAME', width: 160 },
                 { label: $d.lang['EXTERNAL_FL'],      name: 'mt_externalFl',   index: 'mt_externalFl',    width: 100, sortable: false, formatter: externalFormatter },
+                { label: $d.lang['ESIGN_COL'],        name: 'mt_esignFl',      index: 'mt_esignFl',       width: 90, sortable: false, formatter: esignFormatter },
                 { label: $d.lang['DOC_COUNT'],        name: 'docCount',        index: 'docCount',         width: 65, align: 'right', sortable: false },
                 { label: $d.lang['ACTIVE_FL'],        name: 'mt_activeFl',     index: 'mt.ACTIVE_FL',     width: 65, formatter: activeFormatter },
             ],
@@ -316,6 +320,8 @@ $.DLNFrame = {
         $(f + ' #RETENTION_YEARS').val(data['RETENTION_YEARS']);
         $t.setFlag('READ_ACK_FL', data['READ_ACK_FL']);
         $t.setFlag('EXTERNAL_FL', data['EXTERNAL_FL']);
+        $t.setFlag('FILLABLE_FL', data['FILLABLE_FL']);
+        $t.setFlag('ESIGN_FL', data['ESIGN_FL']);
         $t.setFlag('ACTIVE_FL', data['ACTIVE_FL']);
         $('#externalInfo').prop('hidden', data['EXTERNAL_FL'] !== 'Y');
 
@@ -403,7 +409,7 @@ $.DLNFrame = {
                         $noty.close();
                         const isNew = query === 'setAdd' || !$('#DOC_TYPE_ID').val();
                         const data = $($t.opt.editFormDocType).serialize() + '&' + $.param({
-                            DISTRIBUTION: JSON.stringify($t.collectDistribution())
+                            DISTRIBUTION: $t.collectDistribution()
                         });
                         $t.post(query, data, function (result) {
                             const id = result['resObject']['DOC_TYPE_ID'];
@@ -481,6 +487,8 @@ $.DLNFrame = {
         $('#CATEGORY_ID').val(null).change();
         $t.setFlag('READ_ACK_FL', 'Y');
         $t.setFlag('EXTERNAL_FL', 'N');
+        $t.setFlag('FILLABLE_FL', 'N');
+        $t.setFlag('ESIGN_FL', 'N');
         $t.setFlag('ACTIVE_FL', 'Y');
         $('#externalInfo').prop('hidden', true);
         $('#REVIEW_MONTHS').val(24);

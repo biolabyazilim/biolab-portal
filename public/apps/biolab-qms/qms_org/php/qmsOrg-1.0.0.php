@@ -286,28 +286,29 @@ function qmsOrgSnapshot(object $record, array $def, string $type): array
 // Kaydın kullanıldığı yer sayısı (görevler, pozisyonlar, dokümanlar, imza yetkisi, dağıtımlar). 0 ise silinebilir.
 function qmsOrgUsage($db, string $type, int $id): int
 {
-    $conn = $db->getConnection();
-    $sql = array(
+    $dql = array(
         "DEPARTMENT" => array(
-            "SELECT COUNT(*) FROM qms_position WHERE DEPARTMENT_ID = :ID AND RECORD_FL > 0",
-            "SELECT COUNT(*) FROM qms_user_assignment WHERE DEPARTMENT_ID = :ID",
-            "SELECT COUNT(*) FROM qms_document WHERE OWNER_DEPARTMENT_ID = :ID",
+            "SELECT COUNT(x.positionId) FROM QMS\ORG\Position x WHERE IDENTITY(x.department) = :ID AND x.recordFl > 0",
+            "SELECT COUNT(x.assignmentId) FROM QMS\ORG\UserAssignment x WHERE IDENTITY(x.department) = :ID",
+            "SELECT COUNT(x.documentId) FROM QMS\DOC\Document x WHERE IDENTITY(x.ownerDepartment) = :ID",
         ),
         "POSITION" => array(
-            "SELECT COUNT(*) FROM qms_user_assignment WHERE POSITION_ID = :ID",
-            "SELECT COUNT(*) FROM qms_doc_type_step_position WHERE POSITION_ID = :ID AND RECORD_FL > 0",
+            "SELECT COUNT(x.assignmentId) FROM QMS\ORG\UserAssignment x WHERE IDENTITY(x.position) = :ID",
+            "SELECT COUNT(x.docTypeStepPositionId) FROM QMS\DOC\DocTypeStepPosition x WHERE IDENTITY(x.position) = :ID AND x.recordFl > 0",
         ),
         "LOCATION" => array(
-            "SELECT COUNT(*) FROM qms_user_assignment WHERE LOCATION_ID = :ID",
+            "SELECT COUNT(x.assignmentId) FROM QMS\ORG\UserAssignment x WHERE IDENTITY(x.location) = :ID",
         ),
     )[$type];
-    // Dağıtımlarda SUBJECT_TYPE + SUBJECT_ID ile geçer (foreign key yok)
-    $sql[] = "SELECT COUNT(*) FROM qms_doc_type_distribution WHERE SUBJECT_TYPE = '" . $type . "' AND SUBJECT_ID = :ID AND RECORD_FL > 0";
-    $sql[] = "SELECT COUNT(*) FROM qms_revision_distribution WHERE SUBJECT_TYPE = '" . $type . "' AND SUBJECT_ID = :ID";
 
     $total = 0;
-    foreach ($sql as $s) {
-        $total += (int) $conn->fetchOne($s, array("ID" => $id));
+    foreach ($dql as $q) {
+        $total += (int) $db->createQuery($q)->setParameter("ID", $id)->getSingleScalarResult();
     }
+    // Dağıtımlarda SUBJECT_TYPE + SUBJECT_ID ile geçer (foreign key yok)
+    $total += (int) $db->createQuery("SELECT COUNT(x.docTypeDistributionId) FROM QMS\DOC\DocTypeDistribution x WHERE x.subjectType = :TYPE AND x.subjectId = :ID AND x.recordFl > 0")
+        ->setParameters(array("TYPE" => $type, "ID" => $id))->getSingleScalarResult();
+    $total += (int) $db->createQuery("SELECT COUNT(x.revisionDistributionId) FROM QMS\DOC\RevisionDistribution x WHERE x.subjectType = :TYPE AND x.subjectId = :ID")
+        ->setParameters(array("TYPE" => $type, "ID" => $id))->getSingleScalarResult();
     return $total;
 }
