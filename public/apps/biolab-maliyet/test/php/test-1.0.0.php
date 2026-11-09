@@ -9,16 +9,21 @@
  *   getSUPPLIER_ID      → tedarikçi / cihaz
  *
  *   getGridList   → test listesi (jqGrid; sekme / hizmet grubu / yöntem / birim / arama sunucuda)
- *   getSelectedId → seçilen test + bileşenleri (birleşik / hesaplamalı testlerde)
- *   setTest       → test ekle / düzenle
+ *   getSelectedId → seçilen test + bileşenleri (birleşik / hesaplamalı testlerde) + kısa kodlu malzemeleri
+ *   getSHORT_CODE_MATERIALS → kısa kodlu malzemeler (TK, LM, N.LAM, LAMEL22…) ve testteki hasta başı adetleri (yeni test için)
+ *   setTest       → test ekle / düzenle (kısa kodlu malzeme adetleri reçeteye yazılır)
  *
  * Kod, ad, hizmet grubu ve birim Tenay test listesinden gelir; mevcut testte değiştirilmez (Excel aktarımı günceller).
- * Ekranda maliyet yöntemi, tedarikçi, patoloji düzeyi, SUT kodu, numune tipi, sorumlu, not ve aktiflik düzenlenir.
+ * Ekranda maliyet yöntemi, tedarikçi, patoloji düzeyi, SUT kodu, numune tipi, sorumlu, not, hesap notu ve aktiflik düzenlenir.
+ * Kısa kodlu malzemeler: patolojide Excel'deki TK / L / LM kolonları, Biolab'ta "N.LAM+LAMEL" gibi notlar. Malzemeler ekranında "Kısa kod" verilen her malzeme
+ * burada seçilebilir; adet girilen malzeme testin reçetesine hasta başı satır olarak yazılır, adet silinirse satır kalkar.
  */
 
 // Proxy bu dosyayı bir metodun içinde require eder: $resourceFile global olmazsa dil yükleyicisi (global $resourceFile) onu görmez
 global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resObject, $totalRecords, $resourceFile;
 
+use BIO\MLYT\Material;
+use BIO\MLYT\RecipeItem;
 use BIO\MLYT\ServiceGroup;
 use BIO\MLYT\Supplier;
 use BIO\MLYT\Test;
@@ -107,9 +112,40 @@ switch ($query) {
         }
         break;
 
+    // Kısa kodlu malzeme seçim kutusu (form): "TK · DOKU TAKİP KASETİ"
+    case "getSHORT_MATERIAL_ID":
+        $execType = ET_DEFAULT;
+        try{
+            $dtResponse = array();
+            foreach (tsShortCodeMaterials($db, $companyId, null) as $m) {
+                $dtResponse[] = array("materialId" => $m["materialId"], "shortCode" => $m["shortCode"], "materialName" => $m["materialName"],
+                                      "shortText" => $m["shortCode"] . " · " . $m["materialName"], "activeFl" => "Y");
+            }
+            $resCode = 0;
+            $resMsg = "Ok";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
+    // Kısa kodlu malzemeler; TEST_ID verilirse o testteki hasta başı adetleriyle (yeni testte adetler boş)
+    case "getSHORT_CODE_MATERIALS":
+        $execType = ET_DEFAULT;
+        try{
+            $test = tsFindTest($db, (int) ($_POST["TEST_ID"] ?? 0), $companyId);
+            $dtResponse = tsShortCodeMaterials($db, $companyId, $test);
+            $resCode = 0;
+            $resMsg = "Ok";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
     /* ---------- Liste ---------- */
 
-    // postData: TAB (all / undefined / inactive), SERVICE_GROUP_ID, COST_METHOD, LAB_UNIT, Q (kod / ad / tedarikçi)
+    // postData: TAB (all / undefined / inactive), SERVICE_GROUP_ID, COST_METHOD, LAB_UNIT, SUPPLIER_ID, Q (kod / ad / tedarikçi)
     // resObject.counts: sekme sayıları (filtrelerden bağımsız)
     case "getGridList":
         $execType = ET_JQGRID;
@@ -144,6 +180,13 @@ switch ($query) {
             if (isset(TS_UNIT_NAMES[$_POST["LAB_UNIT"] ?? ""])) {
                 $whereClause .= " AND t.labUnit = :LAB_UNIT";
                 $params["LAB_UNIT"] = $_POST["LAB_UNIT"];
+            }
+            // Tedarikçi: -1 = tedarikçisi olmayanlar
+            if ((int) ($_POST["SUPPLIER_ID"] ?? 0) === -1) {
+                $whereClause .= " AND s.supplierId IS NULL";
+            } elseif ((int) ($_POST["SUPPLIER_ID"] ?? 0) > 0) {
+                $whereClause .= " AND s.supplierId = :SUPPLIER_ID";
+                $params["SUPPLIER_ID"] = (int) $_POST["SUPPLIER_ID"];
             }
             $q = trim((string) ($_POST["Q"] ?? ""));
             if ($q !== "") {
@@ -194,6 +237,29 @@ switch ($query) {
         }
         break;
 
+    // Excel çıktısı: ekrandaki filtrelerle (TAB, SERVICE_GROUP_ID, COST_METHOD, LAB_UNIT, SUPPLIER_ID, Q); indirme adresi döner
+    case "getExcelList":
+        $execType = ET_CUSTOM;
+        try{
+            $export = new \Biolab\Core\Mlyt\TestExport($db, $companyId, array(
+                "tab"            => (string) ($_POST["TAB"] ?? "all"),
+                "serviceGroupId" => (int) ($_POST["SERVICE_GROUP_ID"] ?? 0),
+                "costMethod"     => (string) ($_POST["COST_METHOD"] ?? ""),
+                "labUnit"        => (string) ($_POST["LAB_UNIT"] ?? ""),
+                "supplierId"     => (int) ($_POST["SUPPLIER_ID"] ?? 0),
+                "q"              => (string) ($_POST["Q"] ?? ""),            ));
+            $fileName = $export->fileName();
+            $token = \Biolab\Core\Http\PdfHandoff::stash($export->bytes(), $fileName,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            $resObject = array("url" => "/api/pdf.php?t=" . $token, "fileName" => $fileName);
+            $resCode = 0;
+            $resMsg = "Excel hazır";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
     // Seçilen test + bileşenleri → form
     case "getSelectedId":
         $execType = ET_DEFAULT;
@@ -224,11 +290,13 @@ switch ($query) {
                 "sampleType"         => $test->getSampleType(),
                 "responsibleName"    => $test->getResponsibleName(),
                 "note"               => $test->getNote(),
+                "costNote"           => $test->getCostNote(),
                 "active"             => $test->isActive(),
                 "sourceSupplierText" => $test->getSourceSupplierText(),
                 "sourceLevelText"    => $test->getSourceLevelText(),
                 "sourceMaterialText" => $test->getSourceMaterialText(),
                 "components"         => $components,
+                "shortCodeMaterials" => tsShortCodeMaterials($db, $companyId, $test),
             );
             $resCode = 0;
             $resMsg = "Ok";
@@ -268,11 +336,29 @@ switch ($query) {
                     $errors[] = "Bu kodla bir test zaten var.";
                 }
             }
+            // Kısa kodlu malzemeler (Biolab ve Patoloji): JSON {materialId: adet}; boş / 0 adet → reçete satırı kaldırılır
+            $shortQty = array();
+            if (trim((string) ($_POST["SHORT_CODE_MATERIALS"] ?? "")) !== "") {
+                $valid = array_column(tsShortCodeMaterials($db, $companyId, null), "shortCode", "materialId");
+                foreach ((array) json_decode((string) $_POST["SHORT_CODE_MATERIALS"], true) as $mid => $q) {
+                    $mid = (int) $mid;
+                    if (!isset($valid[$mid])) { continue; }   // kısa kodu kaldırılmış / başka şirketin malzemesi
+                    $q = trim((string) $q);
+                    if ($q !== "" && str_contains($q, ",")) { $q = str_replace(array(".", ","), array("", "."), $q); }
+                    if ($q !== "" && (!is_numeric($q) || (float) $q < 0)) { $errors[] = $valid[$mid] . " adedi sayı olmalı."; continue; }
+                    $shortQty[$mid] = ($q === "" || (float) $q == 0) ? null : $q;
+                }
+                if ($method === Test::METHOD_CALCULATED && array_filter($shortQty)) {
+                    $errors[] = "Hesaplamalı testin maliyeti bileşenlerinden gelir; malzeme adedi girilmez.";
+                }
+            }
             if ($errors) {
                 $resCode = 10;
                 $resMsg = implode(" ", $errors);
                 break;
             }
+            // Malzeme adedi girilen ve yöntemi belirsiz test reçeteyle hesaplanır
+            if ($method === Test::METHOD_UNDEFINED && array_filter($shortQty)) { $method = Test::METHOD_RECIPE; }
 
             if ($testId <= 0) {
                 $test = new Test($code, $name, $group);
@@ -287,7 +373,31 @@ switch ($query) {
                  ->setResponsibleName(tsText($_POST["RESPONSIBLE_NAME"] ?? null))
                  ->setNote(tsText($_POST["NOTE"] ?? null))
                  ->setActive(($_POST["ACTIVE"] ?? "Y") === "Y");
+            if (array_key_exists("COST_NOTE", $_POST)) {
+                $test->setCostNote(tsText(mb_substr((string) $_POST["COST_NOTE"], 0, 2000)));
+            }
             $db->flush();
+
+            // Kısa kodlu malzeme adetleri → testin hasta başı reçete satırları
+            if ($shortQty) {
+                $items = array();
+                foreach ($db->getRepository(RecipeItem::class)->findBy(array("test" => $test, "consumption" => RecipeItem::PER_PATIENT)) as $ri) {
+                    if (!$ri->isDeleted()) { $items[$ri->getMaterial()->getMaterialId()] = $ri; }
+                }
+                $maxSort = (int) $db->createQuery("SELECT MAX(ri.sortNo) FROM BIO\MLYT\RecipeItem ri WHERE ri.test = :TEST")
+                    ->setParameter("TEST", $test)->getSingleScalarResult();
+                foreach ($shortQty as $mid => $q) {
+                    if ($q === null) {
+                        if (isset($items[$mid])) { $db->remove($items[$mid]); }
+                    } elseif (isset($items[$mid])) {
+                        $items[$mid]->setQuantity($q);
+                    } else {
+                        $maxSort += 10;
+                        $db->persist(new RecipeItem($test, $db->getReference(Material::class, $mid), $q, RecipeItem::PER_PATIENT, $maxSort));
+                    }
+                }
+                $db->flush();
+            }
 
             $resObject = array("testId" => $test->getTestId());
             $resCode = 0;
@@ -334,6 +444,25 @@ function tsSupplier($db, int $companyId, $supplierId, $supplierName): ?Supplier
         $db->persist($s);
     }
     return $s;
+}
+
+/**
+ * Kısa kodlu malzemeler (Malzemeler ekranında "Kısa kod" verilenler): [{materialId, shortCode, materialName, quantity}]
+ * quantity: testteki hasta başı reçete adedi; test yoksa ya da malzeme reçetede yoksa null.
+ */
+function tsShortCodeMaterials($db, int $companyId, ?Test $test): array
+{
+    $rows = $db->createQuery("
+        SELECT m.materialId, m.shortCode, m.materialName,
+               (SELECT MAX(ri.quantity) FROM BIO\MLYT\RecipeItem ri
+                 WHERE ri.material = m AND ri.test = :TEST AND ri.consumption = :PER_PATIENT AND ri.recordFl > 0) AS quantity
+          FROM BIO\MLYT\Material m
+         WHERE IDENTITY(m.company) = :COMPANY_ID AND m.recordFl > 0 AND m.shortCode IS NOT NULL
+         ORDER BY m.shortCode
+    ")->setParameters(array("COMPANY_ID" => $companyId, "TEST" => $test?->getTestId() ?? 0, "PER_PATIENT" => RecipeItem::PER_PATIENT))
+      ->getArrayResult();
+    foreach ($rows as &$r) { $r["materialId"] = (int) $r["materialId"]; }
+    return $rows;
 }
 
 function tsText($v): ?string

@@ -31,8 +31,23 @@ class Company
     #[ORM\JoinColumn(name: 'LANGUAGE_ID', referencedColumnName: 'LANGUAGE_ID', nullable: false)]
     private Language $language;                     // LANGUAGE_ID → mng_language
 
+    // Şirket tipi (Merkez, Şube): mng_company_type
+    #[ORM\ManyToOne(targetEntity: CompanyType::class)]
+    #[ORM\JoinColumn(name: 'COMPANY_TYPE_ID', referencedColumnName: 'COMPANY_TYPE_ID', nullable: true)]
+    private ?CompanyType $companyType = null;       // COMPANY_TYPE_ID → mng_company_type
+
+    // Şubenin bağlı olduğu şirket; merkezde boş
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: 'PARENT_COMPANY_ID', referencedColumnName: 'COMPANY_ID', nullable: true)]
+    private ?Company $parentCompany = null;         // PARENT_COMPANY_ID → mng_company
+
     public function getLanguage(): Language { return $this->language; }
     public function setLanguage(Language $language): self { $this->language = $language; return $this; }
+
+    public function getCompanyType(): ?CompanyType          { return $this->companyType; }
+    public function setCompanyType(?CompanyType $v): self   { $this->companyType = $v; return $this; }
+    public function getParentCompany(): ?Company            { return $this->parentCompany; }
+    public function setParentCompany(?Company $v): self     { $this->parentCompany = $v; return $this; }
 
     public function __construct(string $code, string $companyName,  Language $language)
     {
@@ -49,6 +64,12 @@ class Company
     public function getCode(): string
     {
         return $this->code;
+    }
+
+    public function setCode(string $code): self
+    {
+        $this->code = $code;
+        return $this;
     }
 
     public function getCompanyName(): string

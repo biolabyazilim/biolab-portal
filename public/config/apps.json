@@ -45,6 +45,15 @@
       "url": "./apps/biolab-qms/login.html",
       "status": "active",
       "target": "_blank"
+    },
+    {
+      "code": "DEFINITIONS",
+      "name": "Biolab Yönetim",
+      "description": "Kullanıcı, şirket, rol ve yetki tanımları",
+      "icon": "fa-cogs",
+      "url": "./apps/biolab_definitions/login.html",
+      "status": "active",
+      "target": "_blank"
     }
   ]
 }

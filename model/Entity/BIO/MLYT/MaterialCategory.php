@@ -19,6 +19,7 @@ class MaterialCategory
 
     public const CODE_KIT = 'KIT';
     public const CODE_OTHER = 'OTHER';
+    public const CODE_BILLABLE = 'BILLABLE';   // bedelli malzeme: sabit bedeliyle (Material::billablePrice) değerlendirilir
 
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]

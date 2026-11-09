@@ -333,6 +333,25 @@ switch ($query) {
         }
         break;
 
+    // Biolab maliyet Excel'i: testler + reçete + malzeme fiyatları, canlı formüllerle (BiolabExport)
+    case "getExcelBiolab":
+        $execType = ET_CUSTOM;
+        try{
+            $study = tcFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
+            if ($study === null) { $resCode = 20; $resMsg = "Excel için bir maliyet çalışması seçin."; break; }
+            $export = new \Biolab\Core\Mlyt\BiolabExport($db, $companyId, $study);
+            $fileName = $export->fileName();
+            $token = \Biolab\Core\Http\PdfHandoff::stash($export->bytes(), $fileName,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            $resObject = array("url" => "/api/pdf.php?t=" . $token, "fileName" => $fileName);
+            $resCode = 0;
+            $resMsg = "Excel hazır";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
     default:
         $resCode = 9000;
         $resMsg = "Bilinmeyen işlem: " . $query;
@@ -368,6 +387,7 @@ function tcDetail($db, Test $test, ?Study $study, int $companyId, string $sessio
         "costMethodName"     => TC_METHOD_NAMES[$test->getCostMethod()][$li] ?? $test->getCostMethod(),
         "pathologyLevel"     => $test->getPathologyLevel(),
         "sourceMaterialText" => $test->getSourceMaterialText(),
+        "costNote"           => $test->getCostNote(),
         "recipeEditable"     => $test->getCostMethod() !== Test::METHOD_CALCULATED,
         "studyName"          => $study?->getStudyName(),
         "cost"               => $res["cost"],

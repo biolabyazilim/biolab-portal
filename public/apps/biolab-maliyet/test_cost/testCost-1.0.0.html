@@ -76,6 +76,8 @@
         .tc-add .tc-qty { width: 100px; height: 34px; text-align: right; }
         .tc-source { padding: 8px 12px; border-radius: 6px; background: #f6f7f9; font-size: 12px; color: var(--hb-muted); }
         .tc-source b { color: var(--hb-text); font-weight: 600; }
+        .tc-costnote { padding: 8px 12px; border-radius: 6px; background: #fff8ea; border: 1px solid #f0d9a8; font-size: 12px; color: #7a4f00; white-space: pre-line; }
+        .tc-costnote b { font-weight: 700; }
 
         @media (max-width: 767px) { .tc-wrap { padding: 12px; } }
     </style>
@@ -98,7 +100,7 @@
                 <div class="tc-total">Listelenen toplam: <strong class="js-total">—</strong> TL</div>
                 <button type="button" id="btnExcelPathology" class="btn btn-outline-success" style="height:34px;font-weight:600"
                                 title="Maliyet Excel'indeki PATOLOJİ sayfası düzeninde; formüller canlı (fiyat / kur değişince yeniden hesaplanır)">
-                    <i class="fas fa-file-excel"></i> Patoloji Excel
+                    <i class="fas fa-file-excel"></i> <span class="js-excel-label">Patoloji Excel</span>
                 </button>
             </div>
         </div>
@@ -182,6 +184,7 @@
                     </table>
                 </div>
 
+                <div class="tc-costnote mt-3 js-cost-note" hidden></div>
                 <div class="tc-source mt-3 js-source" hidden></div>
                 <div id="costMsg" class="alert alert-danger mt-3 mb-0" hidden></div>
             </div>
@@ -201,10 +204,10 @@
 <script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
 <script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
 <script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
-<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.8"></script>
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
-<script src="js/testCost-1.0.0.js?v=1.1.4"></script>
+<script src="js/testCost-1.0.0.js?v=1.1.8"></script>
 </body>
 </html>

@@ -67,6 +67,8 @@
         .ts-howto b { font-weight: 600; }
         .ts-source { padding: 8px 12px; border-radius: 6px; background: #f6f7f9; font-size: 12px; color: var(--hb-muted); }
         .ts-source b { color: var(--hb-text); font-weight: 600; }
+        .ts-comp .ts-short-qty { width: 90px; height: 30px; margin-left: auto; text-align: right; }
+        .ts-short-add .form-group { margin-bottom: 8px; }
         .ts-comp { width: 100%; font-size: 13px; }
         .ts-comp td, .ts-comp th { padding: 4px 6px; border-top: 1px solid #edf0f4; }
         .ts-comp th { color: var(--hb-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; border-top: 0; }
@@ -86,7 +88,10 @@
                 <h1 class="ts-title" data-tr="PAGE_TITLE">Test tanımları</h1>
                 <div class="ts-sub">Tenay test listesi. Kod, ad, hizmet grubu ve birim Excel aktarımıyla güncellenir; maliyet yöntemi burada belirlenir.</div>
             </div>
+            <div>
+            <button type="button" id="btnExcelList" class="btn btn-outline-success mr-2" style="height:34px;font-weight:600" title="Ekrandaki filtrelerle"><i class="fas fa-file-excel"></i> Excel</button>
             <button type="button" id="btnNewTest" class="btn btn-primary" style="height:34px;font-weight:600"><i class="fas fa-plus"></i> <span data-tr="BTN_NEW_TEST">Test ekle</span></button>
+            </div>
         </div>
 
         <div class="ts-filters" id="tsTabs">
@@ -100,13 +105,16 @@
             <div class="col-sm-6 col-lg-3">
                 <select id="F_SERVICE_GROUP_ID" name="F_SERVICE_GROUP_ID" class="form-control" aria-label="Hizmet grubu filtresi"></select>
             </div>
-            <div class="col-sm-6 col-lg-3">
+            <div class="col-sm-6 col-lg-2">
                 <select id="F_COST_METHOD" name="F_COST_METHOD" class="form-control" aria-label="Maliyet yöntemi filtresi"></select>
             </div>
             <div class="col-sm-6 col-lg-2">
                 <select id="F_LAB_UNIT" name="F_LAB_UNIT" class="form-control" aria-label="Birim filtresi"></select>
             </div>
-            <div class="col-sm-6 col-lg-4 ts-search-box">
+            <div class="col-sm-6 col-lg-2">
+                <select id="F_SUPPLIER_ID" name="F_SUPPLIER_ID" class="form-control" aria-label="Tedarikçi filtresi"></select>
+            </div>
+            <div class="col-sm-6 col-lg-3 ts-search-box">
                 <i class="fas fa-search" aria-hidden="true"></i>
                 <input type="search" id="SEARCH" class="form-control ts-search" placeholder="Kod, test veya tedarikçi ara" autocomplete="off" aria-label="Kod, test veya tedarikçi ara">
             </div>
@@ -147,7 +155,7 @@
                     </div>
                     <div class="form-group col-md-8">
                         <label for="SERVICE_GROUP_ID">Hizmet grubu</label>
-                        <select id="SERVICE_GROUP_ID" name="SERVICE_GROUP_ID" class="form-control" style="width:100%"></select>
+                        <select id="SERVICE_GROUP_ID" name="SERVICE_GROUP_ID" class="form-control base" style="width:100%"></select>
                     </div>
                     <div class="form-group col-md-4">
                         <label for="LAB_UNIT">Birim</label>
@@ -174,6 +182,36 @@
                             Malzeme fiyatları ve kurlar <b>Malzemeler</b> ekranında, testte hangi malzemeden kaç adet
                             kullanıldığı (reçete) <b>Test maliyetleri</b> ekranında girilir. Test maliyeti bunlardan hesaplanır.
                         </div>
+                    </div>
+                </div>
+
+                <!-- Kısa kodlu malzemeler (Malzemeler ekranı → Kısa kod): patolojide TK / L / LM, Biolab'ta N.LAM / LAMEL22 / PASTÖR … -->
+                <div class="js-short" hidden>
+                    <div class="ts-section">Kısa kodlu malzemeler · <span class="js-short-count">0</span>
+                        <span class="ts-section-hint">Hasta başı adet. Diğer malzemeler Test maliyetleri ekranında eklenir.</span></div>
+                    <table class="ts-comp mb-2">
+                        <thead><tr><th style="width:90px">Kod</th><th>Malzeme</th><th class="text-right" style="width:110px">Adet</th><th style="width:40px"></th></tr></thead>
+                        <tbody class="js-short-body"></tbody>
+                    </table>
+                    <!-- Listeden seçilip adetle eklenir; kayıt "Kaydet" ile -->
+                    <div class="form-row ts-short-add">
+                        <div class="form-group col-md-8">
+                            <select id="SHORT_MATERIAL_ID" name="SHORT_MATERIAL_ID" class="form-control" style="width:100%"></select>
+                        </div>
+                        <div class="form-group col-6 col-md-2">
+                            <input type="text" id="SHORT_QTY" class="form-control ts-mono text-right" inputmode="decimal" value="1" aria-label="Adet">
+                        </div>
+                        <div class="form-group col-6 col-md-2">
+                            <button type="button" id="btnShortAdd" class="btn btn-outline-primary btn-block"><i class="fas fa-plus"></i> Ekle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ts-section">Hesap notu
+                    <span class="ts-section-hint">Maliyet uzmanının notu (Excel açıklaması)</span></div>
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <textarea id="COST_NOTE" class="form-control" rows="2" maxlength="2000" placeholder="ör. 2 KİT FİYATI TOPLANIP HASTA SAYISINA BÖLÜNÜR"></textarea>
                     </div>
                 </div>
 
@@ -238,10 +276,10 @@
 <script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
 <script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
 <script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
-<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.8"></script>
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
-<script src="js/test-1.0.0.js?v=1.0.1"></script>
+<script src="js/test-1.0.0.js?v=1.0.11"></script>
 </body>
 </html>

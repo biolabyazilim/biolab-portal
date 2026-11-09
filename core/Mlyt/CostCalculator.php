@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Biolab\Core\Mlyt;
 
 use BIO\MLYT\Material;
+use BIO\MLYT\MaterialCategory;
 use BIO\MLYT\RecipeItem;
 use BIO\MLYT\Test;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,6 +15,9 @@ use Doctrine\ORM\EntityManagerInterface;
  *   malzeme birim maliyeti = ambalaj fiyatı × kur ÷ bölen                (seçili çalışmanın fiyat ve kurları)
  *                            bölen: hasta sayısı (bir ambalajdan çıkan hasta; kit, standart) girilmişse o, yoksa ambalaj içeriği
  *                            TL'nin kuru çalışmanın öngörü katsayısıdır (TRY_FACTOR, varsayılan 1)
+ *                            kur: malzemenin tedarikçisinin bu çalışmadaki sözleşme kuru (StudySupplierRate, ör. NUCLEUS EUR 44,7)
+ *                            varsa o, yoksa çalışmanın genel kuru
+ *                            bedelli malzeme (kategori BILLABLE, bedeli girilmiş): sabit bedel (TL / birim), çalışmadan bağımsız
  *   reçeteli / kitli test  = Σ miktar × birim maliyet                    (mlyt_recipe_item, hasta başına; kit de bir reçete satırıdır)
  *   hesaplamalı test       = Σ bileşen maliyeti × adet × oran ÷ 100     (mlyt_test_component; bileşenler iç içe)
  *
@@ -193,18 +197,26 @@ final class CostCalculator
             "SELECT s.tryFactor FROM BIO\MLYT\Study s WHERE s.studyId = :STUDY_ID"
         )->setParameter('STUDY_ID', $this->studyId)->getOneOrNullResult()['tryFactor'] ?? 1);
 
-        // Malzemeler + seçili çalışmadaki fiyat ve kur
+        // Malzemeler + seçili çalışmadaki fiyat ve kur. Malzemenin tedarikçisinin bu çalışmada sözleşme kuru varsa (sr) o,
+        // yoksa çalışmanın genel kuru (r)
         $rows = $this->em->createQuery("
-            SELECT m.materialId, m.materialName, m.usageUnit, p.packagePrice, p.packageQty, p.patientQty, p.currency, r.rate
+            SELECT m.materialId, m.materialName, m.usageUnit, p.packagePrice, p.packageQty, p.patientQty, p.currency,
+                   COALESCE(sr.rate, r.rate) AS rate,
+                   m.billablePrice, c.categoryCode
               FROM BIO\MLYT\Material m
+              JOIN m.category c
               LEFT JOIN BIO\MLYT\MaterialPrice p WITH p.material = m AND p.study = :STUDY_ID
               LEFT JOIN BIO\MLYT\StudyRate r WITH r.study = p.study AND r.currency = p.currency
+              LEFT JOIN BIO\MLYT\StudySupplierRate sr WITH sr.study = p.study AND sr.supplier = m.supplier AND sr.currency = p.currency
+                                                         AND sr.recordFl > 0
              WHERE IDENTITY(m.company) = :COMPANY_ID AND m.recordFl > 0
         ")->setParameters($cid + ['STUDY_ID' => $this->studyId ?? 0])->getArrayResult();
         foreach ($rows as $r) {
             $unitCost = null;
             $reason = null;
-            if ($this->studyId === null) {
+            if ($r['categoryCode'] === MaterialCategory::CODE_BILLABLE && $r['billablePrice'] !== null) {
+                $unitCost = (float) $r['billablePrice'];   // bedelli malzeme: sabit bedel
+            } elseif ($this->studyId === null) {
                 $reason = 'Maliyet çalışması seçilmedi';
             } elseif ($r['packagePrice'] === null) {
                 $reason = 'Fiyat girilmemiş';

@@ -1,18 +1,11 @@
 {
-    "BOX_TITLE":"¥mng_role_form",
-    "PAGE_TITLE":"¥mng_role_form",
-    "ROLE_FORM_ID":"¥ROLE_FORM_ID",
-    "ROLE_ID":"¥ROLE_ID",
-    "ROLE_NAME":"¥ROLE_NAME",
-    "FORM_ID":"¥FORM_ID",
-    "FORM_NAME":"¥FORM_NAME",
-    "C_BY":"¥C_BY",
-    "C_AT":"¥C_AT",
-    "U_BY":"¥U_BY",
-    "U_AT":"¥U_AT",
-    "D_BY":"¥D_BY",
-    "D_AT":"¥D_AT",
-    "ACTIVE_FL":"¥ACTIVE_FL",
-    "RECORD_FL":"¥RECORD_FL"
+    "BOX_TITLE":"Rol Ekran Yetkileri",
+    "PAGE_TITLE":"Rol Ekran Yetkileri",
+    "ROLE_FORM_ID":"Id",
+    "ROLE_ID":"Rol Id",
+    "ROLE_NAME":"Rol",
+    "APP_CODE":"Uygulama",
+    "FORM_ID":"Ekran Id",
+    "FORM_NAME":"Ekran",
+    "FORM_PATH":"Ekran Yolu"
 }
-            

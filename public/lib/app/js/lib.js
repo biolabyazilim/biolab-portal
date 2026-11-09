@@ -790,6 +790,13 @@ $.DLN.plugin = {
     }
 };
 
+// Modal odağı kendinde tutmasın: modal içindeki select2'nin arama kutusuna yazılabilsin (açılan liste body'de, modal dışında).
+// Sayfa yüklenince çalışır (plugin.init hiçbir sayfada çağrılmıyor). Bootstrap 3: enforceFocus, Bootstrap 4: _enforceFocus
+if ($.fn.modal && $.fn.modal.Constructor) {
+    $.fn.modal.Constructor.prototype.enforceFocus = function() {};
+    $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+}
+
 $.DLN.plugin.select2 = {
     options : {
         selector: {

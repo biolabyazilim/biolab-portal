@@ -44,9 +44,11 @@ class Form
 
     public function getFormId(): ?int           { return $this->formId; }
     public function getFormCode(): string       { return $this->formCode; }
+    public function setFormCode(string $v): self { $this->formCode = $v; return $this; }
     public function getFormName(): string       { return $this->formName; }
     public function setFormName(string $v): self { $this->formName = $v; return $this; }
     public function getFormNameEn(): ?string    { return $this->formNameEn; }
+    public function setFormNameEn(?string $v): self { $this->formNameEn = $v; return $this; }
     public function getFormPath(): string       { return $this->formPath; }
     public function setFormPath(string $v): self { $this->formPath = $v; return $this; }
 }

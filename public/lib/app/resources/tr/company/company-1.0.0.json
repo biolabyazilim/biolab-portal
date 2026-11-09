@@ -1,0 +1,14 @@
+{
+    "BOX_TITLE":"Şirket ve Şube Tanımlama",
+    "PAGE_TITLE":"Şirket ve Şube Tanımlama",
+    "COMPANY_ID":"Id",
+    "COMPANY_CODE":"Şirket Kodu",
+    "COMPANY_NAME":"Şirket Adı",
+    "TAX_NUMBER":"Vergi No",
+    "COMPANY_TYPE_ID":"Şirket Tipi Id",
+    "COMPANY_TYPE_NAME":"Şirket Tipi",
+    "PARENT_COMPANY_ID":"Üst Şirket Id",
+    "PARENT_COMPANY_NAME":"Üst Şirket",
+    "LANGUAGE_ID":"Dil Id",
+    "LANGUAGE":"Dil"
+}

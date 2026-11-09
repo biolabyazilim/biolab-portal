@@ -1,0 +1,14 @@
+{
+    "BOX_TITLE":"Company and Branch Definition",
+    "PAGE_TITLE":"Company and Branch Definition",
+    "COMPANY_ID":"Id",
+    "COMPANY_CODE":"Company Code",
+    "COMPANY_NAME":"Company Name",
+    "TAX_NUMBER":"Tax No",
+    "COMPANY_TYPE_ID":"Company Type Id",
+    "COMPANY_TYPE_NAME":"Company Type",
+    "PARENT_COMPANY_ID":"Parent Company Id",
+    "PARENT_COMPANY_NAME":"Parent Company",
+    "LANGUAGE_ID":"Language Id",
+    "LANGUAGE":"Language"
+}

@@ -59,6 +59,23 @@ class AppUser
         return $this->username;
     }
 
+    public function setUsername(string $username): self
+    {
+        $this->username = $username;
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): self
+    {
+        $this->email = $email !== null && trim($email) !== '' ? trim($email) : null;
+        return $this;
+    }
+
     public function getFullName(): string
     {
         return $this->fullName;

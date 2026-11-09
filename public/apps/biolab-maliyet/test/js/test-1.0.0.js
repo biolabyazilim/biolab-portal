@@ -6,6 +6,8 @@
  * - Satıra tıklayınca kayıt getSelectedId ile alınır ve form açılır.
  * - Kod, ad, hizmet grubu, birim Tenay'dan gelir: mevcut testte kilitli, yalnızca "Test ekle"de girilir.
  * - Seçim kutuları $.fn.slb ile dolar (initX → getX); select id'si alan adıdır.
+ * - Kısa kodlu malzemeler (patolojide TK, L, LM…; Biolab'ta N.LAM, LAMEL22, PASTÖR…) hasta başı adetle girilir; kayıtta
+ *   reçeteye yazılır (SHORT_CODE_MATERIALS). Malzeme seçim kutusundan (getSHORT_MATERIAL_ID) adetle eklenir. Hesaplamalı testte gizlidir.
  */
 // Proxy klasörüne (public/lib/php/proxy) göre ekran PHP'sinin yolu. proxyPath lib.js'te site kökünden tanımlı.
 const modulePath = 'app=../../../apps/biolab-maliyet/test/php/test-1.0.0@';
@@ -52,7 +54,7 @@ $.DLNFrame = {
             $(this).addClass('active');
             $t.reloadGrid(true);
         });
-        $('#F_SERVICE_GROUP_ID, #F_COST_METHOD, #F_LAB_UNIT').on('change', function () { $t.reloadGrid(true); });
+        $('#F_SERVICE_GROUP_ID, #F_COST_METHOD, #F_LAB_UNIT, #F_SUPPLIER_ID').on('change', function () { $t.reloadGrid(true); });
         // Arama: yazarken her tuşta değil, durunca (300 ms) sunucuya gider
         $('#SEARCH').on('input', function () {
             clearTimeout($d.searchTimer);
@@ -60,8 +62,16 @@ $.DLNFrame = {
         });
 
         $('#btnNewTest').on('click', function () { $t.openTest(null); });
+        $('#btnExcelList').on('click', $t.exportList);
         $('#btnTestSave').on('click', $t.saveTest);
-        $('#modalTest input, #modalTest select').on('input change', function () { $('#testMsg').prop('hidden', true); });
+        $('#modalTest').on('input change', 'input, select, textarea', function () { $('#testMsg').prop('hidden', true); });
+        // Hesaplamalı testin maliyeti bileşenlerinden gelir: kısa kodlu malzeme bölümü gizlenir
+        $('#COST_METHOD').on('change', function () {
+            $('.js-short').prop('hidden', $(this).val() === 'CALCULATED');
+        });
+        // Kısa kodlu malzeme: listeden seç → adet → Ekle; satırdan çıkar
+        $('#btnShortAdd').on('click', $t.addShortSelected);
+        $('.js-short-body').on('click', '.btnShortRemove', function () { $(this).closest('tr').remove(); $t.refreshShort(); });
         // Form kapanınca seçim kalksın; aynı satıra tekrar tıklanınca form yine açılsın
         $('#modalTest').on('hidden.bs.modal', function () { $('#jqGrid').jqGrid('resetSelection'); });
     },
@@ -72,10 +82,12 @@ $.DLNFrame = {
         $t.initF_SERVICE_GROUP_ID();
         $t.initF_COST_METHOD();
         $t.initF_LAB_UNIT();
+        $t.initF_SUPPLIER_ID();
         $t.initSERVICE_GROUP_ID();
         $t.initLAB_UNIT();
         $t.initCOST_METHOD();
         $t.initSUPPLIER_ID();
+        $t.initSHORT_MATERIAL_ID();
         $t.reloadGrid(true);
     },
 
@@ -84,7 +96,7 @@ $.DLNFrame = {
     initF_SERVICE_GROUP_ID: function () {
         $('#F_SERVICE_GROUP_ID').slb({
             field:{ value:'serviceGroupId', text:'serviceGroupName', disabledFL:'activeFl' },
-            select2:{ placeholder:'Tüm hizmet grupları', allowClear:true },
+            select2:{ placeholder:'Tüm hizmet grupları', allowClear:true,  minimumResultsForSearch:0 },
             ajax:{ url:proxyPath + modulePath + 'getSERVICE_GROUP_ID' }
         });
     },
@@ -105,12 +117,24 @@ $.DLNFrame = {
         });
     },
 
+    initF_SUPPLIER_ID: function () {
+        $('#F_SUPPLIER_ID').slb({
+            field:{ value:'supplierId', text:'supplierName', disabledFL:'activeFl' },
+            select2:{ placeholder:'Tüm tedarikçiler', allowClear:true, minimumResultsForSearch:0 },
+            ajax:{ url:proxyPath + modulePath + 'getSUPPLIER_ID' },
+            event:{
+                // Listenin başına "tedarikçisi olmayanlar" (-1): sunucuda tedarikçi boş olanlar süzülür
+                afterLoad:function (el) { $(el).find('option[value=""]').after(new Option('— Tedarikçisi olmayanlar —', '-1')); }
+            }
+        });
+    },
+
     /* ---------- Seçim kutuları: form ---------- */
 
     initSERVICE_GROUP_ID: function () {
         $('#SERVICE_GROUP_ID').slb({
             field:{ value:'serviceGroupId', text:'serviceGroupName', disabledFL:'activeFl' },
-            select2:{ placeholder:'Seçin', allowClear:false },
+            select2:{ placeholder:'Seçin', allowClear:false, minimumResultsForSearch:0 },
             ajax:{ url:proxyPath + modulePath + 'getSERVICE_GROUP_ID' }
         });
     },
@@ -224,6 +248,7 @@ $.DLNFrame = {
         });
     },
 
+
     // Filtreler postData ile gider; resetPage: filtre değiştiyse 1. sayfaya döner, kayıt sonrası sayfada kalır
     reloadGrid: function (resetPage) {
         const $t = $.DLNFrame;
@@ -234,6 +259,7 @@ $.DLNFrame = {
                 SERVICE_GROUP_ID: $('#F_SERVICE_GROUP_ID').val() || '',
                 COST_METHOD: $('#F_COST_METHOD').val() || '',
                 LAB_UNIT: $('#F_LAB_UNIT').val() || '',
+                SUPPLIER_ID: $('#F_SUPPLIER_ID').val() || '',
                 Q: $.trim($('#SEARCH').val())
             }
         };
@@ -282,7 +308,11 @@ $.DLNFrame = {
         $('#SUT_CODE').val(t ? (t.sutCode || '') : '');
         $('#SAMPLE_TYPE').val(t ? (t.sampleType || '') : '');
         $('#NOTE').val(t ? (t.note || '') : '');
+        $('#COST_NOTE').val(t ? (t.costNote || '') : '');
         $('#ACTIVE').prop('checked', isNew || !!t.active);
+
+        // Kısa kodlu malzemeler: mevcut testte getSelectedId ile gelir; yeni testte liste boş başlar
+        $.DLNFrame.renderShortMaterials(t ? (t.shortCodeMaterials || []) : []);
 
         // Bileşenler (birleşik / hesaplamalı test)
         const comps = (t && t.components) || [];
@@ -322,6 +352,18 @@ $.DLNFrame = {
         const sut = $.trim($('#SUT_CODE').val());
         if (sut && !/^\d{6}$/.test(sut)) { msg('SUT kodu 6 haneli olmalı.'); return; }
 
+        // Kısa kodlu malzemeler: {materialId: adet}; listeden çıkarılan (açılışta olup artık olmayan) → '' (reçeteden çıkar)
+        const shortMaterials = {};
+        ($t.data.shortInitial || []).forEach(function (id) { shortMaterials[id] = ''; });
+        let qtyError = '';
+        $('.js-short-body tr[data-id]').each(function () {
+            const $q = $(this).find('.js-short-qty');
+            const v = $.trim($q.val());
+            if (!/^\d+([.,]\d+)?$/.test(v) || Number(v.replace(',', '.')) <= 0) { qtyError = $q.data('code') + ' adedi sıfırdan büyük bir sayı olmalı.'; return false; }
+            shortMaterials[$(this).attr('data-id')] = v;
+        });
+        if (qtyError) { msg(qtyError); return; }
+
         // Tedarikçi: listedeki kayıtsa id, yeni yazılmışsa (select2 tags) ad gönderilir
         const supVal = $('#SUPPLIER_ID').val();
         const isNewSupplier = !!supVal && $('#SUPPLIER_ID option:selected').attr('data-select2-tag') === 'true';
@@ -344,6 +386,8 @@ $.DLNFrame = {
                 SUT_CODE: sut,
                 SAMPLE_TYPE: $('#SAMPLE_TYPE').val(),
                 NOTE: $('#NOTE').val(),
+                COST_NOTE: $('#COST_NOTE').val(),
+                SHORT_CODE_MATERIALS: $('.js-short').prop('hidden') ? '' : JSON.stringify(shortMaterials),
                 ACTIVE: $('#ACTIVE').is(':checked') ? 'Y' : 'N'
             },
             beforeSend: function () { $('#btnTestSave').prop('disabled', true); },
@@ -359,5 +403,96 @@ $.DLNFrame = {
             },
             complete: function () { $('#btnTestSave').prop('disabled', false); }
         });
+    },
+
+    // Excel çıktısı: ekrandaki filtrelerle; sunucu dosyayı hazırlar, indirme adresi (/api/pdf.php?t=…) döner
+    exportList: function () {
+        const $btn = $('#btnExcelList');
+        $.ajaxq('frame', {
+            url: proxyPath + modulePath + 'getExcelList',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                TAB: $.DLNFrame.data.tab,
+                SERVICE_GROUP_ID: $('#F_SERVICE_GROUP_ID').val() || '',
+                COST_METHOD: $('#F_COST_METHOD').val() || '',
+                LAB_UNIT: $('#F_LAB_UNIT').val() || '',
+                SUPPLIER_ID: $('#F_SUPPLIER_ID').val() || '',
+                Q: $.trim($('#SEARCH').val())
+            },
+            beforeSend: function () { $btn.prop('disabled', true).find('i').attr('class', 'fas fa-circle-notch fa-spin'); },
+            success: function (result) {
+                if (result && result['resCode'] === 0 && result['resObject'] && result['resObject']['url']) {
+                    window.location.href = result['resObject']['url'];   // ek olarak gelir; sayfa değişmez
+                } else {
+                    $.fn.ntyi({ type: 'error', layout: 'topRight', text: (result && result['resMsg']) || 'Excel hazırlanamadı.' });
+                }
+            },
+            complete: function () { $btn.prop('disabled', false).find('i').attr('class', 'fas fa-file-excel'); }
+        });
+    },
+
+    /* ---------- Kısa kodlu malzemeler ---------- */
+
+    // Seçim kutusu: kısa kodlu malzemeler ("TK · DOKU TAKİP KASETİ"), kod ya da adla aranır
+    initSHORT_MATERIAL_ID: function () {
+        $('#SHORT_MATERIAL_ID').slb({
+            field:{ value:'materialId', text:'shortText', disabledFL:'activeFl' },
+            select2:{ placeholder:'Malzeme seçin (TK, LM, N.LAM…)', minimumResultsForSearch:0 },
+            ajax:{ url:proxyPath + modulePath + 'getSHORT_MATERIAL_ID' }
+        });
+    },
+
+    // Testteki kısa kodlu malzemeler (adeti olanlar) tabloya; açılıştaki liste kayıtta silinenleri bulmak için saklanır
+    renderShortMaterials: function (list) {
+        const $d = $.DLNFrame.data;
+        $d.shortInitial = [];
+        $('.js-short-body').empty();
+        list.forEach(function (m) {
+            if (m.quantity === null || m.quantity === undefined) { return; }
+            $d.shortInitial.push(String(m.materialId));
+            $.DLNFrame.addShortRow(m.materialId, m.shortCode, m.materialName, m.quantity);
+        });
+        $.DLNFrame.refreshShort();
+        $('#SHORT_MATERIAL_ID').val('').change();
+        $('#SHORT_QTY').val('1');
+        $('.js-short').prop('hidden', $('#COST_METHOD').val() === 'CALCULATED');
+    },
+
+    // Satır ekler; malzeme zaten listedeyse adeti güncellenir
+    addShortRow: function (id, code, name, qty) {
+        const q = Number(qty).toLocaleString('tr-TR', { maximumFractionDigits: 3 });
+        const $old = $('.js-short-body tr[data-id="' + id + '"]');
+        if ($old.length) { $old.find('.js-short-qty').val(q); return; }
+        $('.js-short-body').append($('<tr>').attr('data-id', id).append(
+            $('<td class="ts-mono">').append($('<b>').text(code)),
+            $('<td>').text(name),
+            $('<td class="text-right">').append($('<input type="text" class="form-control form-control-sm ts-mono ts-short-qty js-short-qty" inputmode="decimal">')
+                .attr('data-code', code).val(q)),
+            $('<td class="text-right">').append('<button type="button" class="btn btn-link btn-sm text-danger btnShortRemove" title="Çıkar"><i class="fas fa-times"></i></button>')));
+    },
+
+    // Seçim kutusundaki malzemeyi adetle listeye ekler (kayıt "Kaydet" ile)
+    addShortSelected: function () {
+        const $t = $.DLNFrame;
+        const id = $('#SHORT_MATERIAL_ID').val();
+        const qtyRaw = $.trim($('#SHORT_QTY').val());
+        if (!id) { $('#testMsg').text('Eklenecek malzemeyi seçin.').prop('hidden', false); return; }
+        if (!/^\d+([.,]\d+)?$/.test(qtyRaw) || Number(qtyRaw.replace(',', '.')) <= 0) {
+            $('#testMsg').text('Adet sıfırdan büyük bir sayı olmalı.').prop('hidden', false); return;
+        }
+        const text = $('#SHORT_MATERIAL_ID option:selected').text();
+        const sep = text.indexOf(' · ');
+        $t.addShortRow(id, sep > 0 ? text.substring(0, sep) : text, sep > 0 ? text.substring(sep + 3) : '', Number(qtyRaw.replace(',', '.')));
+        $t.refreshShort();
+        $('#SHORT_MATERIAL_ID').val('').change();
+        $('#SHORT_QTY').val('1');
+    },
+
+    refreshShort: function () {
+        const n = $('.js-short-body tr[data-id]').length;
+        $('.js-short-count').text(n);
+        $('.js-short-body .js-short-empty-row').remove();
+        if (!n) { $('.js-short-body').append('<tr class="js-short-empty-row"><td colspan="4" class="ts-sub">Henüz malzeme eklenmedi. Aşağıdaki kutudan seçin.</td></tr>'); }
     }
 };

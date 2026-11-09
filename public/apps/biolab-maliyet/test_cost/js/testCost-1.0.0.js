@@ -307,6 +307,9 @@ $.DLNFrame = {
             }
         }
 
+        // Maliyet uzmanının hesap notu (Excel açıklaması; Test tanımlarında düzenlenir)
+        $('.js-cost-note').html(d.costNote ? '<i class="fas fa-sticky-note"></i> <b>Hesap notu:</b> ' + $t.esc(d.costNote) : '')
+            .prop('hidden', !d.costNote);
         $('.js-source').html(d.sourceMaterialText ? '<i class="fas fa-file-excel"></i> Excel\'deki malzeme notu: <b>' + $t.esc(d.sourceMaterialText) + '</b>' : '')
             .prop('hidden', !d.sourceMaterialText);
         $('#costMsg').prop('hidden', true).text('');
@@ -392,12 +395,17 @@ $.DLNFrame = {
         });
     },
 
-    // "Patoloji Excel" yalnız birim filtresi Patoloji iken görünür (Biolab / tüm birimlerde anlamı yok)
+    // Excel düğmesi birim filtresine göre: Patoloji → "Patoloji Excel", Biolab → "Biolab Excel"; tüm birimlerde gizli
     togglePathologyExcel: function () {
-        $('#btnExcelPathology').prop('hidden', $('#F_LAB_UNIT').val() !== 'PATHOLOGY');
+        const unit = $('#F_LAB_UNIT').val();
+        $('#btnExcelPathology').prop('hidden', unit !== 'PATHOLOGY' && unit !== 'BIOLAB')
+            .attr('title', unit === 'BIOLAB'
+                ? 'Biolab testleri, reçeteleri ve malzeme fiyatları; formüller canlı (fiyat / kur değişince yeniden hesaplanır)'
+                : 'Maliyet Excel\'indeki PATOLOJİ sayfası düzeninde; formüller canlı (fiyat / kur değişince yeniden hesaplanır)');
+        $('#btnExcelPathology .js-excel-label').text(unit === 'BIOLAB' ? 'Biolab Excel' : 'Patoloji Excel');
     },
 
-    // Patoloji maliyet Excel'i: sunucu dosyayı hazırlar, indirme adresi (/api/pdf.php?t=…) döner
+    // Birim maliyet Excel'i (Patoloji ya da Biolab): sunucu dosyayı hazırlar, indirme adresi (/api/pdf.php?t=…) döner
     exportPathology: function () {
         const $btn = $('#btnExcelPathology');
         if (!$('#STUDY_ID').val()) {
@@ -405,7 +413,7 @@ $.DLNFrame = {
             return;
         }
         $.ajaxq('frame', {
-            url: proxyPath + modulePath + 'getExcelPathology',
+            url: proxyPath + modulePath + ($('#F_LAB_UNIT').val() === 'BIOLAB' ? 'getExcelBiolab' : 'getExcelPathology'),
             type: 'POST',
             dataType: 'json',
             data: { STUDY_ID: $('#STUDY_ID').val() },

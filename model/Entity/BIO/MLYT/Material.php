@@ -58,6 +58,20 @@ class Material
     #[ORM\Column(length: 500, nullable: true, options: ['collation' => 'Turkish_CI_AS'])]
     private ?string $note = null;                  // NOTE
 
+    // Kısa kod: patolojide malzeme notlarında geçen kısaltma (TK = takip kaseti, L = lam, LM = lamel, NSİ, SPS, BYK).
+    // Kısa kodu olan malzemeler Test tanımları'nda patoloji testine adetle seçilebilir.
+    #[ORM\Column(length: 10, nullable: true, options: ['collation' => 'Turkish_CI_AS'])]
+    private ?string $shortCode = null;             // SHORT_CODE
+
+    // Katalog numarası (tedarikçinin ürün kodu, ör. Roche 3183688122); aynı kit birden çok satırda gelirse tek kayıt olur
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $catalogNo = null;             // CATALOG_NO
+
+    // Bedelli malzeme (kategori BILLABLE): bir kere tanımlanan sabit bedel, TL / kullanım birimi. Doktorlara ürün bazlı
+    // fiyatlanan malzeme (numune kabı vb.) maliyet çalışmasından bağımsız bu bedelle değerlendirilir.
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 4, nullable: true)]
+    private ?string $billablePrice = null;         // BILLABLE_PRICE
+
     public function __construct(string $materialName, MaterialCategory $category, string $usageUnit = self::UNIT_PIECE)
     {
         $this->materialName = $materialName;
@@ -84,4 +98,11 @@ class Material
     public function setMergedInto(?Material $v): self   { $this->mergedInto = $v; return $this; }
     public function getNote(): ?string                  { return $this->note; }
     public function setNote(?string $v): self           { $this->note = $v; return $this; }
+    public function getShortCode(): ?string             { return $this->shortCode; }
+    public function setShortCode(?string $v): self      { $this->shortCode = $v; return $this; }
+    public function getCatalogNo(): ?string             { return $this->catalogNo; }
+    public function setCatalogNo(?string $v): self      { $this->catalogNo = $v; return $this; }
+    public function getBillablePrice(): ?string         { return $this->billablePrice; }
+    public function setBillablePrice(?string $v): self  { $this->billablePrice = $v; return $this; }
+    public function isBillable(): bool                  { return $this->category->getCategoryCode() === MaterialCategory::CODE_BILLABLE; }
 }

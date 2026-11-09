@@ -1,12 +1,13 @@
 {
-    "BOX_TITLE":"Management User Role",
-    "PAGE_TITLE":"Management User Role",
-    "USER_ROLE_ID":"User Role Id",
+    "BOX_TITLE":"User Roles",
+    "PAGE_TITLE":"User Roles",
+    "USER_ROLE_ID":"Id",
     "USER_ID":"User Id",
-    "USERNAME":"User Name",
+    "USER_NAME":"User",
+    "USERNAME":"Username",
     "COMPANY_ID":"Company Id",
-    "COMPANY_NAME":"Company Name",
+    "COMPANY_NAME":"Company",
     "ROLE_ID":"Role Id",
-    "ROLE_NAME":"Role Name"
+    "ROLE_NAME":"Role",
+    "APP_CODE":"Application"
 }
-            

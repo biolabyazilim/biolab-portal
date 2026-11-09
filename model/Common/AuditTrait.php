@@ -55,6 +55,14 @@ trait AuditTrait
     }
 
     public function softDelete(): void          { $this->recordFl = 0; }
+
+    // Silinmiş kaydı geri getirir (benzersiz indeksli bağ tablolarında silinen bağ yeniden eklenirken)
+    public function restore(): void
+    {
+        $this->recordFl = 1;
+        $this->dAt      = null;
+        $this->dBy      = null;
+    }
     public function isDeleted(): bool           { return $this->recordFl === 0; }
     public function isActive(): bool            { return $this->activeFl === 'Y'; }
     public function setActive(bool $a): void    { $this->activeFl = $a ? 'Y' : 'N'; }
