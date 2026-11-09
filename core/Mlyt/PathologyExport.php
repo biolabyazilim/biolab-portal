@@ -23,7 +23,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final class PathologyExport
 {
     public const SHEET_MAIN   = 'PATOLOJİ';
-    public const SHEET_PRICES = 'MALZEME FİYATLARI';
+    public const SHEET_PRICES = PriceSheet::NAME;
 
     /**
      * Malzeme kolonları: başlık → malzeme adında aranan kelimeler (sırayla; ilk eşleşen).
@@ -80,7 +80,7 @@ final class PathologyExport
         $main = $w->sheet(self::SHEET_MAIN, array_merge([10, 46, 16, 10, 12, 22], array_fill(0, count(self::ORDER), 10), [14, 14, 40]));
         $prices = $w->sheet(self::SHEET_PRICES, [46, 18, 8, 12, 10, 14, 10, 16]);
 
-        $priceRow = $this->writePrices($prices, array_keys($materialIds), $calc);
+        $priceRow = PriceSheet::write($this->em, $this->study, $prices, array_keys($materialIds), $calc, self::SHEET_MAIN);
 
         // PATOLOJİ: önce satır numaraları (birleşik testlerin formülü bileşen satırına bağlanır)
         $rowOf = [];
@@ -149,59 +149,6 @@ final class PathologyExport
         $main->freeze(1)->autoFilter(1, count($header));
 
         return $w->bytes();
-    }
-
-    /** MALZEME FİYATLARI sayfası; malzemeId → satır no */
-    private function writePrices(XlsxSheet $s, array $materialIds, CostCalculator $calc): array
-    {
-        $rates = ['USD' => null, 'EUR' => null, 'GBP' => null];
-        foreach ($this->em->createQuery("SELECT r.currency, r.rate FROM BIO\MLYT\StudyRate r WHERE r.study = :STUDY")
-                     ->setParameter('STUDY', $this->study)->getArrayResult() as $r) {
-            $rates[$r['currency']] = (float) $r['rate'];
-        }
-        $s->row(['Maliyet çalışması: ' . $this->study->getStudyName() . ' · kur tarihi ' . $this->study->getRateDate()->format('d.m.Y')], XlsxWriter::TITLE);
-        $s->row([['v' => 'USD', 's' => XlsxWriter::TEXT], ['v' => $rates['USD'], 's' => XlsxWriter::UNIT_COST]]);   // B2
-        $s->row([['v' => 'EUR', 's' => XlsxWriter::TEXT], ['v' => $rates['EUR'], 's' => XlsxWriter::UNIT_COST]]);   // B3
-        $s->row([['v' => 'GBP', 's' => XlsxWriter::TEXT], ['v' => $rates['GBP'], 's' => XlsxWriter::UNIT_COST]]);   // B4
-        $tryFactor = (float) $this->study->getTryFactor();
-        $s->row([['v' => 'TL öngörü katsayısı', 's' => XlsxWriter::TEXT], ['v' => $tryFactor, 's' => XlsxWriter::UNIT_COST]]);   // B5
-        $s->row(['Fiyat ya da kur değiştirilirse PATOLOJİ sayfası kendiliğinden yeniden hesaplanır.']);
-        $header = $s->row(['Malzeme', 'Kategori', 'Birim', 'Ambalaj içeriği', 'Para birimi', 'Ambalaj fiyatı', 'Kur', 'Birim maliyet (TL)', 'Hasta sayısı'], XlsxWriter::HEADER);
-
-        $rows = [];
-        if ($materialIds) {
-            $rows = $this->em->createQuery("
-                SELECT m.materialId, m.materialName, m.usageUnit, c.categoryName, p.packageQty, p.patientQty, p.currency, p.packagePrice
-                  FROM BIO\MLYT\Material m
-                  JOIN m.category c
-                  LEFT JOIN BIO\MLYT\MaterialPrice p WITH p.material = m AND p.study = :STUDY
-                 WHERE m.materialId IN (:IDS)
-                 ORDER BY m.materialName
-            ")->setParameters(['STUDY' => $this->study, 'IDS' => $materialIds])->getArrayResult();
-        }
-        $units = ['PIECE' => 'adet', 'TEST' => 'test', 'ML' => 'ml', 'GR' => 'gr'];
-        $rowOf = [];
-        foreach ($rows as $i => $m) {
-            $r = $header + 1 + $i;
-            $rowOf[$m['materialId']] = $r;
-            $has = $m['packagePrice'] !== null;
-            $s->row([
-                ['v' => $m['materialName'], 's' => XlsxWriter::TEXT],
-                ['v' => $m['categoryName'], 's' => XlsxWriter::TEXT],
-                ['v' => $units[$m['usageUnit']] ?? $m['usageUnit'], 's' => XlsxWriter::TEXT],
-                ['v' => $has ? (float) $m['packageQty'] : null, 's' => XlsxWriter::NUMBER],
-                ['v' => $has ? $m['currency'] : null, 's' => XlsxWriter::TEXT],
-                ['v' => $has ? (float) $m['packagePrice'] : null, 's' => XlsxWriter::MONEY],
-                ['f' => "IF(E{$r}=\"TRY\",\$B\$5,IF(E{$r}=\"USD\",\$B\$2,IF(E{$r}=\"EUR\",\$B\$3,IF(E{$r}=\"GBP\",\$B\$4,\"\"))))",
-                 'v' => $has ? ($m['currency'] === 'TRY' ? $tryFactor : $rates[$m['currency']]) : null, 's' => XlsxWriter::UNIT_COST],
-                // Bölen: hasta sayısı (I) girilmişse o, yoksa ambalaj içeriği (D)
-                ['f' => "IF(AND(MAX(N(D{$r}),N(I{$r}))>0,N(F{$r})>0,N(G{$r})>0),F{$r}*G{$r}/IF(N(I{$r})>0,I{$r},D{$r}),\"\")",
-                 'v' => $calc->unitCost((int) $m['materialId']), 's' => XlsxWriter::UNIT_COST],
-                ['v' => $has && $m['patientQty'] !== null ? (float) $m['patientQty'] : null, 's' => XlsxWriter::NUMBER],
-            ]);
-        }
-        $s->freeze($header);
-        return $rowOf;
     }
 
     private function columnFor(string $materialName): string

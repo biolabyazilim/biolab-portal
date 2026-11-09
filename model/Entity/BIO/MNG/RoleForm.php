@@ -38,4 +38,7 @@ class RoleForm
     public function getRoleFormId(): ?int  { return $this->roleFormId; }
     public function getRole(): Role        { return $this->role; }
     public function getForm(): Form        { return $this->form; }
+
+    public function setRole(Role $v): self { $this->role = $v; return $this; }
+    public function setForm(Form $v): self { $this->form = $v; return $this; }
 }

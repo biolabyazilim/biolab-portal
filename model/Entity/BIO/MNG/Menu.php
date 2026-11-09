@@ -29,7 +29,7 @@ class Menu
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(name: 'PARENT_MENU_ID', referencedColumnName: 'MENU_ID', nullable: true)]
-    private ?Menu $parent = null;                  // PARENT_MENU_ID → mng_menu
+    private ?Menu $parentMenu = null;                  // PARENT_MENU_ID → mng_menu
 
     #[ORM\ManyToOne(targetEntity: Form::class)]
     #[ORM\JoinColumn(name: 'FORM_ID', referencedColumnName: 'FORM_ID', nullable: true)]
@@ -47,10 +47,10 @@ class Menu
     #[ORM\Column(type: 'smallint', options: ['default' => 0])]
     private int $menuOrder = 0;                    // MENU_ORDER
 
-    public function __construct(string $menuName, ?Menu $parent = null, ?Form $form = null, int $menuOrder = 0)
+    public function __construct(string $menuName, ?Menu $parentMenu = null, ?Form $form = null, int $menuOrder = 0)
     {
         $this->menuName  = $menuName;
-        $this->parent    = $parent;
+        $this->parentMenu    = $parentMenu;
         $this->form      = $form;
         $this->menuOrder = $menuOrder;
     }
@@ -58,8 +58,8 @@ class Menu
     public function getMenuId(): ?int            { return $this->menuId; }
     public function getMenuCode(): ?string       { return $this->menuCode; }
     public function setMenuCode(?string $v): self { $this->menuCode = $v; return $this; }
-    public function getParent(): ?Menu           { return $this->parent; }
-    public function setParent(?Menu $v): self    { $this->parent = $v; return $this; }
+    public function getParent(): ?Menu           { return $this->parentMenu; }
+    public function setParent(?Menu $v): self    { $this->parentMenu = $v; return $this; }
     public function getForm(): ?Form             { return $this->form; }
     public function setForm(?Form $v): self      { $this->form = $v; return $this; }
     public function getMenuName(): string        { return $this->menuName; }

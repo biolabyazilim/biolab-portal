@@ -8,7 +8,8 @@ use Biolab\Model\Common\AuditTrait;
 
 /**
  * Maliyet çalışmasının döviz kurları. Excel'de dosya adında tutuluyordu ("$-55-€-62S-70").
- * TRY için kayıt açılmaz; kur 1 kabul edilir.
+ * TRY için kayıt açılmaz; kur çalışmanın öngörü katsayısıdır (Study::TRY_FACTOR).
+ * Tedarikçinin kendi sözleşme kuru (ör. NUCLEUS EUR 44,7) ayrı tabloda: StudySupplierRate.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'mlyt_study_rate')]

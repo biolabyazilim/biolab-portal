@@ -49,6 +49,9 @@ class UserCompany
     public function getCompany(): Company    { return $this->company; }
     public function isDefault(): bool        { return $this->defaultFl === 'Y'; }
 
+    public function setUser(AppUser $v): self       { $this->user = $v; return $this; }
+    public function setCompany(Company $v): self    { $this->company = $v; return $this; }
+
     public function setDefault(bool $isDefault): self
     {
         $this->defaultFl = $isDefault ? 'Y' : 'N';

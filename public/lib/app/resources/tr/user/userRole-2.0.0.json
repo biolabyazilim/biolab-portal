@@ -1,12 +1,13 @@
 {
-    "BOX_TITLE":"Management User Role",
-    "PAGE_TITLE":"Management User Role",
-    "USER_ROLE_ID":"User Role Id",
-    "USER_ID":"User Id",
-    "USER_NAME":"User Name",
-    "COMPANY_ID":"Company Id",
-    "COMPANY_NAME":"Company Name",
-    "ROLE_ID":"Role Id",
-    "ROLE_NAME":"Role Name"
+    "BOX_TITLE":"Kullanıcı Rolleri",
+    "PAGE_TITLE":"Kullanıcı Rolleri",
+    "USER_ROLE_ID":"Id",
+    "USER_ID":"Kullanıcı Id",
+    "USER_NAME":"Kullanıcı",
+    "USERNAME":"Kullanıcı Adı",
+    "COMPANY_ID":"Şirket Id",
+    "COMPANY_NAME":"Şirket",
+    "ROLE_ID":"Rol Id",
+    "ROLE_NAME":"Rol",
+    "APP_CODE":"Uygulama"
 }
-            

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">userRole</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../lib/plugins/dataTables-1.10.20/DataTables-1.10.20/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="../../lib/plugins/dataTables-1.10.20/Select-1.3.1/css/select.bootstrap4.min.css">
+
+    <link rel="stylesheet" href="../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../lib/app/css/plugins.css">
+    <!--[if lt IE 9]>
+    <script src="../../lib/plugins/html5shiv-3.7.3/html5shiv.min.js"></script>
+    <script src="../../lib/plugins/respond-1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style>
+        /*noinspection CssUnusedSymbol*/
+        .pac-container {
+            background-color: #FFF;
+            z-index: 1070;
+            position: fixed;
+            display: inline-block;
+            float: left;
+        }
+    </style>
+</head>
+
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="BOX_TITLE">userRole</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="row grid-search mb-1">
+                            <div class="col">
+                                <div class="input-group input-group-sm">
+                                    <label for="gridSearchFieldUserRole" class="sr-only" data-tr="PH_GRID_SEARCH_FIELD"></label>
+                                    <input type="text" id="gridSearchFieldUserRole" name="gridSearchFieldUserRole" class="form-control form-control-sm" data-trph="PH_GRID_SEARCH_FIELD" placeholder="" autocomplete="off">
+                                    <div class="input-group-append">
+                                        <!--<div class="btn-group" role="group">
+                                            <button type="button" id="ddmbGridSearchUserRole" class="btn btn-default btn-sm dropdown-toggle" disabled data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-tr="IN_ALL"><span>§§IN_ALL</span>
+                                                <span class="caret"></span>
+                                                <span class="sr-only">Toggle Dropdown</span>
+                                            </button>
+                                            <input type="hidden" id="gridQueryType_UserRole" name="gridQueryType_UserRole" value="1"/>
+                                            <ul class="dropdown-menu" id="ddmGridSearchUserRole">
+                                                <li><a data-id="0"><i class="fa fa-check hide"></i><span data-tr="IN_ALL">§§IN_ALL</span></a></li>
+                                            </ul>-->
+                                        <button class="btn btn-default btn-sm" type="button" data-tr="BTN_SEARCH_TEXT" id="btnGridSearchUserRole"></button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-sm-12">
+                                <table id="jqGridUserRole"></table>
+                                <div id="jqGridPagerUserRole"></div>
+                            </div>
+                        </div>
+
+                        <form name="editFormUserRole" id="editFormUserRole" class="form-horizontal" method="post" enctype="application/x-www-form-urlencoded" action="javascript:" autocomplete="off">
+
+                            <input type="hidden" id="USER_ROLE_ID" name="USER_ROLE_ID"/>
+
+                            <div class="row">
+                                <div class="col-sm-4"><!--USER_ID-->
+                                    <div class="form-group form-row">
+                                        <label for="USER_ID" data-tr="USER_NAME" class="col-sm-4 col-form-label-sm">§§USER_NAME</label>
+                                        <div class="col-sm-8">
+                                            <select id="USER_ID" name="USER_ID" class="form-control form-control-sm" required></select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--COMPANY_ID-->
+                                    <div class="form-group form-row">
+                                        <label for="COMPANY_ID" data-tr="COMPANY_NAME" class="col-sm-4 col-form-label-sm">§§COMPANY_NAME</label>
+                                        <div class="col-sm-8">
+                                            <select id="COMPANY_ID" name="COMPANY_ID" class="form-control form-control-sm" required></select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--ROLE_ID-->
+                                    <div class="form-group form-row">
+                                        <label for="ROLE_ID" data-tr="ROLE_NAME" class="col-sm-4 col-form-label-sm">§§ROLE_NAME</label>
+                                        <div class="col-sm-8">
+                                            <select id="ROLE_ID" name="ROLE_ID" class="form-control form-control-sm" required></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-4"><!--ACTIVE_FL-->
+                                    <div class="form-group form-row">
+                                        <label for="ACTIVE_FL" data-tr="ACTIVE_FL" class="col-sm-4 col-form-label-sm">§§ACTIVE_FL</label>
+                                        <div class="col-sm-8">
+                                            <select id="ACTIVE_FL" name="ACTIVE_FL" class="form-control form-control-sm base">
+                                                <option value="Y" data-tr="FL_YES_TEXT" selected></option>
+                                                <option value="N" data-tr="FL_NO_TEXT"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </form>
+
+
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-sm-12 text-right">
+                                <button type="button" class="btn btn-sm btn-success btn-new d-none" id="btnNewUserRole"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">New</span></button>
+                                <button type="button" class="btn btn-sm btn-default btn-cancel" id="btnCancelUserRole"><i class="fas fa-ban"></i> <span data-tr="BTN_CANCEL_TEXT">Cancel</span></button>
+                                <button type="button" class="btn btn-sm btn-danger btn-delete" id="btnDeleteUserRole"><i class="fas fa-trash-alt"></i> <span data-tr="BTN_DELETE_TEXT">Delete</span></button>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-primary" id="btnSaveUserRole">
+                                        <i class="fas fa-save"></i>
+                                        <span data-tr="BTN_SAVE_TEXT">Save</span>
+                                    </button>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggleUserRole">
+                                            <span class="caret"></span>
+                                            <span class="sr-only">Toggle Dropdown</span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-right btn-add">
+                                            <a class="dropdown-item btn-add" href="javascript:">
+                                                <button class="btn btn-sm btn-primary btn-add" type="button" id="btnAddUserRole">
+                                                    <i class="fas fa-plus"></i>
+                                                    <span data-tr="BTN_ADD_TEXT">Add</span>
+                                                </button>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../lib/plugins/dataTables-1.10.20/DataTables-1.10.20/js/dataTables.bootstrap4.min.js"></script>
+<script src="../../lib/plugins/dataTables-1.10.20/Select-1.3.1/js/select.dataTables.js"></script>
+<script src="../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../lib/app/js/lib.js"></script>
+<script src="../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/userRole-1.0.0.js?v=1.0.0"></script>
+</body>
+</html>

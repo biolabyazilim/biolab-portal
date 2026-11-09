@@ -48,4 +48,8 @@ class UserRole
     public function getUser(): AppUser       { return $this->user; }
     public function getRole(): Role          { return $this->role; }
     public function getCompany(): Company    { return $this->company; }
+
+    public function setUser(AppUser $v): self       { $this->user = $v; return $this; }
+    public function setRole(Role $v): self          { $this->role = $v; return $this; }
+    public function setCompany(Company $v): self    { $this->company = $v; return $this; }
 }

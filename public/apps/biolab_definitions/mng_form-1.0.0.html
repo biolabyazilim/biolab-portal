@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">mng_form</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../lib/plugins/datetimepicker-4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="../../lib/plugins/dataTables-1.10.20/DataTables-1.10.20/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="../../lib/plugins/dataTables-1.10.20/Select-1.3.1/css/select.bootstrap4.min.css">
+
+    <link rel="stylesheet" href="../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../lib/app/css/plugins.css">
+    <!--[if lt IE 9]>
+    <script src="../../lib/plugins/html5shiv-3.7.3/html5shiv.min.js"></script>
+    <script src="../../lib/plugins/respond-1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" data-tr="BOX_TITLE">mng_form</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="row grid-search mb-1">
+                            <div class="col">
+                                <div class="input-group input-group-sm">
+                                    <label for="gridSearchFieldForm" class="sr-only" data-tr="PH_GRID_SEARCH_FIELD"></label>
+                                    <input type="text" id="gridSearchFieldForm" name="gridSearchFieldForm" class="form-control form-control-sm" data-trph="PH_GRID_SEARCH_FIELD" placeholder="" autocomplete="off">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-default btn-sm" type="button" data-tr="BTN_SEARCH_TEXT" id="btnGridSearchForm"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-sm-12">
+                                <table id="jqGridForm"></table>
+                                <div id="jqGridPagerForm"></div>
+                            </div>
+                        </div>
+
+                        <form name="editFormForm" id="editFormForm" class="form-horizontal" method="post" enctype="application/x-www-form-urlencoded"  action="javascript:">
+                            <input type="hidden" id="FORM_ID" name="FORM_ID"/>
+                            <div class="row">
+                                <div class="col-sm-4"><!--FORM_CODE-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_CODE" data-tr="FORM_CODE" class="col-sm-4 col-form-label-sm">§§FORM_CODE</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="FORM_CODE" name="FORM_CODE" class="form-control form-control-sm" maxlength="50" required/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--FORM_NAME-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_NAME" data-tr="FORM_NAME" class="col-sm-4 col-form-label-sm">§§FORM_NAME</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="FORM_NAME" name="FORM_NAME" class="form-control form-control-sm"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--FORM_NAME_EN-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_NAME_EN" data-tr="FORM_NAME_EN" class="col-sm-4 col-form-label-sm">§§FORM_NAME_EN</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="FORM_NAME_EN" name="FORM_NAME_EN" class="form-control form-control-sm"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--FORM_PATH-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_PATH" data-tr="FORM_PATH" class="col-sm-4 col-form-label-sm">§§FORM_PATH</label>
+                                        <div class="col-sm-8">
+                                            <select id="FORM_PATH" name="FORM_PATH" class="form-control form-control-sm base"></select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!--</div>
+
+                                <div class="row">-->
+                                <div class="col-sm-4 d-none"><!--FORM_TYPE-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_TYPE" data-tr="FORM_TYPE" class="col-sm-4 col-form-label-sm">§§FORM_TYPE</label>
+                                        <div class="col-sm-8">
+                                            <select id="FORM_TYPE" name="FORM_TYPE" class="form-control form-control-sm base">
+                                                <option value="F" data-tr="FL_INNER_FRAME" selected></option>
+                                                <option value="B" data-tr="FL_ABOUT_BLANK"></option>
+                                                <option value="N" data-tr="FL_NEW_PAGE"></option>
+                                                <option value="I" data-tr="FL_INNER_HTML"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4 d-none"><!--FORM_COMMENT-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_COMMENT" data-tr="FORM_COMMENT" class="col-sm-4 col-form-label-sm">§§FORM_COMMENT</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="FORM_COMMENT" name="FORM_COMMENT" class="form-control form-control-sm"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--ACTIVE_FL-->
+                                    <div class="form-group form-row">
+                                        <label for="ACTIVE_FL" data-tr="ACTIVE_FL" class="col-sm-4 col-form-label-sm">§§ACTIVE_FL</label>
+                                        <div class="col-sm-8">
+                                            <select id="ACTIVE_FL" name="ACTIVE_FL" class="form-control form-control-sm base">
+                                                <option value="Y" data-tr="FL_YES_TEXT" selected></option>
+                                                <option value="N" data-tr="FL_NO_TEXT"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--RECORD_FL-->
+                                    <div class="form-group form-row">
+                                        <label for="RECORD_FL" data-tr="RECORD_FL" class="col-sm-4 col-form-label-sm">§§RECORD_FL</label>
+                                        <div class="col-sm-8">
+                                            <select id="RECORD_FL" name="RECORD_FL" class="form-control form-control-sm base">
+                                                <option value="" data-tr="FL_EMPTY_RECORD_TEXT"></option>
+                                                <option value="1" data-tr="FL_NEW_RECORD_TEXT" selected></option>
+                                                <option value="2" data-tr="FL_CHANGED_RECORD_TEXT"></option>
+                                                <option value="0" data-tr="FL_DELETED_RECORD_TEXT"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4 d-none"><!--FORM_VISIBLE-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_VISIBLE" data-tr="FORM_VISIBLE" class="col-sm-4 col-form-label-sm">§§FORM_VISIBLE</label>
+                                        <div class="col-sm-8">
+                                            <select id="FORM_VISIBLE" name="FORM_VISIBLE" class="form-control form-control-sm base">
+                                                <option value="Y" data-tr="FL_YES_TEXT" selected></option>
+                                                <option value="N" data-tr="FL_NO_TEXT"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row d-none">
+                                <div class="col-sm-4 d-none"><!--FORM_TIME_STAMP-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_TIME_STAMP" data-tr="FORM_TIME_STAMP" class="col-sm-4 col-form-label-sm">§§FORM_TIME_STAMP</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="FORM_TIME_STAMP" name="FORM_TIME_STAMP" class="form-control form-control-sm"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4 d-none"><!--FORM_NAME_UNIQUE-->
+                                    <div class="form-group form-row">
+                                        <label for="FORM_NAME_UNIQUE" data-tr="FORM_NAME_UNIQUE" class="col-sm-4 col-form-label-sm">§§FORM_NAME_UNIQUE</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="FORM_NAME_UNIQUE" name="FORM_NAME_UNIQUE" class="form-control form-control-sm"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><!--C_BY-->
+                                    <div class="form-group form-row">
+                                        <label for="C_BY" data-tr="C_BY" class="col-sm-4 col-form-label-sm">§§C_BY</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="C_BY" name="C_BY" class="form-control form-control-sm" readonly/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--U_BY-->
+                                    <div class="form-group form-row">
+                                        <label for="U_BY" data-tr="U_BY" class="col-sm-4 col-form-label-sm">§§U_BY</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="U_BY" name="U_BY" class="form-control form-control-sm" readonly/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4"><!--D_BY-->
+                                    <div class="form-group form-row">
+                                        <label for="D_BY" data-tr="D_BY" class="col-sm-4 col-form-label-sm">§§D_BY</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" id="D_BY" name="D_BY" class="form-control form-control-sm" readonly/>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-sm-4"><!--C_AT-->
+                                    <div class="form-group form-row">
+                                        <label for="C_AT" class="col-sm-4 col-form-label-sm" data-tr="C_AT">§§C_AT</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group input-group-sm date-time date-base">
+                                                <input type="text" class="form-control form-control-sm" id="C_AT" name="C_AT" readonly/>
+                                                <div class="input-group-append datepickerbutton">
+                                                    <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4"><!--U_AT-->
+                                    <div class="form-group form-row">
+                                        <label for="U_AT" class="col-sm-4 col-form-label-sm" data-tr="U_AT">§§U_AT</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group input-group-sm date-time date-base">
+                                                <input type="text" class="form-control form-control-sm" id="U_AT" name="U_AT" readonly/>
+                                                <div class="input-group-append datepickerbutton">
+                                                    <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-sm-4"><!--D_AT-->
+                                    <div class="form-group form-row">
+                                        <label for="D_AT" class="col-sm-4 col-form-label-sm" data-tr="D_AT">§§D_AT</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group input-group-sm date-time date-base">
+                                                <input type="text" class="form-control form-control-sm" id="D_AT" name="D_AT" readonly/>
+                                                <div class="input-group-append datepickerbutton">
+                                                    <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+
+
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-sm-6"> </div>
+                            <div class="col-sm-6 text-right">
+                                <button type="button" class="btn btn-sm btn-success btn-new d-none" id="btnNewForm"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">New</span></button>
+                                <button type="button" class="btn btn-sm btn-default btn-cancel" id="btnCancelForm"><i class="fas fa-ban"></i> <span data-tr="BTN_CANCEL_TEXT">Cancel</span></button>
+                                <button type="button" class="btn btn-sm btn-danger btn-delete" id="btnDeleteForm"><i class="fas fa-trash-alt"></i> <span data-tr="BTN_DELETE_TEXT">Delete</span></button>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-primary" id="btnSaveForm">
+                                        <i class="fas fa-save"></i>
+                                        <span data-tr="BTN_SAVE_TEXT">Save</span>
+                                    </button>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggleForm">
+                                            <span class="caret"></span>
+                                            <span class="sr-only">Toggle Dropdown</span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-right btn-add">
+                                            <a class="dropdown-item btn-add" href="javascript:">
+                                                <button class="btn btn-sm btn-primary btn-add" type="button" id="btnAddForm">
+                                                    <i class="fas fa-plus"></i>
+                                                    <span data-tr="BTN_ADD_TEXT">Add</span>
+                                                </button>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../lib/plugins/dataTables-1.10.20/DataTables-1.10.20/js/dataTables.bootstrap4.min.js"></script>
+<script src="../../lib/plugins/dataTables-1.10.20/Select-1.3.1/js/select.dataTables.js"></script>
+<script src="../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../lib/app/js/lib.js"></script>
+<script src="../../lib/app/js/zippedPlugins.js"></script>
+<script src="js/mng_form-1.0.0.js?v=4"></script>
+</body>
+</html>

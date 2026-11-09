@@ -279,6 +279,48 @@ Migration `Version20261030090000` (ekran / menü / yetki kaydı). Dosyalar:
 | `public\apps\biolab-maliyet\kit_match\` (yeni klasör) | `kitMatch-1.0.0.html`, `js\kitMatch-1.0.0.js`, `php\kitMatch-1.0.0.php` |
 | `public\lib\app\resources\tr\kit_match\` ve `en\kit_match\` (yeni) | `kitMatch-1.0.0.json` |
 
+### 6.5 Son versiyon Excel'i: tedarikçi kuru, katalog no, kısa kod, hesap notu (09.11.2026)
+
+Uzmanın `Kopya mlyt programı-son versiyon.xlsx` dosyası (MALZEME LİSTESİ; TL BİRİM MALİYET kolonu kalktı, J/K'da NUCLEUS
+katalog no ve ürün adı, AÇIKLAMA'da hesap talimatları) için:
+
+- **Tedarikçi kuru** (`mlyt_study_supplier_rate`): tedarikçiyle yıllık belirlenen kur (ör. NUCLEUS EUR 44,7). O tedarikçinin
+  malzemeleri genel kur yerine bununla hesaplanır. Malzemeler → çalışma penceresi → "Tedarikçi kurları"; çubukta
+  "NUCLEUS EUR 44,70" görünür.
+- **Katalog no** (`mlyt_material.CATALOG_NO`): NUCLEUS kitleri katalog no ile tutulur, adı "ürün adı · katalog no" olur.
+- **Kısa kod** (`mlyt_material.SHORT_CODE`): patoloji TK, L, LM, NSİ, SPS, BYK; Biolab mikroskopi N.LAM, R.LAM, LAMEL22,
+  PASTÖR, GAİTA, STİ, PETRİ (migration'lar doldurur). Kısa kodlu her malzeme **Test tanımları**'nda her testte
+  (Biolab ve Patoloji; hesaplamalı hariç) "Kısa kodlu malzemeler" altında hasta başı adetle seçilir (Excel'deki TK / L / LM
+  kolonları, "N.LAM+LAMEL" notları); yeni test Excel'siz tanımlanır. Yeni kısa kod Malzemeler ekranından verilir.
+  LM patoloji lameli (24×60), LAMEL22 mikroskopi lameli (22×22).
+- **Bedelli malzeme** kategorisi (`BILLABLE`): doktorlara ürün bazlı fiyatlanan malzeme (ör. numune kabı). Bedeli
+  (`mlyt_material.BILLABLE_PRICE`, TL / birim) bir kere girilir: Malzemeler → kategori "Bedelli malzeme" seçilince fiyat
+  bölümü yerine "Bedel" alanı çıkar. Maliyet hesabı bu malzemeyi her çalışmada bu bedelle değerlendirir (kur ve çalışma
+  fiyatı kullanılmaz); bedeli girilen bedelli malzeme "Fiyatı girilmiş" sayılır.
+- **Hesap notu** (`mlyt_test.COST_NOTE`): uzmanın AÇIKLAMA'daki hesap talimatı (ör. "2 KİT TOPLANIP HASTAYA BÖLÜNÜR").
+  Test tanımlarında düzenlenir, Test maliyetleri ayrıntısında sarı kutuda görünür.
+- **Fiyat aktarımı:** bölen kuralı ambalaj (C) / adet (E) kolonlarından; "ambalajın tamamı fiyatı". Fiyatı değişmeyen
+  satırlar için önceki Excel (TL BİRİM MALİYET kolonlu) **referans** verilir; bölen ondan alınır, sonuç önceki Excel'le aynı
+  kalır (geliştirmede 211/211). Aynı adlı teste kit otomatik bağlanır (testte kit yoksa), "ekle" talimatları bağlanır.
+
+Çalıştırma (`mlyt-import.bat`): **3** son versiyon dosyası → **7** önceki Excel (`Kopya mlyt programı.xlsx`) → **5** deneme
+(çalışma no 7) → raporu kontrol → **6** uygula.
+
+Migration'lar `Version20261109065144`, `Version20261109120000` (Biolab kısa kodları), `Version20261109130000`
+(bedelli malzeme bedeli) ve `Version20261109140000` (collation düzeltmesi: sunucunun varsayılanı `Turkish_CI_AS`, eski
+tablolar `Latin1_General_100_CI_AS_SC_UTF8`; yeni tablonun CURRENCY kolonu eskilerle aynı yapılır, yoksa Malzemeler
+listesi "Cannot resolve the collation conflict" verir). Dosyalar:
+
+| Klasör | Dosyalar |
+|---|---|
+| proje kökü | `mlyt-import.php`, `mlyt-import.bat` |
+| `model\Entity\BIO\MLYT\` | `StudySupplierRate.php` (yeni), `StudyRate.php`, `Material.php`, `MaterialCategory.php`, `Test.php` |
+| `model\migration\` | `Version20261109065144.php`, `Version20261109120000.php`, `Version20261109130000.php`, `Version20261109140000.php` |
+| `core\Mlyt\` | `PriceImport.php`, `ExcelImport.php`, `CostCalculator.php`, `PathologyExport.php` |
+| `public\apps\biolab-maliyet\material\` | `material-1.0.0.html`, `js\material-1.0.0.js`, `php\material-1.0.0.php` |
+| `public\apps\biolab-maliyet\test\` | `test-1.0.0.html`, `js\test-1.0.0.js`, `php\test-1.0.0.php` |
+| `public\apps\biolab-maliyet\test_cost\` | `testCost-1.0.0.html`, `js\testCost-1.0.0.js`, `php\testCost-1.0.0.php` |
+
 ## 7. Sonra yapılacaklar
 
 - **HTTPS:** bilgi işlemden sertifika alınca site bağlamalarına `https` eklenir; http yönlendirilir veya kapatılır.

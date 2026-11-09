@@ -36,6 +36,7 @@ use BIO\MLYT\MaterialPrice;
 use BIO\MLYT\RecipeItem;
 use BIO\MLYT\Study;
 use BIO\MLYT\StudyRate;
+use BIO\MLYT\StudySupplierRate;
 use BIO\MLYT\Supplier;
 use BIO\MLYT\Test;
 use BIO\MNG\Company;
@@ -173,6 +174,23 @@ switch ($query) {
         }
         break;
 
+    // Bir çalışmanın kurları, TL katsayısı ve tedarikçi kurları (yeni çalışmada "fiyatları kopyala" seçilince forma dolar)
+    case "getStudyInfo":
+        $execType = ET_DEFAULT;
+        try{
+            $study = mtFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
+            if ($study === null) { $resCode = 20; $resMsg = "Çalışma bulunamadı."; break; }
+            $dtResponse = mtStudyToArray($study, mtRates($db, $study), mtSupplierRates($db, $study));
+            $dtResponse["priceCount"] = (int) $db->createQuery("SELECT COUNT(p.materialPriceId) FROM BIO\MLYT\MaterialPrice p WHERE p.study = :S")
+                ->setParameter("S", $study)->getSingleScalarResult();
+            $resCode = 0;
+            $resMsg = "Ok";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
     /* ---------- Ekran işlemleri ---------- */
     case "setStudy":
         $execType = ET_CUSTOM;
@@ -194,6 +212,23 @@ switch ($query) {
             foreach ($rates as $cur => $v) {
                 if ($v !== null && (float) $v <= 0) { $errors[] = $cur . " kuru sıfırdan büyük olmalı."; }
             }
+            // Tedarikçi sözleşme kurları: JSON [{supplierId, currency, rate}] — listenin tamamı (listede olmayan silinir)
+            $supplierRates = null;
+            if (isset($_POST["SUPPLIER_RATES"])) {
+                $supplierRates = array();
+                foreach ((array) json_decode((string) $_POST["SUPPLIER_RATES"], true) as $i => $sr) {
+                    $sid = (int) ($sr["supplierId"] ?? 0);
+                    $cur = (string) ($sr["currency"] ?? "");
+                    $v   = mtDecimal($sr["rate"] ?? null);
+                    $row = "Tedarikçi kuru " . ($i + 1) . ": ";
+                    $sup = $sid > 0 ? $db->getRepository(Supplier::class)->findOneBy(array("supplierId" => $sid, "company" => $companyId)) : null;
+                    if ($sup === null) { $errors[] = $row . "tedarikçi seçin."; continue; }
+                    if (!in_array($cur, MT_RATE_CURRENCIES, true)) { $errors[] = $row . "para birimi seçin."; continue; }
+                    if ($v === null || (float) $v <= 0) { $errors[] = $row . "kur sıfırdan büyük olmalı."; continue; }
+                    if (isset($supplierRates[$sid . "|" . $cur])) { $errors[] = $sup->getSupplierName() . " " . $cur . " iki kez girilmiş."; continue; }
+                    $supplierRates[$sid . "|" . $cur] = array($sup, $cur, $v);
+                }
+            }
             if ($errors) {
                 $resCode = 10;
                 $resMsg = implode(" ", $errors);
@@ -201,6 +236,8 @@ switch ($query) {
             }
 
             $studyId = (int) ($_POST["STUDY_ID"] ?? 0);
+            // Yeni çalışmada fiyatlar başka bir çalışmadan kopyalanabilir (COPY_FROM_STUDY_ID); kaynak değişmez
+            $copyFrom = $studyId <= 0 ? mtFindStudy($db, (int) ($_POST["COPY_FROM_STUDY_ID"] ?? 0), $companyId) : null;
             if ($studyId > 0) {
                 $study = mtFindStudy($db, $studyId, $companyId);
                 if ($study === null) { $resCode = 20; $resMsg = "Çalışma bulunamadı."; break; }
@@ -227,11 +264,40 @@ switch ($query) {
                     $db->persist(new StudyRate($study, $cur, $v));
                 }
             }
+
+            // Tedarikçi kurları: gönderildiyse listedeki yazılır, listede olmayan silinir
+            if ($supplierRates !== null) {
+                $existingSr = array();
+                foreach ($study->getStudyId() ? $db->getRepository(StudySupplierRate::class)->findBy(array("study" => $study)) : array() as $r) {
+                    $existingSr[$r->getSupplier()->getSupplierId() . "|" . $r->getCurrency()] = $r;
+                }
+                foreach ($supplierRates as $k => [$sup, $cur, $v]) {
+                    if (isset($existingSr[$k])) { $existingSr[$k]->setRate($v); unset($existingSr[$k]); }
+                    else { $db->persist(new StudySupplierRate($study, $sup, $cur, $v)); }
+                }
+                foreach ($existingSr as $r) { $db->remove($r); }
+            }
             $db->flush();
 
-            $resObject = array("studyId" => $study->getStudyId());
+            // Fiyat kopyası: kaynak çalışmanın fiyatları (silinmemiş malzemelerin) yeni çalışmaya, tek SQL ile
+            $copied = 0;
+            if ($copyFrom !== null) {
+                $copied = (int) $db->getConnection()->executeStatement("
+                    INSERT INTO mlyt_material_price (STUDY_ID, MATERIAL_ID, PACKAGE_DESC, PACKAGE_QTY, PATIENT_QTY, CURRENCY, PACKAGE_PRICE,
+                                                     VAT_INCLUDED_FL, NOTE, ACTIVE_FL, RECORD_FL, C_BY)
+                    SELECT ?, p.MATERIAL_ID, p.PACKAGE_DESC, p.PACKAGE_QTY, p.PATIENT_QTY, p.CURRENCY, p.PACKAGE_PRICE,
+                           p.VAT_INCLUDED_FL, p.NOTE, p.ACTIVE_FL, 1, ?
+                      FROM mlyt_material_price p
+                      JOIN mlyt_material m ON m.MATERIAL_ID = p.MATERIAL_ID AND m.RECORD_FL > 0
+                     WHERE p.STUDY_ID = ? AND p.RECORD_FL > 0
+                ", array($study->getStudyId(), (int) ($_SESSION["USER_ID"] ?? 0) ?: null, $copyFrom->getStudyId()));
+            }
+
+            $resObject = array("studyId" => $study->getStudyId(), "copied" => $copied);
             $resCode = 0;
-            $resMsg = "Çalışma kaydedildi";
+            $resMsg = $copyFrom !== null
+                ? "Çalışma açıldı; " . $copied . " fiyat '" . $copyFrom->getStudyName() . "' çalışmasından kopyalandı"
+                : "Çalışma kaydedildi";
         }catch(Exception $exMain){
             $resCode = 100;
             $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
@@ -239,7 +305,7 @@ switch ($query) {
         break;
 
     // Malzeme listesi (jqGrid). Sayfalama / sıralama / filtre sunucuda.
-    //   postData: STUDY_ID (fiyatların çalışması), TAB (all / missing / priced), CATEGORY_ID, Q (malzeme / tedarikçi adı)
+    //   postData: STUDY_ID (fiyatların çalışması), TAB (all / missing / priced), CATEGORY_ID, SUPPLIER_ID, Q (malzeme / tedarikçi adı)
     //   resObject: study (seçili çalışma + kurlar, şerit için), counts (sekme sayıları; kategori ve aramadan bağımsız),
     //              kitCategoryId (formda kit alanlarını açmak için)
     case "getGridList":
@@ -248,13 +314,16 @@ switch ($query) {
             $study   = mtFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
             $studyId = $study ? $study->getStudyId() : 0;   // çalışma yoksa fiyat eşleşmez, liste fiyatsız gelir
 
-            // Fiyat seçili çalışmadan; kur fiyatın para biriminden (TRY'de kur kaydı yok, 1 sayılır)
+            // Fiyat seçili çalışmadan; kur fiyatın para biriminden (TRY'de kur kaydı yok, öngörü katsayısı).
+            // Malzemenin tedarikçisinin sözleşme kuru (sr) varsa o, yoksa çalışmanın genel kuru (r)
             $from = "
                   FROM BIO\MLYT\Material m
                   JOIN m.category c
                   LEFT JOIN m.supplier s
                   LEFT JOIN BIO\MLYT\MaterialPrice p WITH p.material = m AND p.study = :STUDY_ID
                   LEFT JOIN BIO\MLYT\StudyRate r WITH r.study = p.study AND r.currency = p.currency
+                  LEFT JOIN BIO\MLYT\StudySupplierRate sr WITH sr.study = p.study AND sr.supplier = m.supplier
+                                                             AND sr.currency = p.currency AND sr.recordFl > 0
                  WHERE IDENTITY(m.company) = :COMPANY_ID
                    AND m.recordFl > 0
             ";
@@ -263,20 +332,33 @@ switch ($query) {
             // Sekme sayıları: yalnızca çalışmaya bağlı
             $cnt = $db->createQuery("
                 SELECT COUNT(m.materialId) AS allCount,
-                       SUM(CASE WHEN p.materialPriceId IS NULL THEN 0 ELSE 1 END) AS pricedCount
+                       SUM(CASE WHEN p.materialPriceId IS NOT NULL OR (c.categoryCode = 'BILLABLE' AND m.billablePrice IS NOT NULL) THEN 1 ELSE 0 END) AS pricedCount
             " . $from)->setParameters($params)->getSingleResult();
 
             $whereClause = "";
             $tab = (string) ($_POST["TAB"] ?? "all");
-            if ($tab === "missing") { $whereClause .= " AND p.materialPriceId IS NULL"; }
-            if ($tab === "priced")  { $whereClause .= " AND p.materialPriceId IS NOT NULL"; }
+            // Bedelli malzeme, bedeli girilmişse fiyatlı sayılır (çalışmadan bağımsız)
+            if ($tab === "missing") { $whereClause .= " AND p.materialPriceId IS NULL AND NOT (c.categoryCode = 'BILLABLE' AND m.billablePrice IS NOT NULL)"; }
+            if ($tab === "priced")  { $whereClause .= " AND (p.materialPriceId IS NOT NULL OR (c.categoryCode = 'BILLABLE' AND m.billablePrice IS NOT NULL))"; }
             if ((int) ($_POST["CATEGORY_ID"] ?? 0) > 0) {
                 $whereClause .= " AND c.categoryId = :CATEGORY_ID";
                 $params["CATEGORY_ID"] = (int) $_POST["CATEGORY_ID"];
             }
+            // Tedarikçi: -1 = tedarikçisi olmayanlar
+            if ((int) ($_POST["SUPPLIER_ID"] ?? 0) === -1) {
+                $whereClause .= " AND s.supplierId IS NULL";
+            } elseif ((int) ($_POST["SUPPLIER_ID"] ?? 0) > 0) {
+                $whereClause .= " AND s.supplierId = :SUPPLIER_ID";
+                $params["SUPPLIER_ID"] = (int) $_POST["SUPPLIER_ID"];
+            }
+            // Para birimi: seçili çalışmadaki fiyatın para birimi (TRY / USD / EUR / GBP)
+            if (in_array($_POST["CURRENCY"] ?? "", MT_PRICE_CURRENCIES, true)) {
+                $whereClause .= " AND p.currency = :CURRENCY";
+                $params["CURRENCY"] = $_POST["CURRENCY"];
+            }
             $q = trim((string) ($_POST["Q"] ?? ""));
             if ($q !== "") {
-                $whereClause .= " AND (m.materialName LIKE :Q_LIKE OR s.supplierName LIKE :Q_LIKE)";
+                $whereClause .= " AND (m.materialName LIKE :Q_LIKE OR s.supplierName LIKE :Q_LIKE OR m.shortCode LIKE :Q_LIKE OR m.catalogNo LIKE :Q_LIKE)";
                 $params["Q_LIKE"] = "%" . $q . "%";
             }
 
@@ -294,14 +376,15 @@ switch ($query) {
             // Birim maliyet (TL) = ambalaj fiyatı × kur ÷ (hasta sayısı ya da ambalaj içeriği); TL'nin kuru öngörü katsayısı.
             // Fiyat ya da kur yoksa boş. usedCount: malzemenin bağlı olduğu test sayısı (kitte "kaç teste bağlı")
             $dtResponse = $db->createQuery("
-                SELECT m.materialId AS m_materialId, m.materialName AS m_materialName, m.usageUnit AS m_usageUnit, m.note AS m_note,
+                SELECT m.materialId AS m_materialId, m.materialName AS m_materialName, m.usageUnit AS m_usageUnit, m.note AS m_note, m.shortCode AS m_shortCode, m.catalogNo AS m_catalogNo, m.billablePrice AS m_billablePrice,
                        c.categoryId AS c_categoryId, c.categoryCode AS c_categoryCode, c.categoryName AS c_categoryName, c.categoryNameEn AS c_categoryNameEn,
                        s.supplierName AS s_supplierName,
                        p.materialPriceId AS p_materialPriceId, p.packageQty AS p_packageQty, p.patientQty AS p_patientQty,
                        p.packagePrice AS p_packagePrice, p.currency AS p_currency, p.packageDesc AS p_packageDesc,
-                       r.rate AS r_rate,
-                       (CASE WHEN p.currency = 'TRY' THEN p.packagePrice * :TRY_FACTOR ELSE p.packagePrice * r.rate END)
-                       / (CASE WHEN p.patientQty > 0 THEN p.patientQty ELSE p.packageQty END) AS unitCostTry,
+                       COALESCE(sr.rate, r.rate) AS r_rate, (CASE WHEN sr.rate IS NULL THEN 0 ELSE 1 END) AS supplierRate,
+                       (CASE WHEN (c.categoryCode = 'BILLABLE' AND m.billablePrice IS NOT NULL) THEN m.billablePrice
+                             ELSE (CASE WHEN p.currency = 'TRY' THEN p.packagePrice * :TRY_FACTOR ELSE p.packagePrice * COALESCE(sr.rate, r.rate) END)
+                                  / (CASE WHEN p.patientQty > 0 THEN p.patientQty ELSE p.packageQty END) END) AS unitCostTry,
                        (SELECT COUNT(ri.recipeItemId) FROM BIO\MLYT\RecipeItem ri
                          WHERE ri.material = m AND ri.recordFl > 0 AND ri.activeFl = 'Y') AS usedCount
             " . $from . $whereClause . " ORDER BY " . $sortBy . " " . $direction . ", m.materialId ASC")
@@ -311,12 +394,15 @@ switch ($query) {
                 ->getArrayResult();
 
             foreach ($dtResponse as &$r) {
-                $hasPrice = $r["p_materialPriceId"] !== null;
+                // Bedelli malzeme: sabit bedel (TL / birim); çalışma fiyatına bakılmaz
+                $billable = $r["c_categoryCode"] === MaterialCategory::CODE_BILLABLE;
+                $hasPrice = $billable ? $r["m_billablePrice"] !== null : $r["p_materialPriceId"] !== null;
+                $r["isBillable"] = $billable ? "Y" : "N";
                 if ($sessionLang === "en" && $r["c_categoryNameEn"]) { $r["c_categoryName"] = $r["c_categoryNameEn"]; }
                 unset($r["c_categoryNameEn"]);
                 $r["m_usageUnitName"] = MT_UNIT_NAMES[$r["m_usageUnit"]][$sessionLang === "en" ? 1 : 0] ?? $r["m_usageUnit"];
                 $r["hasPrice"]        = $hasPrice ? "Y" : "N";
-                $r["rateMissing"]     = ($hasPrice && $r["p_currency"] !== StudyRate::CURRENCY_TRY && $r["r_rate"] === null) ? "Y" : "N";
+                $r["rateMissing"]     = ($hasPrice && !$billable && $r["p_currency"] !== StudyRate::CURRENCY_TRY && $r["r_rate"] === null) ? "Y" : "N";
                 $r["unitCostTry"]     = $r["unitCostTry"] !== null ? round((float) $r["unitCostTry"], 4) : null;
                 $r["isKit"]           = $r["c_categoryCode"] === MaterialCategory::CODE_KIT ? "Y" : "N";
                 $r["usedCount"]       = (int) $r["usedCount"];
@@ -326,12 +412,37 @@ switch ($query) {
             $kit = $db->getRepository(MaterialCategory::class)->findOneBy(array("categoryCode" => MaterialCategory::CODE_KIT));
             $resObject = array(
                 "kitCategoryId" => $kit?->getCategoryId(),   // formda kit alanları bu kategori seçilince açılır
-                "study"  => $study ? mtStudyToArray($study, mtRates($db, $study)) : null,
+                "billableCategoryId" => $db->getRepository(MaterialCategory::class)->findOneBy(array("categoryCode" => MaterialCategory::CODE_BILLABLE))?->getCategoryId(),
+                "study"  => $study ? mtStudyToArray($study, mtRates($db, $study), mtSupplierRates($db, $study)) : null,
                 "counts" => array("all" => (int) $cnt["allCount"], "priced" => (int) $cnt["pricedCount"],
                                   "missing" => (int) $cnt["allCount"] - (int) $cnt["pricedCount"]),
             );
             $resCode = 0;
             $resMsg = "Ok";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
+    // Excel çıktısı: ekrandaki filtrelerle (STUDY_ID, TAB, CATEGORY_ID, SUPPLIER_ID, Q); indirme adresi döner (/api/pdf.php)
+    case "getExcelList":
+        $execType = ET_CUSTOM;
+        try{
+            $study = mtFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
+            $export = new \Biolab\Core\Mlyt\MaterialExport($db, $companyId, $study, array(
+                "tab"        => (string) ($_POST["TAB"] ?? "all"),
+                "categoryId" => (int) ($_POST["CATEGORY_ID"] ?? 0),
+                "supplierId" => (int) ($_POST["SUPPLIER_ID"] ?? 0),
+                "q"          => (string) ($_POST["Q"] ?? ""),
+                "currency"   => (string) ($_POST["CURRENCY"] ?? ""),
+            ));
+            $fileName = $export->fileName();
+            $token = \Biolab\Core\Http\PdfHandoff::stash($export->bytes(), $fileName,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            $resObject = array("url" => "/api/pdf.php?t=" . $token, "fileName" => $fileName);
+            $resCode = 0;
+            $resMsg = "Excel hazır";
         }catch(Exception $exMain){
             $resCode = 100;
             $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
@@ -347,7 +458,7 @@ switch ($query) {
             $study = mtFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
             $price = $study ? $db->getRepository(MaterialPrice::class)->findOneBy(array("study" => $study, "material" => $material)) : null;
 
-            $dtResponse = mtMaterialToArray($material, $price, $study ? mtRates($db, $study) : array(), $sessionLang);
+            $dtResponse = mtMaterialToArray($material, $price, $study ? mtRates($db, $study, $material->getSupplier()) : array(), $sessionLang);
             $dtResponse["tests"] = mtMaterialTests($db, $material, $sessionLang);
             $resCode = 0;
             $resMsg = "Ok";
@@ -364,6 +475,10 @@ switch ($query) {
             $category = mtFindCategory($db, (int) ($_POST["CATEGORY_ID"] ?? 0));
             $unit     = (string) ($_POST["USAGE_UNIT"] ?? "");
             $note     = isset($_POST["NOTE"]) ? trim((string) $_POST["NOTE"]) : null;
+            // Kısa kod (patoloji: TK, L, LM...) Türkçe büyük harf; katalog no tedarikçinin ürün kodu
+            $shortCode = mb_strtoupper(str_replace(array("i", "ı"), array("İ", "I"), trim((string) ($_POST["SHORT_CODE"] ?? ""))), "UTF-8");
+            $shortCode = $shortCode !== "" ? $shortCode : null;
+            $catalogNo = trim((string) ($_POST["CATALOG_NO"] ?? "")) ?: null;
 
             // Fiyat: üç alan da boşsa bu çalışmada fiyat yok demektir (varsa silinir)
             $pkgQty   = mtDecimal($_POST["PACKAGE_QTY"] ?? null);
@@ -372,12 +487,21 @@ switch ($query) {
             $hasPrice = $pkgQty !== null || $pkgPrice !== null;
             // Bir ambalajdan çıkan hasta sayısı (isteğe bağlı; kit, standart). Boşsa bölen ambalaj içeriğidir.
             $patientQty = mtDecimal($_POST["PATIENT_QTY"] ?? null);
+            // Bedelli malzeme: bir kere tanımlanan sabit bedel (TL / birim); çalışmanın fiyatı değiştirilmez
+            $billable = $category !== null && $category->getCategoryCode() === MaterialCategory::CODE_BILLABLE;
+            $billablePrice = $billable ? mtDecimal($_POST["BILLABLE_PRICE"] ?? null) : null;
+            if ($billable) { $hasPrice = false; }
 
             $errors = array();
+            if ($billable && trim((string) ($_POST["BILLABLE_PRICE"] ?? "")) !== "" && ($billablePrice === null || (float) $billablePrice < 0)) {
+                $errors[] = "Bedeli sayı olarak girin.";
+            }
             if ($name === "") { $errors[] = "Malzeme adını girin."; }
             if ($category === null) { $errors[] = "Kategori seçin."; }
             if (!in_array($unit, MT_UNITS, true)) { $errors[] = "Kullanım birimi seçin."; }
             if ($patientQty !== null && (float) $patientQty <= 0) { $errors[] = "Hasta sayısı sıfırdan büyük olmalı."; }
+            if ($shortCode !== null && mb_strlen($shortCode) > 10) { $errors[] = "Kısa kod en çok 10 karakter olmalı."; }
+            if ($catalogNo !== null && mb_strlen($catalogNo) > 30) { $errors[] = "Katalog no en çok 30 karakter olmalı."; }
             if ($hasPrice) {
                 if ($pkgQty === null || (float) $pkgQty <= 0) { $errors[] = "Ambalaj içeriği sıfırdan büyük olmalı."; }
                 if ($pkgPrice === null || (float) $pkgPrice < 0) { $errors[] = "Ambalaj fiyatını girin."; }
@@ -401,6 +525,14 @@ switch ($query) {
                    AND m.materialName = :NAME AND m.materialId <> :ID
             ")->setParameters(array("COMPANY_ID" => $companyId, "NAME" => $name, "ID" => $materialId))->getSingleScalarResult();
             if ((int) $same > 0) { $resCode = 40; $resMsg = "Bu adla bir malzeme zaten var."; break; }
+            // Kısa kod tekil: patoloji testinde "2 TK" hangi malzeme olduğu belli olsun
+            if ($shortCode !== null) {
+                $other = $db->createQuery("
+                    SELECT m.materialName FROM BIO\MLYT\Material m
+                     WHERE IDENTITY(m.company) = :COMPANY_ID AND m.recordFl > 0 AND m.shortCode = :CODE AND m.materialId <> :ID
+                ")->setParameters(array("COMPANY_ID" => $companyId, "CODE" => $shortCode, "ID" => $materialId))->setMaxResults(1)->getOneOrNullResult();
+                if ($other) { $resCode = 40; $resMsg = "'" . $shortCode . "' kısa kodu zaten '" . $other["materialName"] . "' malzemesinde."; break; }
+            }
 
             if ($materialId > 0) {
                 $material = mtFindMaterial($db, $materialId, $companyId);
@@ -411,10 +543,15 @@ switch ($query) {
                 $material->setCompany($db->getReference(Company::class, $companyId));
                 $db->persist($material);
             }
+            // Alan gönderilmediyse (eski önbellekli ekran) mevcut kısa kod / katalog no korunur
+            if (array_key_exists("SHORT_CODE", $_POST)) { $material->setShortCode($shortCode); }
+            if (array_key_exists("CATALOG_NO", $_POST)) { $material->setCatalogNo($catalogNo); }
             $material->setNote($note)
+                     ->setBillablePrice($billablePrice)
                      ->setSupplier(mtSupplier($db, $companyId, $_POST["SUPPLIER_ID"] ?? null, $_POST["SUPPLIER_NAME"] ?? null));
 
-            if ($study !== null) {
+            // Bedelli malzemede çalışma fiyatına dokunulmaz (kategori yanlışlıkla değişirse fiyat kaybolmasın)
+            if ($study !== null && !$billable) {
                 $price = $material->getMaterialId()
                     ? $db->getRepository(MaterialPrice::class)->findOneBy(array("study" => $study, "material" => $material))
                     : null;
@@ -546,14 +683,34 @@ function mtFindMaterial($db, int $materialId, int $companyId): ?Material
     return ($m !== null && !$m->isDeleted()) ? $m : null;
 }
 
-/** Çalışmanın kurları: ["USD" => "55.0000", ...] ; TRY'nin kuru öngörü katsayısı (varsayılan 1) */
-function mtRates($db, Study $study): array
+/**
+ * Çalışmanın kurları: ["USD" => "55.0000", ...] ; TRY'nin kuru öngörü katsayısı (varsayılan 1).
+ * Tedarikçi verilirse onun bu çalışmadaki sözleşme kurları genel kurun yerine geçer (ör. NUCLEUS EUR 44,7).
+ */
+function mtRates($db, Study $study, ?Supplier $supplier = null): array
 {
     $rates = array(StudyRate::CURRENCY_TRY => $study->getTryFactor());
     foreach ($db->getRepository(StudyRate::class)->findBy(array("study" => $study)) as $r) {
         $rates[$r->getCurrency()] = $r->getRate();
     }
+    if ($supplier !== null) {
+        foreach ($db->getRepository(StudySupplierRate::class)->findBy(array("study" => $study, "supplier" => $supplier)) as $r) {
+            if (!$r->isDeleted()) { $rates[$r->getCurrency()] = $r->getRate(); }
+        }
+    }
     return $rates;
+}
+
+/** Çalışmanın tedarikçi sözleşme kurları: [{supplierId, supplierName, currency, rate}] (çalışma çubuğu ve penceresi için) */
+function mtSupplierRates($db, Study $study): array
+{
+    return $db->createQuery("
+        SELECT s.supplierId, s.supplierName, r.currency, r.rate
+          FROM BIO\MLYT\StudySupplierRate r
+          JOIN r.supplier s
+         WHERE r.study = :STUDY AND r.recordFl > 0
+         ORDER BY s.supplierName, r.currency
+    ")->setParameter("STUDY", $study)->getArrayResult();
 }
 
 /** Seçilen tedarikçi; listede yoksa yazılan adla yenisi açılır */
@@ -605,7 +762,7 @@ function mtMaterialTests($db, Material $m, string $lang): array
     return $rows;
 }
 
-function mtStudyToArray(Study $s, array $rates): array
+function mtStudyToArray(Study $s, array $rates, array $supplierRates = array()): array
 {
     return array(
         "studyId"          => $s->getStudyId(),
@@ -615,6 +772,7 @@ function mtStudyToArray(Study $s, array $rates): array
         "editable"         => $s->isEditable(),
         "workDaysPerMonth" => $s->getWorkDaysPerMonth(),
         "tryFactor"        => $s->getTryFactor(),
+        "supplierRates"    => $supplierRates,   // [{supplierId, supplierName, currency, rate}]
         "rates"            => array_diff_key($rates, array(StudyRate::CURRENCY_TRY => 1)),
     );
 }
@@ -644,7 +802,11 @@ function mtMaterialToArray(Material $m, ?MaterialPrice $p, array $rates, string 
         "supplierName" => $m->getSupplier()?->getSupplierName(),
         "sourceRowNo"  => $m->getSourceRowNo(),
         "note"         => $m->getNote(),
+        "shortCode"    => $m->getShortCode(),
+        "catalogNo"    => $m->getCatalogNo(),
         "isKit"        => $m->getCategory()->getCategoryCode() === MaterialCategory::CODE_KIT,
+        "isBillable"   => $m->isBillable(),
+        "billablePrice"=> $m->getBillablePrice(),
         "hasPrice"     => $p !== null,
         "packageDesc"  => $p?->getPackageDesc(),
         "packageQty"   => $p?->getPackageQty(),

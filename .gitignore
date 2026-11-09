@@ -2,6 +2,7 @@
 /vendor/
 /storage/logs/*
 /storage/pdf/*
+/storage/qms/*
 !/storage/**/.gitkeep
 /.idea/
 /public/lib/app/common/avatar-man.png
@@ -431,7 +432,7 @@
 /public/lib/app/resources/pt/wts_patient/waterTreatmentSystem-1.0.0.json
 /public/lib/app/resources/pt/wts_patient/waterTreatmentSystemFilter-1.0.0.json
 /public/lib/app/resources/pt/general.json
-/public/lib/app/resources/tr/company/company-2.0.0.json
+/public/lib/app/resources/tr/company/company-1.0.0.json
 /public/lib/app/resources/tr/company/companyExtraPropType-2.0.0.json
 /public/lib/app/resources/tr/company/companyExtraPropValue-2.0.0.json
 /public/lib/app/resources/tr/company/companyType-2.0.0.json

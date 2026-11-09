@@ -7,6 +7,7 @@
  *   description : kart açıklaması
  *   icon        : Font Awesome 5 sınıfı (ör. fa-vial)
  *   url         : uygulamanın giriş (login) sayfası
+ *                 ":8090/login" gibi ":" ile başlarsa portal hangi adresten açıldıysa (IP / alan adı) o adresin bu portu kullanılır
  *   status      : "active" tıklanabilir | "soon" yakında, tıklanamaz
  *   target      : "_blank" yeni sekme (varsayılan) | "_self" aynı sekme
  */
@@ -14,6 +15,14 @@
     'use strict';
 
     var APPS_CONFIG = './config/apps.json';
+
+    // ":8090/login" → aynı protokol ve sunucu adı, farklı port (192.168.1.50:8090, biolab.com.tr:8090 …)
+    function resolveUrl(url) {
+        if (url.charAt(0) === ':') {
+            return window.location.protocol + '//' + window.location.hostname + url;
+        }
+        return url;
+    }
 
     function renderApps(apps) {
         var $grid = $('#appGrid').empty();
@@ -34,7 +43,7 @@
             $card.find('.app-desc').text(app.description || '');
 
             if (active) {
-                $card.attr('href', app.url);
+                $card.attr('href', resolveUrl(app.url));
                 if (app.target !== '_self') {
                     $card.attr({ target: '_blank', rel: 'noopener' });
                 }

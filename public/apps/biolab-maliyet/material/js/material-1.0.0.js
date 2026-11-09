@@ -33,6 +33,7 @@ $.DLNFrame = {
         study: null,        // seçili çalışma (kurlar dahil); getGridList → resObject.study
         tab: 'all',         // all / missing / priced
         kitCategoryId: null,// "Kit" kategorisinin id'si (getGridList → resObject.kitCategoryId)
+        billableCategoryId: null, // "Bedelli malzeme" kategorisinin id'si: seçilince fiyat yerine sabit bedel girilir
         searchTimer: null
     },
     opt: {
@@ -67,6 +68,10 @@ $.DLNFrame = {
         $('#btnNewStudy').on('click', function () { $t.openStudy(null); });
         $('#studyBar').on('click', '.btnStudyEdit', function () { $t.openStudy($d.study); });
         $('#btnStudySave').on('click', $t.saveStudy);
+        $('#COPY_FROM_STUDY_ID').on('change', $t.fillFromCopy);
+        // Tedarikçi kurları: satır ekle / sil (kayıt "Kaydet" ile, çalışmayla birlikte)
+        $('#btnAddSupplierRate').on('click', function () { $t.addSupplierRateRow(null); });
+        $('#supplierRates').on('click', '.btnSupplierRateRemove', function () { $(this).closest('.mt-srate').remove(); });
 
         $('#mtTabs').on('click', '.mt-tab', function () {
             $d.tab = $(this).data('tab');
@@ -74,7 +79,7 @@ $.DLNFrame = {
             $(this).addClass('active');
             $t.reloadGrid(true);
         });
-        $('#F_CATEGORY_ID').on('change', function () { $t.reloadGrid(true); });
+        $('#F_CATEGORY_ID, #F_SUPPLIER_ID, #F_CURRENCY').on('change', function () { $t.reloadGrid(true); });
         // Arama: yazarken her tuşta değil, durunca (300 ms) sunucuya gider
         $('#SEARCH').on('input', function () {
             clearTimeout($d.searchTimer);
@@ -82,17 +87,19 @@ $.DLNFrame = {
         });
 
         $('#btnNewMaterial').on('click', function () { $t.openMaterial(null); });
+        $('#btnExcelList').on('click', $t.exportList);
         // Form kapanınca seçim kalksın; aynı satıra tekrar tıklanınca form yine açılsın
         $('#modalMaterial').on('hidden.bs.modal', function () { $('#jqGrid').jqGrid('resetSelection'); });
         $('#btnMaterialSave').on('click', $t.saveMaterial);
         $('#btnMaterialDelete').on('click', $t.deleteMaterial);
-        $('#PACKAGE_QTY, #PACKAGE_PRICE, #PATIENT_QTY').on('input', $t.preview);
-        $('#CURRENCY, #USAGE_UNIT').on('change', $t.preview);
+        $('#PACKAGE_QTY, #PACKAGE_PRICE, #PATIENT_QTY, #BILLABLE_PRICE').on('input', $t.preview);
+        $('#CURRENCY, #USAGE_UNIT, #SUPPLIER_ID').on('change', $t.preview);
         $('#CATEGORY_ID').on('change', function () { $t.applyKitMode(true); });
         $('#btnTestLink').on('click', $t.linkTest);
         $('#materialTests').on('click', '.btnTestUnlink', function () { $t.unlinkTest($(this).data('id'), $(this).data('code')); });
+        $('#TEST_SEARCH').on('input', $t.filterTests);
         $('#modalMaterial input, #modalMaterial select').on('input change', function () { $('#materialMsg').prop('hidden', true); });
-        $('#modalStudy input').on('input', function () { $('#studyMsg').prop('hidden', true); });
+        $('#modalStudy').on('input change', 'input, select', function () { $('#studyMsg').prop('hidden', true); });
     },
 
     start: function () {
@@ -101,6 +108,8 @@ $.DLNFrame = {
         $t.initGridList();      // boş kurulur; ilk yükleme çalışma seçilince (STUDY_ID change)
         $t.initSTUDY_ID(null);
         $t.initF_CATEGORY_ID();
+        $t.initF_SUPPLIER_ID();
+        $t.initF_CURRENCY();
         $t.initCATEGORY_ID();
         $t.initSUPPLIER_ID();
         $t.initUSAGE_UNIT();
@@ -152,6 +161,50 @@ $.DLNFrame = {
             },
             ajax:{
                 url:proxyPath + modulePath + 'getCATEGORY_ID'
+            }
+        });
+    },
+
+    // Liste filtresi: boş = tüm tedarikçiler
+    initF_SUPPLIER_ID: function () {
+        $('#F_SUPPLIER_ID').slb({
+            field:{
+                value:'supplierId',
+                text:'supplierName',
+                disabledFL:'activeFl'
+            },
+            select2:{
+                placeholder:'Tüm tedarikçiler',
+                allowClear:true,
+                minimumResultsForSearch:0
+            },
+            ajax:{
+                url:proxyPath + modulePath + 'getSUPPLIER_ID'
+            },
+            event:{
+                // Listenin başına "tedarikçisi olmayanlar" (-1): sunucuda tedarikçi boş olanlar süzülür
+                afterLoad:function (el) {
+                    $(el).find('option[value=""]').after(new Option('— Tedarikçisi olmayanlar —', '-1'));
+                }
+            }
+        });
+    },
+
+    // Liste filtresi: ambalaj fiyatının para birimi (TRY / USD / EUR / GBP); boş = hepsi
+    initF_CURRENCY: function () {
+        $('#F_CURRENCY').slb({
+            field:{
+                value:'currency',
+                text:'currency',
+                disabledFL:'activeFl'
+            },
+            select2:{
+                placeholder:'Tüm para birimleri',
+                allowClear:true,
+                minimumResultsForSearch:-1
+            },
+            ajax:{
+                url:proxyPath + modulePath + 'getCURRENCY'
             }
         });
     },
@@ -284,6 +337,11 @@ $.DLNFrame = {
         if (Number(s.tryFactor) !== 1) {
             $info.append($('<span class="mt-rate">').text('TL ×' + $t.fmt(s.tryFactor, 4)).attr('title', 'TL öngörü katsayısı'));
         }
+        // Tedarikçi sözleşme kurları (ör. NUCLEUS EUR 44,70): o tedarikçinin malzemelerinde genel kurun yerine geçer
+        (s.supplierRates || []).forEach(function (r) {
+            $info.append($('<span class="mt-rate mt-rate-supplier">').text(r.supplierName + ' ' + r.currency + ' ' + $t.fmt(r.rate, 4))
+                .attr('title', 'Tedarikçi kuru: ' + r.supplierName + ' malzemeleri bu kurla hesaplanır'));
+        });
         $info.append('<span class="mt-sep"></span>', $('<span>').text(s.workDaysPerMonth + ' iş günü / ay'));
 
         if (s.editable) {
@@ -294,8 +352,66 @@ $.DLNFrame = {
         }
     },
 
+    // Yeni çalışma: fiyatların kopyalanacağı çalışma. Varsayılan en son çalışma (liste kur tarihine göre yeniden eskiye)
+    initCOPY_FROM_STUDY_ID: function () {
+        const $t = $.DLNFrame;
+        $('#COPY_FROM_STUDY_ID').slb({
+            field:{
+                value:'studyId',
+                text:'studyText',
+                disabledFL:'activeFl'
+            },
+            select2:{
+                placeholder:'Kopyalama (boş başla)',
+                allowClear:true,
+                minimumResultsForSearch:-1
+            },
+            ajax:{
+                url:proxyPath + modulePath + 'getSTUDY_ID'
+            },
+            event:{
+                afterLoad:function (el) {
+                    $(el).val($(el).find('option[value!=""]').first().val() || '').change();
+                }
+            }
+        });
+    },
+
+    // Kopyalanacak çalışma seçilince kurları, TL katsayısı ve tedarikçi kurları forma dolar (uzman değiştirebilir)
+    fillFromCopy: function () {
+        const $t = $.DLNFrame;
+        const id = $('#COPY_FROM_STUDY_ID').val();
+        if (!id || $('#EDIT_STUDY_ID').val()) {
+            $('.js-copy-hint').text('Boş bırakılırsa liste fiyatsız başlar.');
+            return;
+        }
+        $.ajaxq('frame', {
+            url: proxyPath + modulePath + 'getStudyInfo',
+            type: 'POST',
+            dataType: 'json',
+            data: { STUDY_ID: id },
+            success: function (result) {
+                const s = result && result['resCode'] === 0 ? result['records'] : null;
+                if (!s) { return; }
+                ['USD', 'EUR', 'GBP'].forEach(function (cur) {
+                    const r = s.rates && s.rates[cur];
+                    $('#RATE_' + cur).val(r ? $t.fmt(r, 4) : '');
+                });
+                $('#TRY_FACTOR').val($t.fmt(s.tryFactor, 4));
+                $('#WORK_DAYS_PER_MONTH').val(s.workDaysPerMonth);
+                $('#supplierRates').empty();
+                (s.supplierRates || []).forEach(function (r) { $t.addSupplierRateRow(r); });
+                $('.js-copy-hint').text(s.priceCount + ' malzeme fiyatı ve kurlar "' + s.studyName + '" çalışmasından aktarılacak; eski çalışma değişmez. '
+                    + 'Kurları ve değişen fiyatları yeni çalışmada güncelleyin.');
+            }
+        });
+    },
+
     openStudy: function (s) {
         $('#modalStudyTitle').text(s ? 'Çalışmayı düzenle' : 'Yeni maliyet çalışması');
+        // Fiyat kopyalama yalnız yeni çalışmada
+        $('.js-copy-only').prop('hidden', !!s);
+        if (!s) { $.DLNFrame.initCOPY_FROM_STUDY_ID(); }
         $('#EDIT_STUDY_ID').val(s ? s.studyId : '');
         $('#STUDY_NAME').val(s ? s.studyName : '');
         $('#RATE_DATE').val(s ? s.rateDate : moment().format('DD.MM.YYYY'));
@@ -305,6 +421,8 @@ $.DLNFrame = {
             const r = s && s.rates && s.rates[cur];
             $('#RATE_' + cur).val(r ? $.DLNFrame.fmt(r, 4) : '');
         });
+        $('#supplierRates').empty();
+        ((s && s.supplierRates) || []).forEach(function (r) { $.DLNFrame.addSupplierRateRow(r); });
         $('#studyMsg').prop('hidden', true).text('');
         $('#modalStudy').modal('show');
     },
@@ -316,6 +434,21 @@ $.DLNFrame = {
         if (!moment($('#RATE_DATE').val(), 'DD.MM.YYYY', true).isValid()) {
             $('#studyMsg').text('Kur tarihini gg.aa.yyyy biçiminde girin.').prop('hidden', false); return;
         }
+
+        // Tedarikçi kurları: boş satır atlanır; eksik / hatalı satırda kayıt yapılmaz
+        const supplierRates = [];
+        let srError = '';
+        $('#supplierRates .mt-srate').each(function () {
+            const $r = $(this);
+            const sup = $r.find('.js-sr-supplier').val();
+            const rateRaw = $.trim($r.find('.js-sr-rate').val());
+            if (!sup && !rateRaw) { return; }
+            const rate = $t.parse(rateRaw);
+            if (!sup) { srError = 'Tedarikçi kurunda tedarikçi seçin.'; return false; }
+            if (rate === null || rate <= 0) { srError = 'Tedarikçi kuru sıfırdan büyük bir sayı olmalı.'; return false; }
+            supplierRates.push({ supplierId: Number(sup), currency: $r.find('.js-sr-currency').val(), rate: rate });
+        });
+        if (srError) { $('#studyMsg').text(srError).prop('hidden', false); return; }
 
         $.ajaxq('frame', {
             url: proxyPath + modulePath + 'setStudy',
@@ -329,7 +462,9 @@ $.DLNFrame = {
                 TRY_FACTOR: $('#TRY_FACTOR').val(),
                 RATE_USD: $('#RATE_USD').val(),
                 RATE_EUR: $('#RATE_EUR').val(),
-                RATE_GBP: $('#RATE_GBP').val()
+                RATE_GBP: $('#RATE_GBP').val(),
+                SUPPLIER_RATES: JSON.stringify(supplierRates),
+                COPY_FROM_STUDY_ID: $('#EDIT_STUDY_ID').val() ? '' : ($('#COPY_FROM_STUDY_ID').val() || '')
             },
             beforeSend: function () { $('#btnStudySave').prop('disabled', true); },
             success: function (result) {
@@ -346,6 +481,30 @@ $.DLNFrame = {
         });
     },
 
+    // Tedarikçi kuru satırı: tedarikçi listesi malzeme formundaki tedarikçi seçiminden (getSUPPLIER_ID) kopyalanır
+    addSupplierRateRow: function (r) {
+        const $t = $.DLNFrame;
+        const $sup = $('<select class="form-control form-control-sm js-sr-supplier">').append(new Option('Tedarikçi seçin', ''));
+        $('#SUPPLIER_ID option').each(function () {
+            if (this.value && $(this).attr('data-select2-tag') !== 'true') { $sup.append(new Option($(this).text(), this.value)); }
+        });
+        if (r && r.supplierId && !$sup.find('option[value="' + r.supplierId + '"]').length) {
+            $sup.append(new Option(r.supplierName, r.supplierId));   // pasif tedarikçi de görünsün
+        }
+        const $cur = $('<select class="form-control form-control-sm js-sr-currency">');
+        ['EUR', 'USD', 'GBP'].forEach(function (c) { $cur.append(new Option(c, c)); });
+
+        $sup.val(r ? String(r.supplierId) : '');
+        $cur.val(r ? r.currency : 'EUR');
+        $('#supplierRates').append($('<div class="form-row mt-srate">').append(
+            $('<div class="form-group col-6">').append($sup),
+            $('<div class="form-group col-2">').append($cur),
+            $('<div class="form-group col-3">').append($('<input type="text" class="form-control form-control-sm mt-mono js-sr-rate" placeholder="44,7">')
+                .val(r ? $t.fmt(r.rate, 4) : '')),
+            $('<div class="form-group col-1 text-right">').append('<button type="button" class="btn btn-link btn-sm text-danger btnSupplierRateRemove" title="Satırı kaldır"><i class="fas fa-times"></i></button>')
+        ));
+    },
+
     /* ---------- Malzeme listesi ---------- */
 
     initGridList: function () {
@@ -353,9 +512,12 @@ $.DLNFrame = {
         const $d = $t.data;
         const esc = function (v) { return $('<span>').text(v === null || v === undefined ? '' : v).html(); };
 
-        // Malzeme adı + varsa not
+        // Malzeme adı + kısa kod rozeti (TK, LM…) + katalog no + varsa not
         function nameFormatter(cellvalue, options, rowObject) {
-            return esc(cellvalue) + (rowObject['m_note'] ? '<div class="mt-sub">' + esc(rowObject['m_note']) + '</div>' : '');
+            const code = rowObject['m_shortCode'] ? ' <span class="mt-badge mt-badge-info mt-mono" title="Kısa kod">' + esc(rowObject['m_shortCode']) + '</span>' : '';
+            const sub = [rowObject['m_catalogNo'] ? 'Katalog ' + esc(rowObject['m_catalogNo']) : '', rowObject['m_note'] ? esc(rowObject['m_note']) : '']
+                .filter(Boolean).join(' · ');
+            return esc(cellvalue) + code + (sub ? '<div class="mt-sub">' + sub + '</div>' : '');
         }
         function categoryFormatter(cellvalue) {
             return '<span class="mt-badge mt-badge-info">' + esc(cellvalue) + '</span>';
@@ -365,6 +527,9 @@ $.DLNFrame = {
         }
         // Ambalaj: "960 adet" + açıklama (kitte "96 test / kit" + "70 hasta"); fiyat yoksa rozet
         function packageFormatter(cellvalue, options, rowObject) {
+            if (rowObject['isBillable'] === 'Y') {
+                return rowObject['hasPrice'] === 'Y' ? '<span class="mt-badge mt-badge-info">Sabit bedel</span>' : '<span class="mt-badge mt-badge-warn">Bedel yok</span>';
+            }
             if (rowObject['hasPrice'] !== 'Y') { return '<span class="mt-badge mt-badge-warn">Fiyat yok</span>'; }
             const isKit = rowObject['isKit'] === 'Y';
             const patients = Number(rowObject['p_patientQty']) || 0;
@@ -379,6 +544,9 @@ $.DLNFrame = {
             return rowObject['isKit'] === 'Y' ? '<span class="mt-badge mt-badge-warn" title="Bu kit hiçbir teste bağlı değil">Bağlı değil</span>' : '<span class="mt-sub">—</span>';
         }
         function priceFormatter(cellvalue, options, rowObject) {
+            if (rowObject['isBillable'] === 'Y') {
+                return rowObject['hasPrice'] === 'Y' ? '<span class="mt-mono">' + $t.fmt(rowObject['m_billablePrice'], 2) + ' TL</span>' : '';
+            }
             return rowObject['hasPrice'] === 'Y' ? '<span class="mt-mono">' + $t.fmt(cellvalue, 2) + ' ' + esc(rowObject['p_currency']) + '</span>' : '';
         }
         // Birim maliyet: kur yoksa uyarı, fiyat yoksa boş
@@ -423,6 +591,7 @@ $.DLNFrame = {
                 const obj = data['resObject'] || {};
                 $d.study = obj['study'] || null;
                 $d.kitCategoryId = obj['kitCategoryId'] ? String(obj['kitCategoryId']) : null;
+                $d.billableCategoryId = obj['billableCategoryId'] ? String(obj['billableCategoryId']) : null;
                 $t.renderStudyBar();
                 const c = obj['counts'] || { all: 0, missing: 0, priced: 0 };
                 $('[data-count="all"]').text(c.all);
@@ -445,6 +614,7 @@ $.DLNFrame = {
         });
     },
 
+
     // Filtreler postData ile gider; resetPage: filtre değiştiyse 1. sayfaya döner, kayıt sonrası sayfada kalır
     reloadGrid: function (resetPage) {
         const $t = $.DLNFrame;
@@ -454,6 +624,8 @@ $.DLNFrame = {
                 STUDY_ID: $('#STUDY_ID').val() || '',
                 TAB: $t.data.tab,
                 CATEGORY_ID: $('#F_CATEGORY_ID').val() || '',
+                SUPPLIER_ID: $('#F_SUPPLIER_ID').val() || '',
+                CURRENCY: $('#F_CURRENCY').val() || '',
                 Q: $.trim($('#SEARCH').val())
             }
         };
@@ -494,6 +666,8 @@ $.DLNFrame = {
         $('#CATEGORY_ID').val(m ? String(m.categoryId) : '').change();   // yeni malzemede kullanıcı seçer
         $('#USAGE_UNIT').val(m ? m.usageUnit : 'PIECE').change();
         $('#NOTE').val(m ? (m.note || '') : '');
+        $('#SHORT_CODE').val(m ? (m.shortCode || '') : '');
+        $('#CATALOG_NO').val(m ? (m.catalogNo || '') : '');
 
         // Pasif / listede olmayan tedarikçi de formda görünsün
         const $sup = $('#SUPPLIER_ID');
@@ -509,6 +683,7 @@ $.DLNFrame = {
         $('#PACKAGE_DESC').val(m && m.hasPrice ? (m.packageDesc || '') : '');
         $('#VAT_INCLUDED').prop('checked', !!(m && m.vatIncluded));
         $('#PATIENT_QTY').val(m && m.hasPrice && m.patientQty ? $t.qty(m.patientQty) : '');
+        $('#BILLABLE_PRICE').val(m && m.billablePrice !== null && m.billablePrice !== undefined ? $t.fmt(m.billablePrice, 4) : '').prop('disabled', !editable);
         $('#PACKAGE_QTY, #PACKAGE_PRICE, #CURRENCY, #PACKAGE_DESC, #PATIENT_QTY, #VAT_INCLUDED').prop('disabled', !s || !editable);
         // Excel'den gelen fiyat notu (ör. "MUTLAKA ÖNGÖRÜLÜ ÇALIŞ", "ALGEN") bilgi olarak
         $('.js-price-note').text(m && m.priceNote ? 'Excel notu: ' + m.priceNote : '').prop('hidden', !(m && m.priceNote));
@@ -520,6 +695,7 @@ $.DLNFrame = {
         $('.js-tests-edit').prop('hidden', !m);
         $('#TEST_ID').val('').change();
         $('#TEST_QUANTITY').val('1');
+        $('#TEST_SEARCH').val('');   // başka malzemeden kalan arama temizlenir
         $t.renderTests(m ? (m.tests || []) : []);
 
         $('#materialMsg').prop('hidden', true).text('');
@@ -533,10 +709,19 @@ $.DLNFrame = {
         const kitId = $.DLNFrame.data.kitCategoryId;
         return !!kitId && $('#CATEGORY_ID').val() === kitId;
     },
+    // Kategori bedelli malzeme mi: fiyat bölümü yerine sabit bedel alanı
+    isBillable: function () {
+        const id = $.DLNFrame.data.billableCategoryId;
+        return !!id && $('#CATEGORY_ID').val() === id;
+    },
     applyKitMode: function (fromUser) {
         const $t = $.DLNFrame;
         const kit = $t.isKit();
+        const billable = $t.isBillable();
         $('#modalMaterial .js-kit-only').prop('hidden', !kit);
+        $('.js-billable-only').prop('hidden', !billable);
+        $('.js-price-section').prop('hidden', billable);
+        $('.js-billable-unit').text($('#USAGE_UNIT option:selected').text() || 'adet');
         $('.js-qty-label').text(kit ? 'Kitteki test sayısı' : 'Ambalaj içeriği');
         $('.js-price-label').text(kit ? 'Kit fiyatı' : 'Ambalaj fiyatı');
         $('.js-patient-label').text(kit ? 'Kitten çıkan hasta sayısı' : 'Kaç hastaya yeter');
@@ -556,12 +741,32 @@ $.DLNFrame = {
             return;
         }
         $('#materialTests').html(tests.map(function (r) {
-            return '<tr><td class="mt-mono">' + esc(r.testCode) + '</td><td>' + esc(r.testName)
+            // data-search: arama için kod + ad (Türkçe küçük harf)
+            return '<tr class="js-test-row" data-search="' + esc((r.testCode + ' ' + r.testName).toLocaleLowerCase('tr-TR')) + '"><td class="mt-mono">' + esc(r.testCode) + '</td><td>' + esc(r.testName)
                 + (r.activeFl === 'N' ? ' <span class="mt-badge mt-badge-wait">pasif</span>' : '') + '</td>'
                 + '<td class="mt-num mt-mono">' + $t.qty(r.quantity) + '</td><td>' + esc(r.consumptionName) + '</td>'
                 + '<td class="text-right"><button type="button" class="btn btn-link btn-sm btnTestUnlink" data-id="' + r.recipeItemId
                 + '" data-code="' + esc(r.testCode) + '" title="Bağlantıyı kaldır"><i class="fas fa-unlink"></i></button></td></tr>';
         }).join(''));
+        $t.filterTests();   // bağla / kaldır sonrası arama korunur
+    },
+
+    // Bağlı testlerde arama: yalnız ekrandaki satırları süzer (kod ya da ad içinde geçen)
+    filterTests: function () {
+        const q = $.trim($('#TEST_SEARCH').val()).toLocaleLowerCase('tr-TR');
+        const $rows = $('#materialTests .js-test-row');
+        let shown = 0;
+        $rows.each(function () {
+            const ok = !q || $(this).attr('data-search').indexOf(q) >= 0;
+            $(this).toggle(ok);
+            if (ok) { shown++; }
+        });
+        $('#materialTests .js-test-nomatch').remove();
+        if ($rows.length && !shown) {
+            $('#materialTests').append('<tr class="mt-empty js-test-nomatch"><td colspan="5">Aramaya uyan bağlı test yok.</td></tr>');
+        }
+        // Sayı: arama varsa "3 / 23"
+        $('.js-test-count').text(q && $rows.length ? shown + ' / ' + $rows.length : $rows.length);
     },
 
     // Seçili testi bağlar (hemen kaydedilir); aynı test zaten bağlıysa miktarı güncellenir
@@ -638,15 +843,29 @@ $.DLNFrame = {
         const qty = $t.parse($('#PACKAGE_QTY').val());
         const price = $t.parse($('#PACKAGE_PRICE').val());
         const cur = $('#CURRENCY').val();
-        // TL'nin kuru çalışmanın öngörü katsayısı
-        const rate = cur === 'TRY' ? (s ? Number(s.tryFactor) || 1 : 1) : (s && s.rates && s.rates[cur] ? Number(s.rates[cur]) : null);
+        // TL'nin kuru çalışmanın öngörü katsayısı; tedarikçinin bu para birimi için sözleşme kuru varsa o
+        const supId = $('#SUPPLIER_ID').val();
+        const supRate = s && supId ? (s.supplierRates || []).filter(function (r) { return String(r.supplierId) === String(supId) && r.currency === cur; })[0] : null;
+        const rate = cur === 'TRY' ? (s ? Number(s.tryFactor) || 1 : 1)
+            : supRate ? Number(supRate.rate)
+            : (s && s.rates && s.rates[cur] ? Number(s.rates[cur]) : null);
         const kit = $t.isKit();
         const patients = $t.parse($('#PATIENT_QTY').val());
         const divisor = patients !== null && patients > 0 ? patients : qty;
 
         $('.js-qty-hint').text(kit ? 'bir kitte kaç ' + unit + ' var' : 'ambalajda kaç ' + unit + ' var');
+        $('.js-billable-unit').text(unit || 'adet');
         let value = '—', formula = '';
-        if (!s) {
+        const billablePrice = $t.parse($('#BILLABLE_PRICE').val());
+        if ($t.isBillable()) {
+            // Bedelli malzeme: birim maliyet = sabit bedel (çalışmadan bağımsız)
+            if (billablePrice === null) {
+                formula = 'Bedeli girin.';
+            } else {
+                value = $t.fmt(billablePrice, 4) + ' TL / ' + unit;
+                formula = 'sabit bedel, her çalışmada aynı';
+            }
+        } else if (!s) {
             formula = 'Fiyat için bir maliyet çalışması seçin.';
         } else if (qty === null || price === null) {
             formula = 'Ambalaj içeriği ve fiyatı girin.';
@@ -656,7 +875,7 @@ $.DLNFrame = {
             formula = 'Bu çalışmada ' + cur + ' kuru yok; önce kurları düzenleyin.';
         } else {
             value = $t.fmt(price * rate / divisor, 4) + ' TL / ' + (divisor === qty ? unit : 'hasta');
-            formula = '= ' + $t.fmt(price, 2) + ' ' + cur + (rate === 1 ? '' : ' × ' + $t.fmt(rate, 4)) + ' ÷ '
+            formula = '= ' + $t.fmt(price, 2) + ' ' + cur + (rate === 1 ? '' : ' × ' + $t.fmt(rate, 4) + (supRate ? ' (tedarikçi kuru)' : '')) + ' ÷ '
                 + $t.qty(divisor) + (divisor === qty ? '' : ' hasta');
         }
         $('.js-preview-value').text(value);
@@ -674,7 +893,10 @@ $.DLNFrame = {
         if (!name) { msg('Malzeme adını girin.'); return; }
         if (!$('#CATEGORY_ID').val()) { msg('Kategori seçin.'); return; }
         const kit = $t.isKit();
-        if (qtyRaw || priceRaw) {
+        const billable = $t.isBillable();
+        const billableRaw = $.trim($('#BILLABLE_PRICE').val());
+        if (billable && billableRaw && ($t.parse(billableRaw) === null || $t.parse(billableRaw) < 0)) { msg('Bedeli sayı olarak girin.'); return; }
+        if (!billable && (qtyRaw || priceRaw)) {
             if ($t.parse(qtyRaw) === null || $t.parse(qtyRaw) <= 0) { msg((kit ? 'Kitteki test sayısı' : 'Ambalaj içeriği') + ' sıfırdan büyük bir sayı olmalı.'); return; }
             if ($t.parse(priceRaw) === null || $t.parse(priceRaw) < 0) { msg((kit ? 'Kit fiyatını' : 'Ambalaj fiyatını') + ' sayı olarak girin.'); return; }
         }
@@ -699,6 +921,9 @@ $.DLNFrame = {
                 SUPPLIER_ID: supVal && !isNewSupplier ? supVal : '',
                 SUPPLIER_NAME: isNewSupplier ? supVal : '',
                 NOTE: $('#NOTE').val(),
+                SHORT_CODE: $.trim($('#SHORT_CODE').val()),
+                CATALOG_NO: $.trim($('#CATALOG_NO').val()),
+                BILLABLE_PRICE: billable ? billableRaw : '',
                 PATIENT_QTY: patientRaw,
                 PACKAGE_QTY: qtyRaw,
                 PACKAGE_PRICE: priceRaw,
@@ -763,6 +988,33 @@ $.DLNFrame = {
                     onClick: function ($noty) { $noty.close(); }
                 }
             ]
+        });
+    },
+
+    // Excel çıktısı: ekrandaki filtrelerle; sunucu dosyayı hazırlar, indirme adresi (/api/pdf.php?t=…) döner
+    exportList: function () {
+        const $btn = $('#btnExcelList');
+        $.ajaxq('frame', {
+            url: proxyPath + modulePath + 'getExcelList',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                STUDY_ID: $('#STUDY_ID').val() || '',
+                TAB: $.DLNFrame.data.tab,
+                CATEGORY_ID: $('#F_CATEGORY_ID').val() || '',
+                SUPPLIER_ID: $('#F_SUPPLIER_ID').val() || '',
+                CURRENCY: $('#F_CURRENCY').val() || '',
+                Q: $.trim($('#SEARCH').val())
+            },
+            beforeSend: function () { $btn.prop('disabled', true).find('i').attr('class', 'fas fa-circle-notch fa-spin'); },
+            success: function (result) {
+                if (result && result['resCode'] === 0 && result['resObject'] && result['resObject']['url']) {
+                    window.location.href = result['resObject']['url'];   // ek olarak gelir; sayfa değişmez
+                } else {
+                    $.fn.ntyi({ type: 'error', layout: 'topRight', text: (result && result['resMsg']) || 'Excel hazırlanamadı.' });
+                }
+            },
+            complete: function () { $btn.prop('disabled', false).find('i').attr('class', 'fas fa-file-excel'); }
         });
     },
 

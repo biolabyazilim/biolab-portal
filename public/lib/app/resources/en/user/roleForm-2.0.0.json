@@ -1,11 +1,11 @@
 {
-    "BOX_TITLE":"Management Role Form",
-    "PAGE_TITLE":"Management Role Form",
-    "ROLE_FORM_ID":"Role Form Id",
+    "BOX_TITLE":"Role Screen Permissions",
+    "PAGE_TITLE":"Role Screen Permissions",
+    "ROLE_FORM_ID":"Id",
     "ROLE_ID":"Role Id",
-    "ROLE_NAME":"Role Name",
-    "FORM_ID":"Form Id",
-    "FORM_NAME":"Form Name"
-
+    "ROLE_NAME":"Role",
+    "APP_CODE":"Application",
+    "FORM_ID":"Screen Id",
+    "FORM_NAME":"Screen",
+    "FORM_PATH":"Screen Path"
 }
-            

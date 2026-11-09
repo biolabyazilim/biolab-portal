@@ -98,6 +98,11 @@ class Test
     #[ORM\Column(length: 500, nullable: true, options: ['collation' => 'Turkish_CI_AS'])]
     private ?string $note = null;                  // NOTE
 
+    // Uzman hesap notu: maliyet Excel'inde testin nasıl hesaplandığı ("KANLI+EMB HESAPLAMASI", "2* ALP MALİYETİ + peg").
+    // Reçete girilirken yol gösterir; hesaba girmez.
+    #[ORM\Column(length: 2000, nullable: true, options: ['collation' => 'Turkish_CI_AS'])]
+    private ?string $costNote = null;              // COST_NOTE
+
     public function __construct(string $testCode, string $testName, ServiceGroup $serviceGroup)
     {
         $this->testCode     = $testCode;
@@ -134,6 +139,8 @@ class Test
     public function setResponsibleUser(?AppUser $v): self { $this->responsibleUser = $v; return $this; }
     public function getNote(): ?string                    { return $this->note; }
     public function setNote(?string $v): self             { $this->note = $v; return $this; }
+    public function getCostNote(): ?string                { return $this->costNote; }
+    public function setCostNote(?string $v): self         { $this->costNote = $v; return $this; }
 
     public function getSourceSupplierText(): ?string      { return $this->sourceSupplierText; }
     public function getSourceLevelText(): ?string         { return $this->sourceLevelText; }

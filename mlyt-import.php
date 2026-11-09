@@ -6,8 +6,10 @@ declare(strict_types=1);
  *
  *   php mlyt-import.php ["C:\...\mlyt programı.xlsx"]            → DENEME: her şey yapılır, rapor yazılır, geri alınır
  *   php mlyt-import.php ["C:\...\mlyt programı.xlsx"] --apply    → veritabanına yazar
- *   php mlyt-import.php ["C:\...\xlsx"] --prices --study=7 [--apply] → yalnız MALZEME LİSTESİ fiyatları, 7 no'lu çalışmaya
- *                                                                      (--study verilmezse çalışmalar listelenir)
+ *   php mlyt-import.php ["C:\...\xlsx"] --prices --study=7 [--reference="C:\...\önceki.xlsx"] [--apply]
+ *       → yalnız MALZEME LİSTESİ (son versiyon düzeni): fiyatlar 7 no'lu çalışmaya, kitler adı aynı testlere, hesap notları testlere.
+ *         --study verilmezse çalışmalar listelenir. --reference: önceki aktarımın Excel'i (TL BİRİM MALİYET kolonlu);
+ *         değişmeyen satırların böleni oradan alınır, Excel'in o zamanki sonucu korunur.
  *   dosya verilmezse DEFAULT_FILE kullanılır
  *   seçenekler: --company=BIOLAB (şirket kodu)  --user=ssadmin (kayıtlarda "oluşturan")
  *
@@ -34,10 +36,12 @@ $companyCode = 'BIOLAB';
 $username    = 'ssadmin';
 $prices      = false;
 $studyId     = 0;
+$reference   = null;
 foreach ($args as $a) {
     if ($a === '--apply') { $apply = true; }
     elseif ($a === '--prices') { $prices = true; }
     elseif (str_starts_with($a, '--study=')) { $studyId = (int) substr($a, 8); }
+    elseif (str_starts_with($a, '--reference=')) { $reference = trim(substr($a, 12), '"') ?: null; }
     elseif (str_starts_with($a, '--company=')) { $companyCode = substr($a, 10); }
     elseif (str_starts_with($a, '--user=')) { $username = substr($a, 7); }
     else { $file = $a; }
@@ -62,7 +66,7 @@ if ($company === null) {
 $_SESSION = ['USER_ID' => $user?->getUserId(), 'COMPANY_ID' => $company->getCompanyId()];
 
 if ($prices) {
-    runPrices($em, $company, $file, $studyId, $apply);
+    runPrices($em, $company, $file, $studyId, $apply, $reference);
     exit(0);
 }
 
@@ -113,8 +117,8 @@ $line("  yeni reçete: {$report['recipes_created']}   reçete satırı: {$report
 $list('kalıba uymayan not — Test maliyetleri ekranından girilecek', $report['recipes_unparsed']);
 $list('katalogda bulunamayan malzeme — bu satırlar reçeteye eklenmedi', $report['recipe_material_missing']);
 
-/** Fiyat aktarımı (--prices): MALZEME LİSTESİ → seçili çalışmanın fiyatları */
-function runPrices(\Doctrine\ORM\EntityManagerInterface $em, Company $company, string $file, int $studyId, bool $apply): void
+/** Fiyat aktarımı (--prices): MALZEME LİSTESİ → seçili çalışmanın fiyatları, kitlerin teste bağlanması, hesap notları */
+function runPrices(\Doctrine\ORM\EntityManagerInterface $em, Company $company, string $file, int $studyId, bool $apply, ?string $reference): void
 {
     $line = fn (string $s = '') => print($s . PHP_EOL);
     $list = function (string $title, array $items, int $max = 30) use ($line) {
@@ -132,11 +136,15 @@ function runPrices(\Doctrine\ORM\EntityManagerInterface $em, Company $company, s
         }
         exit(1);
     }
+    if ($reference !== null && !is_file($reference)) {
+        fwrite(STDERR, "Referans Excel bulunamadı: {$reference}\n");
+        exit(1);
+    }
 
     $conn = $em->getConnection();
     $conn->beginTransaction();
     try {
-        $r = (new PriceImport($em, $company, $study))->run(new XlsxReader($file));
+        $r = (new PriceImport($em, $company, $study))->run(new XlsxReader($file), $reference !== null ? new XlsxReader($reference) : null);
         $apply ? $conn->commit() : $conn->rollBack();
     } catch (\Throwable $e) {
         if ($conn->isTransactionActive()) { $conn->rollBack(); }
@@ -147,22 +155,38 @@ function runPrices(\Doctrine\ORM\EntityManagerInterface $em, Company $company, s
     $line(str_repeat('=', 70));
     $line($apply ? '  FİYATLAR UYGULANDI — veritabanına yazıldı' : '  FİYAT DENEMESİ — hiçbir şey yazılmadı (uygulamak için --apply)');
     $line('  Dosya: ' . $file);
+    $line('  Referans: ' . ($reference ?? '(yok — bölen yalnız kuraldan)'));
     $line("  Çalışma: {$study->getStudyId()} {$study->getStudyName()}");
     $line(str_repeat('=', 70));
-    $line("FİYATLAR  yeni: {$r['prices_created']}   güncellenen: {$r['prices_updated']}   yeni malzeme: " . count($r['materials_created']));
-    $list('yeni malzemeler (kategori addan önerildi; ekrandan kontrol edin)', $r['materials_created'], 80);
-    $list('kitler: kitteki test / kitten çıkan hasta', $r['kits_with_patients'], 40);
-    $list('tedarikçisi açıklamadan yazılan', $r['suppliers_set']);
-    $list('çalışmaya yazılan kurlar', $r['rates_set']);
-    $list('kur uyuşmazlığı', $r['rates_conflict']);
+    $line("FİYATLAR  yeni: {$r['prices_created']}   güncellenen: {$r['prices_updated']}   yeni malzeme: " . count($r['materials_created'])
+        . "   katalogla tek kit (NUCLEUS): " . count($r['kits_by_catalog']) . "   bölen referanstan: {$r['from_reference']}");
+    $list('çalışmaya yazılan genel kurlar', $r['rates_set']);
+    $list('tedarikçi sözleşme kurları', $r['supplier_rates_set']);
+    $list('kur uyuşmazlığı', $r['rate_conflicts']);
+    $list('satır kuru genel kurdan farklı ama tedarikçi yok (genel kur kullanılacak)', $r['rate_no_supplier']);
     $line('  Excel\'deki TL kurları (öngörü katsayısı; çalışmadan girilir, aktarım değiştirmez): '
         . implode('   ', array_map(fn ($k, $v) => "{$k} → {$v} satır", array_keys($r['try_rates']), $r['try_rates'])));
-    $list('hasta sayısı girilmeli (STANDART - HASTA SAYISI)', $r['needs_patients']);
-    $list('bölen 1\'den küçük (Excel ADET ile çarpıyor) — kontrol', $r['odd_divisor']);
-    $list('TL birim maliyeti boş, bölen tahmin edildi', $r['no_tl_cost']);
-    $list('fiyatsız satırlar', $r['no_price']);
-    $list('genel gider satırları (aktarılmadı)', $r['overhead']);
+    $list('yeni malzemeler (kategori addan önerildi)', $r['materials_created'], 40);
+    $list('kitler: kitteki test / kitten çıkan hasta', $r['kits_with_patients'], 20);
+    $line('TESTE BAĞLAMA');
+    $line('  adı aynı teste bağlanan: ' . count($r['links_created']) . '   açıklamadaki "ekle" talimatıyla: ' . count($r['extra_links'])
+        . '   yöntemi Kit yapılan: ' . $r['methods_set'] . '   adı hiçbir testle eşleşmeyen kit: ' . $r['unmatched_priced'] . ' (Kit eşleştirme ekranına kalır)');
+    $list('"ekle" talimatıyla bağlananlar', $r['extra_links'], 40);
+    $list('"ekle" talimatında testi bulunamayan', $r['extra_missing']);
+    $list('bağlanmayan (hesaplamalı / zaten kiti var)', array_values(array_unique($r['links_skipped'])), 30);
+    $line('HESAP NOTLARI');
+    $line('  teste yazılan: ' . count($r['notes_written']));
+    $list('adı hiçbir testle eşleşmeyen hesap notu', $r['notes_no_test'], 30);
+    $line('KONTROL EDİLECEKLER');
+    $list('referans Excel\'in sonucu kuraldan farklı (Excel\'deki alındı)', $r['rule_differs'], 40);
+    $list('dikkat', $r['odd']);
+    $list('hasta sayısı girilmeli (STANDART - HASTA SAYISI)', $r['needs_patients'], 5);
+    $list('Excel\'de aynı ad iki kez (sonraki geçerli)', $r['duplicates'], 40);
     $list('para birimi tanınmayan', $r['bad_currency']);
-    $list('Excel\'de aynı ad iki kez', $r['duplicates']);
-    $list('ekrandan silinmiş malzemeler (yeniden açılmadı)', $r['deleted']);
+    $list('ekrandan silinmiş (yeniden açılmadı)', $r['deleted']);
+    $line('AKTARILMAYAN / KATALOG');
+    $line('  bedelli malzeme (kataloğa, fiyatsız): ' . count($r['billable']) . '   OSGB (fiyatsız): ' . count($r['osgb'])
+        . '   genel gider: ' . count($r['overhead']) . '   boş satır: ' . count($r['empty']));
+    $list('OSGB satırları', $r['osgb'], 25);
+    $list('boş satırlar (fiyat ve not yok)', $r['empty']);
 }
