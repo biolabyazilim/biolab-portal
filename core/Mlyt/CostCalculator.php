@@ -19,6 +19,8 @@ use Doctrine\ORM\EntityManagerInterface;
  *                            varsa o, yoksa çalışmanın genel kuru
  *                            bedelli malzeme (kategori BILLABLE, bedeli girilmiş): sabit bedel (TL / birim), çalışmadan bağımsız
  *   reçeteli / kitli test  = Σ miktar × birim maliyet                    (mlyt_recipe_item, hasta başına; kit de bir reçete satırıdır)
+ *                            kitle birlikte kullanılan malzemeler (mlyt_material_companion: pipet ucu, küvet…) kit satırının
+ *                            altına eklenir: miktar = kit miktarı × listedeki adet (satır türü COMPANION; reçetede yazılı değil)
  *   hesaplamalı test       = Σ bileşen maliyeti × adet × oran ÷ 100     (mlyt_test_component; bileşenler iç içe)
  *
  * Eksik parça varsa maliyet kısmi hesaplanır ve durum ile eksikler döner:
@@ -52,6 +54,8 @@ final class CostCalculator
     private array $items = [];
     /** @var array<int, list<array>> */
     private array $components = [];
+    /** @var array<int, list<array{materialId:int, quantity:float}>> kitle birlikte kullanılan malzemeler (kit malzemeId → liste) */
+    private array $companions = [];
     /** @var array<int, array> */
     private array $memo = [];
     /** @var array<int, true> */
@@ -123,29 +127,38 @@ final class CostCalculator
             }
         } else {
             foreach ($this->items[$testId] ?? [] as $i) {
-                $m = $this->materials[$i['materialId']] ?? ['name' => '?', 'unit' => Material::UNIT_PIECE, 'unitCost' => null, 'reason' => 'Malzeme yok'];
-                $amount = null;
-                if ($i['consumption'] !== RecipeItem::PER_PATIENT) {
-                    $flags[] = self::NEEDS_VOLUME;
-                    $missing[] = $m['name'] . ': test hacmi gerekli';
-                } elseif ($m['unitCost'] === null) {
-                    $flags[] = self::MISSING_PRICE;
-                    $missing[] = $m['name'] . ': ' . $m['reason'];
-                } else {
-                    $amount = $m['unitCost'] * $i['quantity'];
-                    $cost += $amount;
+                // Reçete satırı; ardından kitle birlikte kullanılan malzemeler (kit miktarı × listedeki adet), aynı tüketim türüyle
+                $rows = [['type' => 'MATERIAL', 'materialId' => $i['materialId'], 'quantity' => $i['quantity'], 'kitId' => null]];
+                foreach ($this->companions[$i['materialId']] ?? [] as $c) {
+                    $rows[] = ['type' => 'COMPANION', 'materialId' => $c['materialId'], 'quantity' => $i['quantity'] * $c['quantity'], 'kitId' => $i['materialId']];
                 }
-                $lines[] = [
-                    'type'         => 'MATERIAL',
-                    'materialId'   => $i['materialId'],
-                    'materialName' => $m['name'],
-                    'unitName'     => self::UNIT_NAMES[$m['unit']][$this->lang === 'en' ? 1 : 0] ?? $m['unit'],
-                    'quantity'     => $i['quantity'],
-                    'consumption'  => $i['consumption'],
-                    'unitCost'     => $m['unitCost'],
-                    'amount'       => $amount,
-                    'reason'       => $m['reason'],
-                ];
+                foreach ($rows as $row) {
+                    $m = $this->materials[$row['materialId']] ?? ['name' => '?', 'unit' => Material::UNIT_PIECE, 'unitCost' => null, 'reason' => 'Malzeme yok'];
+                    $amount = null;
+                    if ($i['consumption'] !== RecipeItem::PER_PATIENT) {
+                        $flags[] = self::NEEDS_VOLUME;
+                        $missing[] = $m['name'] . ': test hacmi gerekli';
+                    } elseif ($m['unitCost'] === null) {
+                        $flags[] = self::MISSING_PRICE;
+                        $missing[] = $m['name'] . ': ' . $m['reason'];
+                    } else {
+                        $amount = $m['unitCost'] * $row['quantity'];
+                        $cost += $amount;
+                    }
+                    $lines[] = [
+                        'type'         => $row['type'],   // MATERIAL: reçete satırı · COMPANION: kitle birlikte gelen (reçetede yok)
+                        'materialId'   => $row['materialId'],
+                        'materialName' => $m['name'],
+                        'unitName'     => self::UNIT_NAMES[$m['unit']][$this->lang === 'en' ? 1 : 0] ?? $m['unit'],
+                        'quantity'     => $row['quantity'],
+                        'consumption'  => $i['consumption'],
+                        'unitCost'     => $m['unitCost'],
+                        'amount'       => $amount,
+                        'reason'       => $m['reason'],
+                        'kitId'        => $row['kitId'],
+                        'kitName'      => $row['kitId'] !== null ? ($this->materials[$row['kitId']]['name'] ?? '') : null,
+                    ];
+                }
             }
             if (!isset($this->items[$testId])) {
                 $flags[] = self::NO_RECIPE;
@@ -264,5 +277,22 @@ final class CostCalculator
                 'componentId' => (int) $c['componentId'], 'quantity' => (float) $c['quantity'], 'applyRate' => (float) $c['applyRate'],
             ];
         }
+
+        // Kitle birlikte kullanılan malzemeler (pipet ucu, küvet…): kit → [malzeme, kitin testi başına miktar]
+        foreach ($this->em->createQuery("
+            SELECT IDENTITY(mc.kit) AS kitId, IDENTITY(mc.material) AS materialId, mc.quantity
+              FROM BIO\MLYT\MaterialCompanion mc
+              JOIN mc.kit k
+             WHERE IDENTITY(k.company) = :COMPANY_ID AND mc.recordFl > 0 AND mc.activeFl = 'Y'
+             ORDER BY mc.sortNo, mc.materialCompanionId
+        ")->setParameters($cid)->getArrayResult() as $c) {
+            $this->companions[(int) $c['kitId']][] = ['materialId' => (int) $c['materialId'], 'quantity' => (float) $c['quantity']];
+        }
+    }
+
+    /** Kitle birlikte kullanılan malzemeler: kitId → [{materialId, quantity}] (Malzemeler ekranı ve Excel için) */
+    public function companionsOf(int $kitMaterialId): array
+    {
+        return $this->companions[$kitMaterialId] ?? [];
     }
 }

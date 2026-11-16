@@ -18,7 +18,7 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 final class FormAccess
 {
-    public const ENFORCED_APPS = ['biolab-maliyet', 'hb-elektroforez', 'biolab-kvkk'];
+    public const ENFORCED_APPS = ['biolab-maliyet', 'hb-elektroforez', 'biolab-kvkk', 'biolab-saha-takip'];
 
     public function __construct(private EntityManagerInterface $em) {}
 

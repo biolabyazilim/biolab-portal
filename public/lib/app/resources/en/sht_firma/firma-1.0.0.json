@@ -1,0 +1,31 @@
+{
+    "PAGE_TITLE":"Firmalar",
+    "LIST_TITLE":"Firmalar",
+    "FORM_TITLE":"Firma bilgisi",
+    "PH_GRID_SEARCH_FIELD":"Ad, adres, il/ilçe ya da İSG-KATİP no",
+
+    "CUSTOMER_NAME":"Firma adı",
+    "ADDRESS":"Adres",
+    "CITY":"İl / ilçe",
+    "CONTACT_NAME":"Yetkili kişi",
+    "PHONE":"Telefon",
+    "ISG_KATIP_NO":"İSG-KATİP no",
+    "NOTE":"Not",
+    "ACTIVE_FL":"Aktif",
+    "LOCATION":"Konum",
+    "LOCATION_INFO":"Adres ya da mahalle arayın, haritada firmanın yerine tıklayın ya da iğneyi sürükleyin. Google Haritalar'dan kopyaladığınız \"38.4254, 27.1487\" gibi koordinatı da yapıştırabilirsiniz.",
+    "PH_COORD":"enlem, boylam",
+    "PH_PLACE_SEARCH":"Adres ara: sokak + no + ilçe (ör. 174 Sk. No:3 Buca)",
+    "BTN_FROM_ADDRESS":"Adresten bul",
+    "SEARCH_EMPTY":"Bulunamadı. Daha genel yazın (sokak + ilçe) ya da haritada iğneyi kendiniz koyun. Firma adıyla arama desteklenmiyor.",
+    "SEARCH_ERROR":"Arama servisine ulaşılamadı.",
+    "SEARCH_NO_NUMBER":"kapı no haritada yok, iğneyi binaya sürükleyin",
+    "BTN_CLEAR_LOCATION":"Konumu temizle",
+    "HAS_LOCATION":"Konum",
+    "OPEN_TASKS":"Açık görev",
+    "NO_LOCATION":"Yok",
+
+    "ERR_CUSTOMER_NAME":"Firma adını girin (en fazla 200 karakter).",
+    "ERR_LOCATION":"Konum geçersiz. Haritadan seçin ya da \"enlem, boylam\" biçiminde yazın.",
+    "ERR_HAS_OPEN_TASKS":"Firmanın bitmemiş %d görevi var. Önce görevleri tamamlayın ya da iptal edin."
+}

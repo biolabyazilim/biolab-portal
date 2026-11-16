@@ -304,6 +304,38 @@
                     </div>
                 </div>
 
+                <!-- Yalnız kit: kitle birlikte kullanılan malzemeler (pipet ucu, küvet…). Kitin bağlı olduğu testlerin maliyetine
+                     kit miktarı × adet olarak kendiliğinden eklenir; reçeteye yazılmaz. Ekle / çıkar hemen kaydedilir. -->
+                <div class="js-kit-only" hidden>
+                    <div class="mt-section mt-3">Kitle birlikte kullanılan malzemeler · <span class="js-comp-count">0</span>
+                        <span class="mt-section-hint">Kitin bir testi başına; bağlı testlerin maliyetine kendiliğinden eklenir</span></div>
+                    <div class="js-tests-new mt-sub mb-2">Malzeme eklemek için önce kiti kaydedin.</div>
+                    <div class="js-tests-edit">
+                        <div class="form-row mt-tests-add">
+                            <div class="form-group col-md-7 mb-2">
+                                <label for="COMPANION_ID">Malzeme</label>
+                                <select id="COMPANION_ID" name="COMPANION_ID" class="form-control" style="width:100%"></select>
+                            </div>
+                            <div class="form-group col-md-2 mb-2">
+                                <label for="COMPANION_QUANTITY">Test başı</label>
+                                <input type="text" id="COMPANION_QUANTITY" class="form-control mt-mono" inputmode="decimal" value="1">
+                            </div>
+                            <div class="form-group col-md-3 mb-2">
+                                <button type="button" id="btnCompanionAdd" class="btn mt-btn"><i class="fas fa-plus"></i> Ekle</button>
+                            </div>
+                        </div>
+                        <div class="mt-tests-box mt-2">
+                            <div class="mt-tests-scroll">
+                                <table class="mt-tests">
+                                    <thead><tr><th>Malzeme</th><th class="mt-num">Test başı</th><th>Birim</th><th class="mt-num">Birim maliyet</th><th class="mt-num">Tutar</th><th></th></tr></thead>
+                                    <tbody id="materialCompanions"></tbody>
+                                    <tfoot><tr class="js-comp-total" hidden><td colspan="4" class="text-right mt-sub">Kitin bir testine eklenen</td><td class="mt-num mt-mono js-comp-sum"></td><td></td></tr></tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="materialMsg" class="alert alert-danger mt-3 mb-0" hidden></div>
             </div>
             <div class="modal-footer">
@@ -389,6 +421,6 @@
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
-<script src="js/material-1.0.0.js?v=1.6.2"></script>
+<script src="js/material-1.0.0.js?v=1.6.3"></script>
 </body>
 </html>

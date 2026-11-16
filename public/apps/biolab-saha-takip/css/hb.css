@@ -1,0 +1,142 @@
+/* HbRapor — Hb Elektroforez ortak stilleri
+ * Renk ve yazı değerleri ortak temadan gelir (lib/app/css/biolab-theme.css, bu dosyadan önce yüklenir). */
+:root {
+    --hb-navy: var(--bl-primary);           /* düğme, başlık, vurgu */
+    --hb-navy-dark: var(--bl-primary-dark);
+    --hb-header: var(--bl-nav);             /* üst bar (SIBO yan menüsüyle aynı ton) */
+    --hb-link: var(--bl-nav-text);          /* üst bardaki ikincil yazı */
+    --hb-bg: var(--bl-bg);
+    --hb-surface: var(--bl-surface);
+    --hb-border: var(--bl-border-strong);
+    --hb-text: var(--bl-text);
+    --hb-muted: var(--bl-muted);
+    --hb-danger: var(--bl-danger);
+    --hb-danger-bg: var(--bl-danger-bg);
+    --hb-font: var(--bl-font);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+    margin: 0;
+    background: var(--hb-bg); color: var(--hb-text);
+    font-family: var(--hb-font); font-size: 15px;
+}
+
+/* Üst bar */
+.hb-header {
+    display: flex; align-items: baseline; gap: 6px;
+    height: 64px; padding: 0 32px;
+    align-items: center;
+    background: var(--hb-header); color: #fff;
+}
+.hb-logo { margin-right: 10px; }   /* logo kutusu: ortak temadaki .bl-logo-box */
+.hb-brand { font-size: 19px; font-weight: 700; }
+.hb-brand-sub { font-size: 14px; color: var(--hb-link); }
+
+/* Giriş sayfası yerleşimi */
+.hb-login-page { display: flex; flex-direction: column; min-height: 100vh; }
+.hb-login-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
+
+.hb-login-card {
+    width: 100%; max-width: 380px;
+    padding: 28px 24px 22px;
+    background: var(--hb-surface);
+    border: 1px solid var(--hb-border); border-radius: 10px;
+}
+.hb-login-logo {
+    display: block; height: 52px; width: auto;
+    margin: 4px auto 14px;
+}
+.hb-login-lead { margin: 0 0 22px; text-align: center; color: var(--hb-muted); font-size: 14px; }
+
+.hb-login-card label { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+.hb-login-card input {
+    display: block; width: 100%; height: 44px;
+    margin-bottom: 18px; padding: 0 12px;
+    border: 1px solid var(--hb-border); border-radius: 6px;
+    font: inherit; color: var(--hb-text); background: #fff;
+}
+.hb-login-card input:focus { outline: none; border-color: var(--hb-navy); box-shadow: 0 0 0 3px rgba(31, 78, 121, .15); }
+.hb-login-card input.is-invalid { border-color: var(--hb-danger); }
+
+.hb-hint { display: block; margin: -12px 0 14px; font-size: 12px; color: var(--bl-warning); }
+.hb-hint[hidden] { display: none; }
+
+.hb-alert {
+    display: flex; gap: 8px; align-items: flex-start;
+    margin: 0 0 18px; padding: 10px 12px;
+    border-radius: 6px;
+    background: var(--hb-danger-bg); color: var(--hb-danger);
+    font-size: 13px; line-height: 1.45;
+}
+.hb-alert[hidden] { display: none; }
+.hb-alert i { margin-top: 2px; }
+
+.hb-btn-primary {
+    display: block; width: 100%; height: 44px;
+    border: 0; border-radius: 6px;
+    background: var(--hb-navy); color: #fff;
+    font: inherit; font-weight: 600; cursor: pointer;
+}
+.hb-btn-primary:hover { background: var(--hb-navy-dark); }
+.hb-btn-primary:focus { outline: none; box-shadow: 0 0 0 3px rgba(31, 78, 121, .3); }
+.hb-btn-primary:disabled { opacity: .7; cursor: wait; }
+
+.hb-login-help { margin: 16px 0 0; text-align: center; font-size: 13px; color: var(--hb-muted); }
+
+/* Alt bilgi */
+.hb-footer {
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    padding: 14px 32px;
+    font-size: 12px; color: var(--hb-muted);
+}
+
+@media (max-width: 575px) {
+    .hb-header { padding: 0 16px; }
+    .hb-header .hb-brand-sub { display: none; }
+    .hb-footer { padding: 12px 16px; flex-direction: column; gap: 4px; }
+}
+
+/* Giriş sonrası ana ekran */
+.hb-app-page { display: flex; flex-direction: column; min-height: 100vh; }
+.hb-app-page[hidden] { display: none; }
+.hb-user { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.hb-user .fa-user-circle { font-size: 18px; color: var(--hb-link); }
+.hb-btn-ghost {
+    margin-left: 6px; padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, .35); border-radius: 6px;
+    background: transparent; color: #fff; font: inherit; font-size: 13px; cursor: pointer;
+}
+.hb-btn-ghost:hover { background: rgba(255, 255, 255, .12); }
+.hb-btn-ghost:disabled { opacity: .6; cursor: wait; }
+
+/* Üst bardaki "KVKK yayın sayfası" bağlantısı (düğme görünümünde) */
+.kv-public-link { margin: 0 8px 0 0; color: #fff; text-decoration: none; white-space: nowrap; }
+.kv-public-link:hover, .kv-public-link:focus { color: #fff; text-decoration: none; }
+@media (max-width: 767px) {
+    .kv-public-link .kv-public-text { display: none; }   /* dar ekranda yalnızca ikon */
+}
+
+.hb-app-main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 32px; }
+.hb-panel {
+    padding: 24px;
+    background: var(--hb-surface);
+    border: 1px solid var(--hb-border); border-radius: 10px;
+}
+.hb-panel h1 { margin: 0 0 12px; font-size: 20px; color: var(--hb-navy); }
+.hb-muted { margin: 4px 0; color: var(--hb-muted); font-size: 14px; }
+
+@media (max-width: 575px) {
+    .hb-user .js-user-fullname { display: none; }
+    .hb-app-main { padding: 16px; }
+}
+
+/* Kabuk (index.html): üst bar + ekranların açıldığı çerçeve */
+.hb-frame-main { flex: 1; display: flex; min-height: 0; }
+.hb-main-frame { flex: 1; width: 100%; border: 0; background: var(--hb-bg); }
+.hb-app-page { height: 100vh; }
+
+/* Çerçeve içinde açılan ekranlar */
+.hb-frame-page { min-height: 100%; padding: 24px 32px; background: var(--hb-bg); }
+@media (max-width: 575px) { .hb-frame-page { padding: 16px; } }

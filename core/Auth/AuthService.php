@@ -33,43 +33,12 @@ final class AuthService
      */
     public function login(string $username, string $password, ?string $app = null): LoginResult
     {
-        $username = trim($username);
-        if ($username === '' || $password === '') {
-            return LoginResult::fail('Kullanıcı adı ve şifre girin.');
+        $check = $this->checkCredentials($username, $password, $app);
+        if (is_string($check)) {
+            return LoginResult::fail($check);
         }
-
-        $now  = new \DateTimeImmutable();
-        $user = $this->em->getRepository(AppUser::class)->findOneBy(['username' => $username]);
-
-        if ($user === null || $user->isDeleted() || !$user->isActive()) {
-            // Kullanıcı yokken de şifre kontrolü kadar süre harcansın (yanıt süresinden kullanıcı adı anlaşılmasın)
-            password_hash($password, PASSWORD_DEFAULT);
-            return LoginResult::fail(self::MSG_INVALID);
-        }
-
-        if ($user->isLocked($now)) {
-            return LoginResult::fail(self::lockedMessage($user->getLockedUntil(), $now));
-        }
-
-        if (!$user->verifyPassword($password)) {
-            $user->registerFailedLogin(self::MAX_ATTEMPTS, self::LOCK_MINUTES, $now);
-            $this->em->flush();
-
-            return $user->isLocked($now)
-                ? LoginResult::fail(self::lockedMessage($user->getLockedUntil(), $now))
-                : LoginResult::fail(self::MSG_INVALID);
-        }
-
-        // Şifre doğru; kullanıcının şirketi yoksa giriş yapılmaz (D.Sys'teki UserCompany kuralı)
-        $company = $this->findLoginCompany($user);
-        if ($company === null) {
-            return LoginResult::fail(self::MSG_NO_COMPANY);
-        }
-
-        // Uygulamanın giriş ekranından geliyorsa o uygulamanın rolü de olmalı; yoksa oturum hiç açılmaz
-        if ($app !== null && !(new FormAccess($this->em))->canEnterApp($user->getUserId(), $company->getCompanyId(), $app)) {
-            return LoginResult::fail(self::MSG_NO_APP);
-        }
+        ['user' => $user, 'company' => $company] = $check;
+        $now = new \DateTimeImmutable();
 
         Session::regenerate();
         $_SESSION['USER_ID']   = $user->getUserId();
@@ -96,6 +65,56 @@ final class AuthService
         $this->em->flush();
 
         return LoginResult::ok(self::currentUser());
+    }
+
+    /**
+     * Kullanıcı adı / şifre / şirket / uygulama rolü kontrolü — oturum AÇMAZ.
+     * Web girişi (login) ve oturum yerine token kullanan mobil giriş (api/saha.php) ortak kullanır;
+     * hatalı deneme sayacı ve kilitleme ikisinde de aynı işler.
+     *
+     * @return array{user: AppUser, company: Company}|string  Başarılıysa kullanıcı + giriş şirketi, değilse hata mesajı
+     */
+    public function checkCredentials(string $username, string $password, ?string $app = null): array|string
+    {
+        $username = trim($username);
+        if ($username === '' || $password === '') {
+            return 'Kullanıcı adı ve şifre girin.';
+        }
+
+        $now  = new \DateTimeImmutable();
+        $user = $this->em->getRepository(AppUser::class)->findOneBy(['username' => $username]);
+
+        if ($user === null || $user->isDeleted() || !$user->isActive()) {
+            // Kullanıcı yokken de şifre kontrolü kadar süre harcansın (yanıt süresinden kullanıcı adı anlaşılmasın)
+            password_hash($password, PASSWORD_DEFAULT);
+            return self::MSG_INVALID;
+        }
+
+        if ($user->isLocked($now)) {
+            return self::lockedMessage($user->getLockedUntil(), $now);
+        }
+
+        if (!$user->verifyPassword($password)) {
+            $user->registerFailedLogin(self::MAX_ATTEMPTS, self::LOCK_MINUTES, $now);
+            $this->em->flush();
+
+            return $user->isLocked($now)
+                ? self::lockedMessage($user->getLockedUntil(), $now)
+                : self::MSG_INVALID;
+        }
+
+        // Şifre doğru; kullanıcının şirketi yoksa giriş yapılmaz (D.Sys'teki UserCompany kuralı)
+        $company = $this->findLoginCompany($user);
+        if ($company === null) {
+            return self::MSG_NO_COMPANY;
+        }
+
+        // Uygulamanın giriş ekranından geliyorsa o uygulamanın rolü de olmalı; yoksa oturum hiç açılmaz
+        if ($app !== null && !(new FormAccess($this->em))->canEnterApp($user->getUserId(), $company->getCompanyId(), $app)) {
+            return self::MSG_NO_APP;
+        }
+
+        return ['user' => $user, 'company' => $company];
     }
 
     /**

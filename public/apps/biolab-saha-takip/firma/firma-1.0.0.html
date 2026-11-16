@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Firmalar</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        .st-info { margin-bottom: 8px; font-size: 12px; color: #667085; }
+        .st-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .st-badge-on  { background: #e3f4e9; color: #1e6b3a; }
+        .st-badge-off { background: #eceff3; color: #475467; }
+        .st-badge-warn{ background: #fff1d6; color: #9a6200; }
+        #pickMap { height: 260px; border: 1px solid #dfe3e8; border-radius: 4px; }
+        .st-search { position: relative; margin-bottom: 6px; }
+        .st-results {
+            position: absolute; z-index: 1100; left: 0; right: 0; top: 100%; max-height: 240px; overflow-y: auto;
+            background: #fff; border: 1px solid #ccd3db; border-radius: 0 0 4px 4px; box-shadow: 0 4px 10px rgba(0,0,0,.15);
+        }
+        .st-results .st-res { padding: 6px 10px; cursor: pointer; font-size: 12.5px; border-bottom: 1px solid #f1f3f5; }
+        .st-results .st-res:hover, .st-results .st-res.on { background: #e6f2f8; }
+        .st-results .st-res small { display: block; color: #667085; }
+        .st-results .st-empty { padding: 8px 10px; font-size: 12px; color: #667085; }
+        /* Haritadan adres bulunurken / bulununca: kutu kısa süre renklenir */
+        .st-loading { background: #f6f8fa !important; color: #98a2b3; }
+        .st-changed { background: #fff7d6 !important; transition: background .3s; }
+        @media (max-width: 991px){ .st-col-form{ margin-top: 16px; } }
+    </style>
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+    <!-- Modern görünüm katmanı (yalnız tasarım; HTML / JS değişmez): en son yüklenir -->
+    <link rel="stylesheet" href="../common/sht-modern.css?v=1.2.3">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+        <div class="row">
+
+            <!-- Sol: firma listesi -->
+            <div class="col-lg-6 col-sm-6">
+                <div class="card">
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" data-tr="LIST_TITLE">Firmalar</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group input-group-sm mb-1">
+                            <input type="text" id="gridSearchField" class="form-control form-control-sm" data-trph="PH_GRID_SEARCH_FIELD" placeholder="" autocomplete="off">
+                            <div class="input-group-append">
+                                <button class="btn btn-default btn-sm" type="button" data-tr="BTN_SEARCH_TEXT" id="btnGridSearch"></button>
+                            </div>
+                        </div>
+                        <table id="jqGrid"></table>
+                        <div id="jqGridPager"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ: firma formu + konum haritası -->
+            <div class="col-lg-6 col-sm-6 st-col-form">
+                <div class="card">
+                    <div class="card-header" style="background-color: #c53cb61f">
+                        <h3 class="card-title" data-tr="FORM_TITLE">Firma bilgisi</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="editFormFirma" class="form-horizontal" method="post" action="javascript:" autocomplete="off" novalidate>
+                            <input type="hidden" id="CUSTOMER_ID" name="CUSTOMER_ID"/>
+                            <input type="hidden" id="LAT" name="LAT"/>
+                            <input type="hidden" id="LON" name="LON"/>
+
+                            <div class="row">
+                                <div class="col-sm-8"><div class="form-group">
+                                    <label for="CUSTOMER_NAME" data-tr="CUSTOMER_NAME" class="col-form-label-sm"></label>
+                                    <input type="text" id="CUSTOMER_NAME" name="CUSTOMER_NAME" class="form-control form-control-sm" maxlength="200"/>
+                                </div></div>
+                                <div class="col-sm-4"><div class="form-group">
+                                    <label for="ISG_KATIP_NO" data-tr="ISG_KATIP_NO" class="col-form-label-sm"></label>
+                                    <input type="text" id="ISG_KATIP_NO" name="ISG_KATIP_NO" class="form-control form-control-sm" maxlength="50"/>
+                                </div></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8"><div class="form-group">
+                                    <label for="ADDRESS" data-tr="ADDRESS" class="col-form-label-sm"></label>
+                                    <input type="text" id="ADDRESS" name="ADDRESS" class="form-control form-control-sm" maxlength="500"/>
+                                </div></div>
+                                <div class="col-sm-4"><div class="form-group">
+                                    <label for="CITY" data-tr="CITY" class="col-form-label-sm"></label>
+                                    <input type="text" id="CITY" name="CITY" class="form-control form-control-sm" maxlength="50"/>
+                                </div></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-5"><div class="form-group">
+                                    <label for="CONTACT_NAME" data-tr="CONTACT_NAME" class="col-form-label-sm"></label>
+                                    <input type="text" id="CONTACT_NAME" name="CONTACT_NAME" class="form-control form-control-sm" maxlength="100"/>
+                                </div></div>
+                                <div class="col-sm-4"><div class="form-group">
+                                    <label for="PHONE" data-tr="PHONE" class="col-form-label-sm"></label>
+                                    <input type="text" id="PHONE" name="PHONE" class="form-control form-control-sm" maxlength="20"/>
+                                </div></div>
+                                <div class="col-sm-3"><div class="form-group">
+                                    <label for="ACTIVE_FL" data-tr="ACTIVE_FL" class="col-form-label-sm"></label>
+                                    <select id="ACTIVE_FL" name="ACTIVE_FL" class="form-control form-control-sm base">
+                                        <option value="Y" data-tr="FL_YES_TEXT" selected></option>
+                                        <option value="N" data-tr="FL_NO_TEXT"></option>
+                                    </select>
+                                </div></div>
+                            </div>
+
+                            <div class="form-group mb-1">
+                                <label for="COORD" data-tr="LOCATION" class="col-form-label-sm"></label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" id="COORD" class="form-control form-control-sm" data-trph="PH_COORD" placeholder="">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-default btn-sm" id="btnClearLocation" data-tr="BTN_CLEAR_LOCATION"></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="st-info" data-tr="LOCATION_INFO"></div>
+                            <!-- Adres / yer arama (OpenStreetMap - Photon): yazdıkça öneri, seçince iğne oraya gider -->
+                            <div class="st-search">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-search"></i></span></div>
+                                    <input type="text" id="placeSearch" class="form-control form-control-sm" data-trph="PH_PLACE_SEARCH" placeholder="" autocomplete="off">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-default btn-sm" id="btnFromAddress" data-tr="BTN_FROM_ADDRESS"></button>
+                                    </div>
+                                </div>
+                                <div class="st-results" id="placeResults" hidden></div>
+                            </div>
+                            <div id="pickMap"></div>
+
+                            <div class="form-group mt-2">
+                                <label for="NOTE" data-tr="NOTE" class="col-form-label-sm"></label>
+                                <textarea id="NOTE" name="NOTE" class="form-control form-control-sm" rows="2" maxlength="500"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-success" id="btnNew"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">Yeni</span></button>
+                        <button type="button" class="btn btn-sm btn-default" id="btnCancel"><i class="fas fa-ban"></i> <span data-tr="BTN_CANCEL_TEXT">İptal</span></button>
+                        <button type="button" class="btn btn-sm btn-danger" id="btnDelete"><i class="fas fa-trash-alt"></i> <span data-tr="BTN_DELETE_TEXT">Sil</span></button>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnSave"><i class="fas fa-save"></i> <span data-tr="BTN_SAVE_TEXT">Kaydet</span></button>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggle">
+                                    <span class="caret"></span><span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="javascript:">
+                                        <button class="btn btn-sm btn-primary" type="button" id="btnAdd"><i class="fas fa-plus"></i> <span data-tr="BTN_ADD_TEXT">Ekle</span></button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../common/sht-common.js?v=1.0.0"></script>
+<script src="js/firma-1.0.0.js?v=1.0.3"></script>
+</body>
+</html>

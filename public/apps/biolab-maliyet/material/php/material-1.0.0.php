@@ -32,6 +32,7 @@ global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resOb
 
 use BIO\MLYT\Material;
 use BIO\MLYT\MaterialCategory;
+use BIO\MLYT\MaterialCompanion;
 use BIO\MLYT\MaterialPrice;
 use BIO\MLYT\RecipeItem;
 use BIO\MLYT\Study;
@@ -152,6 +153,30 @@ switch ($query) {
         break;
 
     // Bağlanabilecek testler: aktif, hesaplamalı olmayan (hesaplamalının maliyeti bileşenlerinden gelir)
+    // Kitle birlikte kullanılabilecek malzemeler (kit penceresindeki seçim kutusu): kit olmayan, silinmemiş malzemeler
+    case "getCOMPANION_ID":
+        $execType = ET_DEFAULT;
+        try{
+            $rows = $db->createQuery("
+                SELECT m.materialId, m.materialName, m.shortCode, m.activeFl
+                  FROM BIO\MLYT\Material m
+                  JOIN m.category c
+                 WHERE IDENTITY(m.company) = :COMPANY_ID AND m.recordFl > 0 AND c.categoryCode <> :KIT
+                 ORDER BY m.materialName
+            ")->setParameters(array("COMPANY_ID" => $companyId, "KIT" => MaterialCategory::CODE_KIT))->getArrayResult();
+            foreach ($rows as &$r) {
+                $r["materialText"] = ($r["shortCode"] ? $r["shortCode"] . " · " : "") . $r["materialName"];
+            }
+            unset($r);
+            $dtResponse = $rows;
+            $resCode = 0;
+            $resMsg = "Ok";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
     case "getTEST_ID":
         $execType = ET_DEFAULT;
         try{
@@ -460,6 +485,7 @@ switch ($query) {
 
             $dtResponse = mtMaterialToArray($material, $price, $study ? mtRates($db, $study, $material->getSupplier()) : array(), $sessionLang);
             $dtResponse["tests"] = mtMaterialTests($db, $material, $sessionLang);
+            $dtResponse["companions"] = mtMaterialCompanions($db, $material, $study, $companyId, $sessionLang);
             $resCode = 0;
             $resMsg = "Ok";
         }catch(Exception $exMain){
@@ -654,6 +680,65 @@ switch ($query) {
         }
         break;
 
+    // Kitle birlikte kullanılan malzeme ekler (hemen kaydedilir); aynı malzeme zaten listedeyse miktarı güncellenir.
+    //   MATERIAL_ID: kit · COMPANION_ID: birlikte kullanılan malzeme · QUANTITY: kitin bir testi başına · resObject.companions
+    case "setMaterialCompanion":
+        $execType = ET_CUSTOM;
+        try{
+            $kit = mtFindMaterial($db, (int) ($_POST["MATERIAL_ID"] ?? 0), $companyId);
+            if ($kit === null) { $resCode = 20; $resMsg = "Önce kiti kaydedin."; break; }
+            if ($kit->getCategory()->getCategoryCode() !== MaterialCategory::CODE_KIT) { $resCode = 30; $resMsg = "Birlikte kullanılan malzeme yalnız kitlere eklenir."; break; }
+            $comp = mtFindMaterial($db, (int) ($_POST["COMPANION_ID"] ?? 0), $companyId);
+            if ($comp === null) { $resCode = 10; $resMsg = "Eklenecek malzemeyi seçin."; break; }
+            if ($comp === $kit || $comp->getCategory()->getCategoryCode() === MaterialCategory::CODE_KIT) {
+                $resCode = 10; $resMsg = "Kit, başka bir kitin yanına eklenemez."; break;
+            }
+            $qty = mtDecimal($_POST["QUANTITY"] ?? "1");
+            if ($qty === null || (float) $qty <= 0) { $resCode = 10; $resMsg = "Miktar sıfırdan büyük olmalı."; break; }
+
+            $row = $db->getRepository(MaterialCompanion::class)->findOneBy(array("kit" => $kit, "material" => $comp));
+            if ($row === null || $row->isDeleted()) {
+                if ($row !== null) { $db->remove($row); $db->flush(); }   // silinmiş kayıt tekil indeksi tutmasın
+                $maxSort = (int) $db->createQuery("SELECT MAX(mc.sortNo) FROM BIO\MLYT\MaterialCompanion mc WHERE mc.kit = :KIT")
+                    ->setParameter("KIT", $kit)->getSingleScalarResult();
+                $db->persist(new MaterialCompanion($kit, $comp, $qty, $maxSort + 10));
+                $resMsg = $comp->getMaterialName() . " eklendi";
+            } else {
+                $row->setQuantity($qty);
+                $resMsg = $comp->getMaterialName() . " miktarı güncellendi";
+            }
+            $db->flush();
+
+            $study = mtFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
+            $resObject = array("companions" => mtMaterialCompanions($db, $kit, $study, $companyId, $sessionLang));
+            $resCode = 0;
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
+    // Kitle birlikte kullanılan malzemeyi listeden çıkarır (kitin bağlı olduğu testlerin maliyetinden de düşer)
+    case "setMaterialCompanionDelete":
+        $execType = ET_CUSTOM;
+        try{
+            $kit = mtFindMaterial($db, (int) ($_POST["MATERIAL_ID"] ?? 0), $companyId);
+            $row = $db->find(MaterialCompanion::class, (int) ($_POST["MATERIAL_COMPANION_ID"] ?? 0));
+            if ($kit === null || $row === null || $row->getKit() !== $kit) { $resCode = 20; $resMsg = "Kayıt bulunamadı."; break; }
+            $name = $row->getMaterial()->getMaterialName();
+            $db->remove($row);
+            $db->flush();
+
+            $study = mtFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
+            $resObject = array("companions" => mtMaterialCompanions($db, $kit, $study, $companyId, $sessionLang));
+            $resCode = 0;
+            $resMsg = $name . " çıkarıldı";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
     default:
         $resCode = 9000;
         $resMsg = "Bilinmeyen işlem: " . $query;
@@ -757,6 +842,30 @@ function mtMaterialTests($db, Material $m, string $lang): array
     ")->setParameter("MATERIAL", $m)->getArrayResult();
     foreach ($rows as &$r) {
         $r["consumptionName"] = $consumption[$r["consumption"]][$lang === "en" ? 1 : 0] ?? $r["consumption"];
+    }
+    unset($r);
+    return $rows;
+}
+
+/**
+ * Kitle birlikte kullanılan malzemeler: ad, kısa kod, kitin bir testi başına miktar, birim; seçili çalışmadaki birim maliyet
+ * ve satır tutarı (miktar × birim maliyet), böylece kitin bir testine eklenen tutar formda görünür.
+ */
+function mtMaterialCompanions($db, Material $kit, ?Study $study, int $companyId, string $lang): array
+{
+    $rows = $db->createQuery("
+        SELECT mc.materialCompanionId, mc.quantity, m.materialId, m.materialName, m.shortCode, m.usageUnit
+          FROM BIO\MLYT\MaterialCompanion mc
+          JOIN mc.material m
+         WHERE mc.kit = :KIT AND mc.recordFl > 0 AND mc.activeFl = 'Y'
+         ORDER BY mc.sortNo, mc.materialCompanionId
+    ")->setParameter("KIT", $kit)->getArrayResult();
+    $calc = $rows ? new \Biolab\Core\Mlyt\CostCalculator($db, $companyId, $study?->getStudyId(), $lang) : null;
+    foreach ($rows as &$r) {
+        $unitCost = $calc?->unitCost((int) $r["materialId"]);
+        $r["usageUnitName"] = MT_UNIT_NAMES[$r["usageUnit"]][$lang === "en" ? 1 : 0] ?? $r["usageUnit"];
+        $r["unitCost"] = $unitCost !== null ? round($unitCost, 4) : null;
+        $r["amount"] = $unitCost !== null ? round($unitCost * (float) $r["quantity"], 4) : null;
     }
     unset($r);
     return $rows;

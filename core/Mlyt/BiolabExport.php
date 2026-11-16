@@ -61,7 +61,7 @@ final class BiolabExport
         foreach ($tests as $t) {
             $results[$t['testId']] = $calc->result((int) $t['testId']);
             foreach ($results[$t['testId']]['lines'] as $l) {
-                if ($l['type'] === 'MATERIAL') { $materialIds[$l['materialId']] = true; }
+                if ($l['type'] === 'MATERIAL' || $l['type'] === 'COMPANION') { $materialIds[$l['materialId']] = true; }
             }
         }
 
@@ -78,7 +78,7 @@ final class BiolabExport
         foreach ($tests as $t) {
             if ($t['costMethod'] === Test::METHOD_CALCULATED) { continue; }
             foreach ($results[$t['testId']]['lines'] as $l) {
-                if ($l['type'] !== 'MATERIAL') { continue; }
+                if ($l['type'] !== 'MATERIAL' && $l['type'] !== 'COMPANION') { continue; }
                 $r = $lastRecipeRow + 1;
                 $perPatient = $l['consumption'] === RecipeItem::PER_PATIENT;
                 $recipe->row([
@@ -113,8 +113,8 @@ final class BiolabExport
 
             $parts = [];
             foreach ($res['lines'] as $l) {
-                $parts[] = $l['type'] === 'MATERIAL'
-                    ? $l['materialName'] . ' ×' . self::qty((float) $l['quantity'])
+                $parts[] = $l['type'] === 'MATERIAL' || $l['type'] === 'COMPANION'
+                    ? $l['materialName'] . ' ×' . self::qty((float) $l['quantity']) . ($l['type'] === 'COMPANION' ? ' (kitle)' : '')
                     : $l['testCode'] . ' ×' . self::qty((float) $l['quantity']) . ((float) $l['applyRate'] != 100.0 ? ' %' . self::qty((float) $l['applyRate']) : '');
             }
 

@@ -75,7 +75,8 @@
             toggle: document.getElementById('menuToggle'),
             backdrop: document.getElementById('menuBackdrop'),
             collapseBtn: document.getElementById('menuCollapse'),
-            onOpen: function (url) { $('#mainContentFrame').attr('src', url); }
+            onOpen: function (url) { $('#mainContentFrame').attr('src', url); },
+            titleBase: 'Maliyet · Biolab'   // sekme başlığı: "Maliyet · Biolab - Test maliyetleri"
         });
 
         menu.load().then(function (res) {

@@ -1,15 +1,6 @@
 {
   "apps": [
     {
-      "code": "HB_ELEKTROFOREZ",
-      "name": "Hb Elektroforez",
-      "description": "Hemoglobin elektroforez sonuç girişi ve raporlama",
-      "icon": "fa-vial",
-      "url": "./apps/hb-elektroforez/login.html",
-      "status": "active",
-      "target": "_blank"
-    },
-    {
       "code": "SIBO",
       "name": "SIBO Nefes Testi",
       "description": "SIBO hasta, numune ve test sonuç takibi",
@@ -18,6 +9,17 @@
       "status": "active",
       "target": "_blank"
     },
+
+    {
+      "code": "HB_ELEKTROFOREZ",
+      "name": "Hb Elektroforez",
+      "description": "Hemoglobin elektroforez sonuç girişi ve raporlama",
+      "icon": "fa-vial",
+      "url": "./apps/hb-elektroforez/login.html",
+      "status": "active",
+      "target": "_blank"
+    },
+
     {
       "code": "MALIYET",
       "name": "Maliyet Çalışması",
@@ -37,12 +39,22 @@
       "target": "_blank"
     },
 
+
     {
       "code": "QMS",
       "name": "Biolab QMS",
       "description": "Management of documents",
       "icon": "fa-file-signature",
       "url": "./apps/biolab-qms/login.html",
+      "status": "active",
+      "target": "_blank"
+    },
+    {
+      "code": "SAHA_TAKIP",
+      "name": "Saha Takip",
+      "description": "Saha personeli, mesai ve konum takibi",
+      "icon": "fa-map-marked-alt",
+      "url": "./apps/biolab-saha-takip/login.html",
       "status": "active",
       "target": "_blank"
     },
