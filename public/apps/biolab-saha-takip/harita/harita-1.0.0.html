@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Canlı harita</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+    <!-- Harita: Leaflet + OpenStreetMap (anahtar gerekmez) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        html, body { height: 100%; margin: 0; }
+        .mp-wrap { display: flex; height: 100vh; }
+        /* SAĞDAKİ personel listesi (HTML'de haritadan sonra): kompakt, harita geniş kalsın */
+        .mp-side {
+            width: 240px; flex: 0 0 240px; min-width: 0; box-sizing: border-box;
+            display: flex; flex-direction: column;
+            border-left: 1px solid #e7eaf0; background: #fff;
+        }
+        .mp-side-head #mpSearch { width: 100%; box-sizing: border-box; }
+        @media (max-width: 1199px) { .mp-side { width: 220px; flex-basis: 220px; } }
+        .mp-side-head { padding: 8px 10px; border-bottom: 1px solid #eef0f3; }
+        .mp-side-head h3 { font-size: 12.5px; font-weight: 600; margin: 0 0 6px; color: #344054; }
+        .mp-side-head h3 i { font-size: 11px; color: #667085; margin-right: 2px; }
+        .mp-side-head #mpSearch { height: 28px; min-height: 0; padding: 2px 9px; font-size: 12px; border-radius: 8px; }
+        .mp-list { flex: 1; overflow-y: auto; }
+        .mp-item {
+            display: flex; gap: 8px; align-items: center; padding: 6px 10px;
+            border-bottom: 1px solid #f3f4f6; cursor: pointer;
+        }
+        .mp-item:hover { background: #f6f9fb; }
+        .mp-item.active { background: #eaf2fb; border-left: 3px solid #3c8dc5; padding-left: 7px; }
+        /* Durum renkleri (liste noktası, harita iğnesi, iz çizgisi aynı rengi kullanır)
+           active = mesaide + konum taze · late = mesaide ama konum gecikti · off = mesai dışı · none = konum yok */
+        :root { --st-active: #16a34a; --st-late: #ea7a0c; --st-off: #6b7685; --st-none: #c2c8d0; }
+        .mp-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; display: inline-block; }
+        .st-active .mp-drop, .mp-dot.st-active { background: var(--st-active); }
+        .st-late   .mp-drop, .mp-dot.st-late   { background: var(--st-late); }
+        .st-off    .mp-drop, .mp-dot.st-off    { background: var(--st-off); }
+        .st-none   .mp-drop, .mp-dot.st-none   { background: var(--st-none); }
+        .mp-name { font-weight: 600; font-size: 12px; line-height: 1.25; color: #1f2937;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mp-item > div { min-width: 0; }   /* uzun ad / görev satırı listeyi genişletmesin, "…" ile kısalsın */
+        .mp-sub { font-size: 10.5px; color: #667085; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mp-shift { font-size: 10.5px; color: #98a2b3; line-height: 1.35; }
+        .mp-shift.on { color: #1e6b3a; font-weight: 600; }
+        /* Renk açıklaması: küçük, iki sütun */
+        .mp-foot { padding: 6px 10px; font-size: 10px; color: #667085; border-top: 1px solid #eef0f3; line-height: 1.6;
+            background: #fafbfd; }
+        .mp-foot .mp-dot { width: 7px; height: 7px; flex-basis: 7px; vertical-align: 0; }
+        .mp-foot .mp-dash { display: inline-block; width: 14px; border-top: 2px dashed var(--st-active); vertical-align: middle; }
+        .mp-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
+        .mp-legend > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mp-legend .mp-legend-wide { grid-column: 1 / -1; }
+        .mp-refresh { margin-top: 3px; color: #98a2b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .mp-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .mp-toolbar {
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+            padding: 8px 10px; border-bottom: 1px solid #dfe3e8; background: #fff;
+        }
+        .mp-toolbar .form-control { width: auto; display: inline-block; }
+        .mp-summary { font-size: 12.5px; color: #344054; margin-left: auto; }
+        #map { flex: 1; }
+
+        /* Harita işareti: damla iğne (içinde kişi simgesi) + altında "P002 · Ad" etiketi.
+           Kutu 120×72; iğnenin ucu (konum) x=60, y=50 → iconAnchor [60, 50] */
+        .mp-mk { position: relative; width: 120px; height: 72px; }
+        .mp-drop {
+            position: absolute; left: 43px; top: 9px; width: 34px; height: 34px; box-sizing: border-box;
+            border-radius: 50% 50% 50% 0; transform: rotate(-45deg);   /* uç: merkez(60,26) + 24 px aşağı = (60,50) */
+            border: 3px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,.45);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .mp-drop i { transform: rotate(45deg); color: #fff; font-size: 14px; }
+        .mp-mk.sel .mp-drop { box-shadow: 0 0 0 4px rgba(31,111,159,.55), 0 2px 5px rgba(0,0,0,.45); }
+        /* Yoldaki personel: iğnenin çevresinden HAFİF yeşil halka (firmadaki mor nabızdan sakin: tek dalga, yavaş).
+           Halka iğnenin başı ile aynı merkezde (60,26) ve iğnenin arkasında. */
+        .mp-pulse { position: absolute; left: 43px; top: 9px; width: 34px; height: 34px; border-radius: 50%; pointer-events: none; }
+        .mp-pulse::before {
+            content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--st-active);
+            background: rgba(22,163,74,.12); animation: mp-pulse 2.4s ease-out infinite;
+        }
+        @keyframes mp-pulse {
+            0%   { transform: scale(.9);  opacity: .7; }
+            100% { transform: scale(2.1); opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mp-pulse::before { animation: none; transform: scale(1.4); opacity: .35; }
+        }
+        /* Hareket halinde: sağ üstte yön oku (fa-location-arrow 45° baktığı için -45 düzeltilir) */
+        .mp-dir {
+            position: absolute; left: 72px; top: 2px; width: 20px; height: 20px; border-radius: 50%;
+            background: #1f6f9f; color: #fff; font-size: 10px; border: 2px solid #fff;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.4);
+        }
+        .mp-lbl {
+            position: absolute; left: 0; right: 0; top: 53px; margin: 0 auto; width: max-content; max-width: 120px;
+            padding: 1px 6px; border-radius: 8px; background: rgba(255,255,255,.95);
+            font-size: 11px; font-weight: 600; color: #1d2939; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            box-shadow: 0 1px 3px rgba(0,0,0,.3);
+        }
+
+        /* ---------- Planlama ---------- */
+        /* Firma iğnesi: kare rozet (bina simgesi) + altında ad. Renk: açık görev yok / bekleyen görev / personel firmada */
+        :root { --fm-NONE: #475467; --fm-WAITING: #2563eb; --fm-ON_SITE: #7c3aed; }
+        .fm-mk { position: relative; width: 140px; height: 54px; }
+        .fm-box {
+            position: absolute; left: 56px; top: 4px; width: 28px; height: 28px; border-radius: 6px; box-sizing: border-box;   /* orta (70,18) = konum */
+            border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.45); color: #fff; font-size: 13px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .fm-box b { position: absolute; top: -8px; right: -9px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+            background: #d92d20; color: #fff; font-size: 10px; line-height: 13px; text-align: center; border: 2px solid #fff; }
+        .fm-NONE .fm-box, .fm-dot.fm-NONE { background: var(--fm-NONE); }
+        .fm-WAITING .fm-box, .fm-dot.fm-WAITING { background: var(--fm-WAITING); }
+        .fm-ON_SITE .fm-box, .fm-dot.fm-ON_SITE { background: var(--fm-ON_SITE); }
+        .fm-mk.sel .fm-box { box-shadow: 0 0 0 4px rgba(217,45,32,.45), 0 1px 4px rgba(0,0,0,.45); }
+        /* Personel firmadayken: kutunun çevresinden yayılan mor halka (nabız). Kutu yerinde kalır, halka büyüyüp söner. */
+        .fm-pulse { position: absolute; left: 56px; top: 4px; width: 28px; height: 28px; border-radius: 6px; pointer-events: none; }
+        .fm-ON_SITE .fm-pulse::before, .fm-ON_SITE .fm-pulse::after {
+            content: ''; position: absolute; inset: 0; border-radius: 8px; border: 3px solid var(--fm-ON_SITE);
+            animation: fm-pulse 1.8s ease-out infinite;
+        }
+        .fm-ON_SITE .fm-pulse::after { animation-delay: .9s; }
+        @keyframes fm-pulse {
+            0%   { transform: scale(1);   opacity: .85; }
+            100% { transform: scale(2.6); opacity: 0; }
+        }
+        .fm-ON_SITE .fm-lbl { background: var(--fm-ON_SITE); color: #fff; font-weight: 600; }
+        /* Hareket azaltma tercihi olan kullanıcıda animasyon yerine sabit kalın halka */
+        @media (prefers-reduced-motion: reduce) {
+            .fm-ON_SITE .fm-pulse::before { animation: none; transform: scale(1.5); opacity: .6; }
+            .fm-ON_SITE .fm-pulse::after { display: none; }
+        }
+        .fm-lbl {
+            position: absolute; left: 0; right: 0; top: 35px; margin: 0 auto; width: max-content; max-width: 140px;
+            padding: 0 5px; border-radius: 6px; background: rgba(255,255,255,.92); font-size: 10.5px; color: #344054;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 1px 2px rgba(0,0,0,.25);
+        }
+        .fm-dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: middle; }
+        .fm-legend { font-size: 12px; color: #475467; margin-left: 8px; white-space: nowrap; }
+
+        /* Sol liste grupları */
+        .mp-group { padding: 4px 10px; font-size: 9.5px; font-weight: 700; color: #667085; background: #f7f8fa;
+            border-bottom: 1px solid #eef0f3; text-transform: uppercase; letter-spacing: .5px; }
+        .mp-km { margin-left: auto; font-size: 10.5px; font-weight: 600; color: #1f6f9f; white-space: nowrap; }
+        .mp-task { font-size: 10.5px; color: #5b2bb5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ---------- Harita alanı + firma ayrıntı paneli ---------- */
+        .mp-stage { position: relative; flex: 1; display: flex; min-height: 0; overflow: hidden; }
+        .mp-stage #map { flex: 1; }
+
+        /* Masaüstü / tablet: haritanın üstünde SAĞDAN kayan panel (göz haritadayken yanda görünür, harita kapanmaz) */
+        .fm-panel {
+            position: absolute; top: 0; right: 0; bottom: 0; width: 400px; max-width: 92%; z-index: 1100;
+            background: #fff; box-shadow: -6px 0 18px rgba(16,24,40,.18); border-left: 3px solid #1f6f9f;
+            overflow-y: auto; padding: 0 14px 14px; transform: translateX(105%); transition: transform .25s ease;
+        }
+        .fm-panel.open { transform: none; }
+        .fm-grip { display: none; }
+        .fm-head { position: sticky; top: 0; z-index: 2; background: #fff; font-size: 15px; padding: 12px 34px 8px 0; margin-bottom: 4px;
+            border-bottom: 1px solid #eef0f3; }
+        .fm-close { position: absolute; right: 0; top: 8px; font-size: 26px; }
+        .fm-meta { display: block; font-size: 12px; color: #667085; margin-top: 2px; }
+        .fm-body { display: flex; flex-direction: column; gap: 14px; }
+        .fm-col { min-width: 0; }
+        .fm-title { font-size: 11.5px; font-weight: 700; color: #475467; text-transform: uppercase; margin-bottom: 4px; }
+        .fm-row { display: flex; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid #f1f3f5; font-size: 12.5px; }
+        .fm-row:last-child { border-bottom: 0; }
+        .fm-empty { font-size: 12.5px; color: #98a2b3; padding: 4px 0; }
+        .fm-sub { font-size: 11.5px; color: #667085; margin: 2px 0; }
+        .fm-people { max-height: 150px; overflow-y: auto; border: 1px solid #eef0f3; border-radius: 4px; }
+        .fm-person { display: flex; align-items: center; gap: 8px; padding: 4px 8px; margin: 0; font-size: 12.5px; cursor: pointer;
+            border-bottom: 1px solid #f4f5f7; font-weight: normal; }
+        .fm-person:last-child { border-bottom: 0; }
+        .fm-person:hover { background: #f6f9fb; }
+        .fm-person.on { background: #e6f2f8; }
+        .fm-person input { margin: 0; }
+        .fm-person .fm-av { font-size: 11px; color: #98a2b3; }
+        .fm-rank { display: inline-block; min-width: 16px; height: 16px; border-radius: 8px; background: #1f6f9f; color: #fff;
+            font-size: 10px; line-height: 16px; text-align: center; }
+        .fm-km-tip { background: #1f6f9f; color: #fff; border: 0; font-weight: 600; font-size: 11px; padding: 1px 6px; box-shadow: none; }
+        .fm-km-tip:before { display: none; }
+        /* Rota etiketi: zemin kişinin rota renginde (iç span'de; Leaflet kutusu şeffaf) */
+        .tk-arrow-tip { background: transparent; border: 0; padding: 0; box-shadow: none; }
+        .tk-arrow-tip:before { display: none; }
+        .tk-tip { display: inline-block; color: #fff; font-weight: 600; font-size: 11px; padding: 1px 7px; border-radius: 4px;
+            border: 1.5px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); white-space: nowrap; }
+        .mp-foot .mp-arrow { display: inline-block; width: 14px; border-top: 2px dashed #ea7a0c; vertical-align: middle; }
+        .btn-xs-assign { padding: 0 6px; font-size: 11px; line-height: 18px; white-space: nowrap; }
+        /* Görev satırında iptal (✕): yanlış atamayı geri almak için; onay sorulur */
+        .btn-xs-cancel { padding: 0 6px; font-size: 11px; line-height: 18px; flex: 0 0 auto; }
+        /* Atama mesajındaki "Görevi iptal et" / "Tamam" düğmeleri */
+        .noty_buttons .btn + .btn { margin-left: 6px; }
+        .tk-badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .tk-NEW { background: #eceff3; color: #475467; } .tk-ASSIGNED { background: #e0ecfb; color: #1d4f91; }
+        .tk-ON_THE_WAY { background: #fff1d6; color: #9a6200; } .tk-ON_SITE { background: #e9e2fb; color: #5b2bb5; }
+
+        /* ---------- Firma üstünde hızlı atama penceresi (popup) ---------- */
+        .fm-popup .leaflet-popup-content { margin: 10px 12px; min-width: 250px; }
+        .fp-name { font-weight: 700; font-size: 14px; padding-right: 14px; }
+        .fp-meta { font-size: 12px; color: #667085; margin-bottom: 6px; }
+        .fp-meta .fp-onsite { color: #5b2bb5; font-weight: 600; }
+        .fp-title { width: 100%; margin-bottom: 6px; }
+        /* Penceredeki saat aralığı: "Firmada (bugün) [10:00] – [12:00]" */
+        .fp-time { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 12px; color: #475467; }
+        .fp-time input { flex: 1; min-width: 0; padding: 2px 6px; }
+        .fp-time .fp-time-lbl { white-space: nowrap; font-weight: 600; }
+        .fp-cap { font-size: 11px; font-weight: 700; color: #475467; text-transform: uppercase; margin: 2px 0 4px; }
+        .fp-person { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid #f1f3f5; font-size: 13px; }
+        .fp-person .fp-who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .fp-person .fp-km { color: #1f6f9f; font-weight: 600; font-size: 12px; white-space: nowrap; }
+        .fp-person .btn { padding: 2px 10px; }
+        .fp-empty { font-size: 12.5px; color: #98a2b3; padding: 4px 0; }
+        .fp-more { display: block; width: 100%; margin-top: 8px; }
+
+        /* ---------- Personel listesini aç / kapat ---------- */
+        .mp-side-toggle .mp-side-count { font-weight: 700; }
+        /* Firmalar katmanı düğmesi: açıkken dolu mor (firma rengi), kapalıyken boş çerçeve */
+        .mp-firms-toggle { border: 1px solid #7c3aed; color: #7c3aed; background: #fff; }
+        .mp-firms-toggle[aria-pressed="true"] { background: #7c3aed; color: #fff; }
+        .mp-firms-toggle:hover { filter: brightness(.95); }
+        .mp-firms-toggle[hidden] { display: none; }
+        .mp-wrap.side-closed .mp-side { display: none; }
+
+        /* ---------- Dokunmatik ekran (tablet / telefon): parmak boyutunda hedefler ---------- */
+        @media (pointer: coarse) {
+            .mp-toolbar .btn, .fm-panel .btn, .fm-popup .btn { min-height: 40px; }
+            .mp-item { padding: 9px 10px; }
+            .fm-person { padding: 10px 8px; font-size: 14px; }
+            .fm-person input { width: 18px; height: 18px; }
+            .fm-people { max-height: 260px; }
+            .fp-person { padding: 8px 0; font-size: 14px; }
+            .fp-person .btn { padding: 6px 14px; }
+            .fm-panel .form-control-sm, .fm-popup .form-control-sm { height: 40px; font-size: 15px; }
+        }
+
+        /* Tablet: panel daha geniş */
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .fm-panel { width: 440px; }
+        }
+
+        /* Telefon: liste haritanın üstünde, panel ALTTAN yarım ekran açılan sayfa (tutamaklı) */
+        @media (max-width: 767px){
+            .mp-wrap { flex-direction: column; }
+            /* Telefonda liste yine ÜSTTE (order: -1); altta firma paneli açıldığı için ikisi çakışmasın */
+            .mp-side { order: -1; width: 100%; flex: 0 0 38vh; border-left: 0; border-bottom: 1px solid #dfe3e8; }
+            .fm-panel { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-width: none; height: 64%;
+                border-left: 0; border-top: 3px solid #1f6f9f; border-radius: 14px 14px 0 0; box-shadow: 0 -6px 18px rgba(16,24,40,.2);
+                transform: translateY(105%); }
+            .fm-panel.open { transform: none; }
+            .fm-grip { display: block; width: 44px; height: 5px; border-radius: 3px; background: #ccd3db; margin: 8px auto 0; }
+            .mp-summary { display: none; }
+            /* Araç çubuğu tek satırda kalsın: renk açıklaması ve "Hepsini göster" yazısı gizli (simge kalır) */
+            #planControls { display: none !important; }
+            #btnFitAll span { display: none; }
+        }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+    <!-- Modern görünüm katmanı (yalnız tasarım; HTML / JS değişmez): en son yüklenir -->
+    <link rel="stylesheet" href="../common/sht-modern.css?v=1.2.3">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="mp-wrap">
+
+
+
+    <!-- Sağ: araç çubuğu + harita -->
+    <main class="mp-main">
+        <div class="mp-toolbar">
+            <!-- Personel listesini aç / kapat (tablet ve dar ekranda başlangıçta kapalı, harita geniş kalsın) -->
+            <button type="button" class="btn btn-sm btn-default mp-side-toggle" id="btnToggleSide" title="Personel listesi">
+                <i class="fas fa-users"></i> <span class="mp-side-count" id="sideCount"></span>
+            </button>
+            <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-primary" id="btnModeLive"><i class="fas fa-broadcast-tower"></i> <span data-tr="MODE_LIVE">Canlı</span></button>
+                <button type="button" class="btn btn-outline-primary" id="btnModeRoute"><i class="fas fa-history"></i> <span data-tr="MODE_ROUTE">Geçmiş rota</span></button>
+            </div>
+            <!-- Tek harita: firmalar canlı haritanın üstünde aç / kapa katman (açıkken firmaya dokun → görev ata) -->
+            <button type="button" class="btn btn-sm mp-firms-toggle" id="btnFirms" aria-pressed="true">
+                <i class="fas fa-building"></i> <span data-tr="BTN_FIRMS">Firmalar</span>
+            </button>
+            <span id="planControls" hidden>
+                <span class="fm-legend"><span class="fm-dot fm-NONE"></span> <span data-tr="FIRM_NONE"></span></span>
+                <span class="fm-legend"><span class="fm-dot fm-WAITING"></span> <span data-tr="FIRM_WAITING"></span></span>
+                <span class="fm-legend"><span class="fm-dot fm-ON_SITE"></span> <span data-tr="FIRM_ON_SITE"></span></span>
+            </span>
+            <span id="routeControls" hidden>
+                <label for="routeDate" class="sr-only" data-tr="ROUTE_DATE"></label>
+                <input type="date" id="routeDate" class="form-control form-control-sm">
+                <button type="button" class="btn btn-sm btn-primary" id="btnShowRoute"><i class="fas fa-search-location"></i> <span data-tr="BTN_SHOW_ROUTE">Rotayı göster</span></button>
+            </span>
+            <button type="button" class="btn btn-sm btn-default" id="btnFitAll"><i class="fas fa-expand"></i> <span data-tr="BTN_FIT_ALL">Hepsini göster</span></button>
+            <span class="mp-summary" id="mpSummary"></span>
+        </div>
+        <div class="mp-stage">
+        <div id="map"></div>
+        <!-- Planlama: firma ayrıntı paneli. Masaüstü / tablet: haritanın üstünde SAĞDAN kayar; telefon: ALTTAN açılır.
+             Hızlı atama için önce firmanın üstünde küçük pencere (popup) açılır; bu panel "Ayrıntılar" ile gelir. -->
+        <section class="fm-panel" id="planPanel" aria-hidden="true">
+            <div class="fm-grip" aria-hidden="true"></div>
+            <div class="fm-head">
+                <button type="button" class="close fm-close" id="btnClosePanel" aria-label="Kapat">&times;</button>
+                <i class="fas fa-building"></i> <b id="fmName"></b>
+                <span class="fm-meta" id="fmMeta"></span>
+            </div>
+            <div class="fm-body">
+                <div class="fm-col">
+                    <div class="fm-title" data-tr="OPEN_TASKS"></div>
+                    <div id="fmTasks"></div>
+                </div>
+                <!-- Hızlı görev atama: en yakın müsait önceden seçili; haritada firmadan adaylara kesik çizgiler -->
+                <form class="fm-col fm-assign" id="assignForm" autocomplete="off" onsubmit="return false">
+                    <div class="fm-title" data-tr="ASSIGN_TITLE"></div>
+                    <div class="form-row">
+                        <div class="col-12 mb-1">
+                            <input type="text" id="asTitle" class="form-control form-control-sm" maxlength="200" data-trph="PH_ASSIGN_TASK" placeholder="">
+                        </div>
+                        <!-- Gün + firmada kalınacak saat aralığı (zorunlu) -->
+                        <div class="col-12 mb-1"><input type="date" id="asDate" class="form-control form-control-sm"></div>
+                        <div class="col-6 mb-1"><input type="time" id="asTime" class="form-control form-control-sm" data-trtitle="PH_TIME_START" aria-label="Başlangıç"></div>
+                        <div class="col-6 mb-1"><input type="time" id="asTimeEnd" class="form-control form-control-sm" data-trtitle="PH_TIME_END" aria-label="Bitiş"></div>
+                    </div>
+                    <div class="fm-sub" data-tr="ASSIGN_PERSONEL"></div>
+                    <div id="asPeople" class="fm-people"></div>
+                    <input type="text" id="asDesc" class="form-control form-control-sm mt-1" maxlength="1000" data-trph="ASSIGN_DESC" placeholder="">
+                    <button type="button" class="btn btn-sm btn-primary btn-block mt-2" id="btnAssign">
+                        <i class="fas fa-user-check"></i> <span data-tr="BTN_ASSIGN">Görevi ata</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+        </div>
+    </main>
+
+    <!-- Sol: personel listesi -->
+    <aside class="mp-side">
+        <div class="mp-side-head">
+            <h3><i class="fas fa-users"></i> <span data-tr="LIST_TITLE">Saha personeli</span></h3>
+            <input type="text" id="mpSearch" class="form-control form-control-sm" data-trph="PH_SEARCH" placeholder="" autocomplete="off">
+        </div>
+        <div class="mp-list" id="mpList"></div>
+        <!-- Renk açıklaması: iki sütun, küçük -->
+        <div class="mp-foot">
+            <div class="mp-legend">
+                <span><span class="mp-dot st-active"></span> <span data-tr="STATE_ACTIVE"></span></span>
+                <span><span class="mp-dot st-late"></span> <span data-tr="STATE_LATE"></span></span>
+                <span><span class="mp-dot st-off"></span> <span data-tr="STATE_OFF"></span></span>
+                <span><span class="mp-dot st-none"></span> <span data-tr="STATE_NONE"></span></span>
+                <span class="mp-legend-wide"><span class="mp-dash"></span> <span data-tr="TRAIL_LEGEND"></span></span>
+                <span class="mp-legend-wide"><span class="mp-arrow"></span>➤ <span data-tr="ARROW_LEGEND"></span></span>
+            </div>
+            <div class="mp-refresh"><span data-tr="LAST_REFRESH"></span>: <span id="mpLastRefresh">–</span> · <span data-tr="AUTO_REFRESH"></span></div>
+        </div>
+    </aside>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Rota çizgisindeki yön okları -->
+<script src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+<script src="js/harita-1.0.0.js?v=1.10.0"></script>
+</body>
+</html>

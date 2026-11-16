@@ -4,7 +4,8 @@
  * Menü api/auth.php?action=menu&app=<uygulama>'dan gelir; sunucu kullanıcının rolüne göre süzer
  * (mng_user_role → mng_role_form → mng_form, ağaç mng_menu). Bu dosya yalnızca çizer ve gezinmeyi yönetir.
  *
- *   const menu = PortalMenu.create({ app, api, layout, nav, crumbs, toggle, backdrop, collapseBtn, onOpen });
+ *   const menu = PortalMenu.create({ app, api, layout, nav, crumbs, toggle, backdrop, collapseBtn, onOpen, titleBase });
+ *   titleBase (isteğe bağlı): verilirse sekme başlığı açık ekranla güncellenir: "Maliyet · Biolab - Test maliyetleri"
  *   menu.load().then(function (res) { ... res.allowed, res.first, res.roles ... });
  *   menu.setActive(url);      // çerçevede açılan ekranı menüde işaretler
  *
@@ -121,6 +122,8 @@
                 if (has) { g.classList.add('is-expanded'); }   // seçili ekranın grubu her zaman açık
             });
             renderCrumbs(leaf);
+            // Sekme başlığı: uygulama adı + açık ekran (titleBase verilen uygulamalarda)
+            if (opt.titleBase) { document.title = leaf ? opt.titleBase + ' - ' + leaf.node.name : opt.titleBase; }
             if (leaf) { storeSet(prefix + 'last', leaf.node.url); }
         }
 

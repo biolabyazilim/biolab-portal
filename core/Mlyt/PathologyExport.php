@@ -72,7 +72,7 @@ final class PathologyExport
         foreach ($tests as $t) {
             $results[$t['testId']] = $calc->result((int) $t['testId']);
             foreach ($results[$t['testId']]['lines'] as $l) {
-                if ($l['type'] === 'MATERIAL') { $materialIds[$l['materialId']] = true; }
+                if ($l['type'] === 'MATERIAL' || $l['type'] === 'COMPANION') { $materialIds[$l['materialId']] = true; }
             }
         }
 

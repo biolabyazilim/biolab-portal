@@ -1,0 +1,451 @@
+/**
+ * Saha Takip — modern görünüm katmanı (yalnız tasarım)
+ *
+ * HTML yapısına, jqGrid / select2 / form alanlarına ve JS'e dokunmaz; mevcut sınıfları yeniden boyar.
+ * Sayfada EN SON yüklenir (biolab-theme.css'ten sonra):
+ *     <link rel="stylesheet" href="../common/sht-modern.css?v=1.0.0">
+ * Renkler biolab-theme.css değişkenlerinden (--bl-*) gelir; kurumsal renk değişirse burası da değişir.
+ *
+ * Esin: Tailwind tarzı arayüzler — yumuşak zemin, yuvarlak kartlar, hafif gölge, hap (pill) rozetler,
+ * açık renk tablo başlığı, belirgin tek ana düğme. Kartların satır içi (style="background-color:…")
+ * başlık renkleri tek tip görünüm için !important ile ezilir.
+ */
+
+:root {
+    --sm-bg:           #F4F6FB;   /* sayfa zemini (kartlar bunun üstünde "yüzer") */
+    --sm-card:         #FFFFFF;
+    --sm-line:         #E7EAF0;   /* ince çizgi */
+    --sm-line-strong:  #D5DBE5;
+    --sm-head:         #EEF4FB;   /* tablo başlığı / seçili satır zemini */
+    --sm-hover:        #F7F9FC;
+    --sm-text:         #1F2937;
+    --sm-muted:        #6B7280;
+    --sm-primary:      var(--bl-primary, #1F4E79);
+    --sm-primary-2:    var(--bl-brand, #3C8DC5);
+    --sm-ring:         0 0 0 3px rgba(60, 141, 197, .18);
+    --sm-shadow:       0 1px 2px rgba(16, 24, 40, .04), 0 4px 16px rgba(16, 24, 40, .06);
+    --sm-shadow-hover: 0 2px 4px rgba(16, 24, 40, .06), 0 10px 28px rgba(16, 24, 40, .10);
+    --sm-radius:       14px;      /* kart */
+    --sm-radius-sm:    10px;      /* alan, düğme */
+}
+
+/* ---------- Zemin ve yazı ---------- */
+body.frame-block, body {
+    background: var(--sm-bg);
+    color: var(--sm-text);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Kartlar ---------- */
+.card {
+    border: 1px solid var(--sm-line);
+    border-radius: var(--sm-radius);
+    background: var(--sm-card);
+    box-shadow: var(--sm-shadow);
+    /* overflow: hidden KULLANMA: kart içindeki açılır menüler (Kaydet ▾ → Ekle, select2) kırpılır.
+       Köşeler başlık / alt çubukta ayrıca yuvarlatılır. */
+    overflow: visible;
+    transition: box-shadow .2s ease;
+}
+.card > .card-header:first-child { border-radius: var(--sm-radius) var(--sm-radius) 0 0; }
+.card > .card-footer:last-child  { border-radius: 0 0 var(--sm-radius) var(--sm-radius); }
+/* Açılır menü kartların ve gridin üstünde kalsın */
+.card .dropdown-menu { z-index: 1060; }
+
+/* Kaydet ▾ → Ekle: düğmenin hemen altında küçük, sade menü. İçerideki <button> menü satırı gibi görünür
+   (HTML: <a class="dropdown-item"><button class="btn btn-sm btn-primary" id="btnAdd">…). */
+.card-footer .dropdown-menu {
+    min-width: 0;
+    padding: 4px;
+    margin-top: 4px !important;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(16, 24, 40, .12);
+}
+.card-footer .dropdown-menu .dropdown-item {
+    padding: 0;
+    background: transparent !important;
+}
+.card-footer .dropdown-menu .dropdown-item .btn {
+    width: 100%;
+    justify-content: flex-start;
+    height: 30px;
+    padding: 0 12px 0 10px;
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    color: var(--sm-text);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.card-footer .dropdown-menu .dropdown-item .btn i { color: var(--sm-primary); }
+.card-footer .dropdown-menu .dropdown-item .btn:hover,
+.card-footer .dropdown-menu .dropdown-item .btn:focus { background: var(--sm-head); border: 0; color: var(--sm-primary); }
+.card:hover { box-shadow: var(--sm-shadow-hover); }
+.card > .card-header {
+    background: var(--sm-card) !important;   /* sayfalardaki satır içi renkli başlıklar yerine sade beyaz */
+    border-bottom: 1px solid var(--sm-line);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.card > .card-header .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    color: var(--sm-text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+/* Başlığın solunda kurumsal renkte küçük çubuk (her kartta aynı, sakin vurgu) */
+.card > .card-header .card-title::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--sm-primary-2), var(--sm-primary));
+}
+.card > .card-body { padding: 16px 18px; }
+.card > .card-footer {
+    background: #FAFBFD;
+    border-top: 1px solid var(--sm-line);
+    padding: 12px 18px;
+}
+
+/* ---------- Form alanları ---------- */
+.form-control,
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid var(--sm-line-strong);
+    border-radius: var(--sm-radius-sm) !important;
+    background-color: #fff;
+    box-shadow: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.form-control-sm { min-height: 34px; padding: 6px 10px; font-size: 13px; }
+textarea.form-control-sm { min-height: 0; }
+.form-control:hover,
+.select2-container--default .select2-selection--single:hover { border-color: #BAC4D3; }
+.form-control:focus,
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: var(--sm-primary-2);
+    box-shadow: var(--sm-ring);
+    outline: 0;
+}
+.form-control:disabled, .form-control[readonly],
+.select2-container--default.select2-container--disabled .select2-selection--single {
+    background-color: #F3F5F8;
+    color: var(--sm-muted);
+}
+.select2-container--default .select2-selection--single { height: 34px; }
+.select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 32px; padding-left: 10px; }
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 32px; }
+.select2-dropdown {
+    border: 1px solid var(--sm-line-strong);
+    border-radius: var(--sm-radius-sm);
+    box-shadow: var(--sm-shadow-hover);
+    overflow: hidden;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] { background: var(--sm-primary-2); }
+.select2-search--dropdown .select2-search__field { border-radius: 8px; border: 1px solid var(--sm-line-strong); }
+
+/* Birleşik alanlar (input-group: ikon + kutu + düğme, ör. "Adres ara … [Adresten bul]", grid araması):
+   TEK ince çerçeve, alçak (30 px); içteki parçalar çerçevesiz, düğme ince çizgiyle ayrılır. */
+.input-group {
+    flex-wrap: nowrap;
+    align-items: stretch;
+    height: 32px;
+    border: 1px solid var(--sm-line-strong);
+    border-radius: var(--sm-radius-sm);
+    background: #fff;
+    overflow: hidden;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input-group:hover { border-color: #BAC4D3; }
+.input-group:focus-within { border-color: var(--sm-primary-2); box-shadow: var(--sm-ring); }
+.input-group > .form-control,
+.input-group > .input-group-prepend > .input-group-text,
+.input-group > .input-group-append > .input-group-text,
+.input-group > .input-group-prepend > .btn,
+.input-group > .input-group-append > .btn {
+    height: 30px !important;
+    min-height: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent;
+}
+.input-group > .form-control { padding: 0 10px; font-size: 12.5px; }
+.input-group > .form-control:focus { box-shadow: none !important; }
+.input-group-text { color: #98A2B3; padding: 0 2px 0 10px; font-size: 11px; }
+.input-group > .input-group-prepend + .form-control { padding-left: 6px; }
+.input-group > .input-group-append > .btn {
+    border-left: 1px solid var(--sm-line) !important;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sm-primary);
+    line-height: 30px;
+}
+.input-group > .input-group-append > .btn:hover:not(:disabled) { background: var(--sm-head); color: var(--sm-primary); }
+
+label, .col-form-label-sm, .st-filters label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4B5563;
+    margin-bottom: 4px;
+}
+.form-text.text-muted, small.text-muted { color: var(--sm-muted) !important; font-size: 11.5px; }
+.is-invalid, .form-control.error { border-color: #E5484D !important; box-shadow: 0 0 0 3px rgba(229, 72, 77, .12) !important; }
+label.error { color: #C2272D; font-weight: 500; font-size: 11.5px; margin-top: 3px; }
+
+/* ---------- Düğmeler: minimal (küçük, ince çerçeve, gölgesiz; tek dolu düğme = ana işlem) ---------- */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: none !important;
+    background-image: none !important;   /* bootstrap-theme.css'in düğme gradyanları */
+    text-shadow: none !important;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn:focus-visible, .btn.focus { box-shadow: var(--sm-ring) !important; }
+.btn-sm {
+    padding: 0 10px;
+    height: 30px;
+    line-height: 28px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.btn-sm i, .btn-sm .fas, .btn-sm .far { font-size: 11px; }
+/* Ana işlem (Kaydet, Görevi ata): düz kurumsal mavi */
+.btn-primary, .btn-primary:disabled, .btn-primary.disabled {
+    background: var(--sm-primary);
+    border: 1px solid var(--sm-primary);
+    color: #fff;
+}
+.btn-primary:hover:not(:disabled), .btn-primary:focus { background: var(--bl-primary-dark, #1A4A6B); border-color: var(--bl-primary-dark, #1A4A6B); }
+/* Diğerleri: beyaz zemin, ince çerçeve, renk yalnız yazı / ikonda */
+.btn-success, .btn-warning, .btn-danger, .btn-info,
+.btn-default, .btn-light, .btn-secondary, .btn-outline-secondary {
+    background: #fff;
+    border: 1px solid var(--sm-line-strong);
+    color: #374151;
+}
+.btn-success { color: #1E6B3A; }
+.btn-warning { color: #8A5300; }
+.btn-danger  { color: #B42318; }
+.btn-info    { color: #1D4F91; }
+.btn-success:hover:not(:disabled) { background: #F0FAF3; border-color: #B3E0C3; color: #17552E; }
+.btn-warning:hover:not(:disabled) { background: #FFF8EB; border-color: #F0D29A; color: #7A4900; }
+.btn-danger:hover:not(:disabled)  { background: #FEF3F2; border-color: #F3C3C5; color: #912018; }
+.btn-info:hover:not(:disabled)    { background: var(--sm-head); border-color: #BFD5EA; }
+.btn-default:hover, .btn-light:hover, .btn-secondary:hover, .btn-outline-secondary:hover {
+    background: var(--sm-hover); border-color: #BAC4D3; color: #111827;
+}
+.btn-outline-primary { border-color: #BFD5EA; color: var(--sm-primary); background: #fff; }
+.btn-outline-primary:hover { background: var(--sm-head); color: var(--sm-primary); border-color: var(--sm-primary-2); }
+.btn-outline-danger { border-color: #F3C3C5; color: #C2272D; background: #fff; }
+.btn-outline-danger:hover { background: #FDECEC; color: #A61E23; border-color: #E5484D; }
+/* Pasif hali de aynı sade görünüm (Bootstrap'in .btn-warning:disabled gibi kuralları daha güçlü; onları ezer) */
+.btn-success:disabled, .btn-success.disabled, .btn-warning:disabled, .btn-warning.disabled,
+.btn-danger:disabled, .btn-danger.disabled, .btn-info:disabled, .btn-info.disabled,
+.btn-secondary:disabled, .btn-secondary.disabled, .btn-light:disabled, .btn-light.disabled {
+    background: #fff;
+    border-color: var(--sm-line-strong);
+}
+.btn-success:disabled, .btn-success.disabled { color: #1E6B3A; }
+.btn-warning:disabled, .btn-warning.disabled { color: #8A5300; }
+.btn-danger:disabled,  .btn-danger.disabled  { color: #B42318; }
+.btn:disabled, .btn.disabled { opacity: .45; }
+
+/* Kart altındaki düğmeler: tek satır, aralıklı; dar ekranda düzgün alt satıra iner.
+   "float-left" olan (ör. Görevi iptal et, Telefon oturumlarını kapat) solda kalır, diğerleri sağa yaslanır. */
+.card > .card-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+.card > .card-footer > .float-left { float: none !important; margin-right: auto; }
+.card > .card-footer > * { margin: 0 !important; }
+/* Düğme grubu (Kaydet + açılır Ekle): iç köşeler düz kalsın */
+.btn-group > .btn:not(:last-child):not(.dropdown-toggle),
+.btn-group > .btn-group:not(:last-child) > .btn { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.btn-group > .btn:not(:first-child),
+.btn-group > .btn-group:not(:first-child) > .btn { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.dropdown-menu {
+    border: 1px solid var(--sm-line);
+    border-radius: 12px;
+    box-shadow: var(--sm-shadow-hover);
+    padding: 6px;
+}
+.dropdown-item { border-radius: 8px; }
+
+/* ---------- Uyarı kutuları ---------- */
+.alert { border-radius: var(--sm-radius-sm); border: 1px solid transparent; }
+.alert-warning { background: #FFF7E8; border-color: #F6DDB0; color: #7A4B00; }
+.alert-danger  { background: #FDF0F0; border-color: #F3C3C5; color: #8F1D21; }
+.alert-info    { background: #EEF5FC; border-color: #CFE2F5; color: #1D4F91; }
+
+/* ---------- jqGrid listeleri (yapı aynı; yalnız görünüm) ---------- */
+.ui-jqgrid {
+    border: 1px solid var(--sm-line) !important;
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: inherit;
+    background: #fff;
+}
+.ui-jqgrid .ui-jqgrid-view, .ui-jqgrid .ui-jqgrid-bdiv, .ui-jqgrid .ui-jqgrid-hdiv { border: 0; background: #fff; }
+/* Başlık: açık mavi zemin, koyu mavi yazı (örnekteki gibi) */
+.ui-jqgrid .ui-jqgrid-hdiv, .ui-jqgrid .ui-jqgrid-htable thead tr,
+.ui-jqgrid .ui-jqgrid-htable th, .ui-jqgrid .ui-jqgrid-labels {
+    background: var(--sm-head) !important;
+    background-image: none !important;
+}
+.ui-jqgrid .ui-jqgrid-htable th {
+    border: 0 !important;
+    border-bottom: 1px solid #DCE6F2 !important;
+    color: #24456B;
+    font-size: 12px;
+    font-weight: 600;
+    height: 38px;
+    padding: 0 10px;
+    text-align: left;
+    vertical-align: middle;
+}
+.ui-jqgrid .ui-jqgrid-htable th div,
+.ui-jqgrid .ui-jqgrid-htable th .ui-jqgrid-sortable {
+    color: #24456B !important;      /* jqGrid temasının gri yazısı yerine */
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: auto;
+    line-height: 1.35;
+}
+.ui-jqgrid .ui-jqgrid-sortable { cursor: pointer; }
+.ui-jqgrid .s-ico span { opacity: .55; }
+/* Satırlar: ferah, ince ayraç, üzerine gelince açık zemin */
+.ui-jqgrid tr.jqgrow td {
+    border: 0 !important;
+    border-bottom: 1px solid #F0F2F6 !important;
+    padding: 9px 10px !important;
+    height: auto;
+    font-size: 13px;
+    color: var(--sm-text);
+    vertical-align: middle;
+    white-space: normal;
+    word-break: normal;          /* kelimeyi harf harf bölme ("P / 00 / 2" olmasın) */
+    overflow-wrap: normal;
+}
+
+/* Dar ekran (tablet / telefon): portalın jqg'si grid'i kartın genişliğine SIĞDIRIR, sütunlar ezilir.
+   Tablolara en az genişlik verilir: sütunlar okunur kalır, gövde yatay kaydırılır (başlık jqGrid ile birlikte kayar).
+   Geniş ekranda min-width etkisizdir (tablo zaten daha geniş). */
+.ui-jqgrid .ui-jqgrid-htable,
+.ui-jqgrid .ui-jqgrid-btable { min-width: 720px; }
+.ui-jqgrid .ui-jqgrid-bdiv {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;   /* iPad / telefonda parmakla akıcı kaydırma */
+    overscroll-behavior-x: contain;
+}
+.ui-jqgrid .ui-jqgrid-hdiv { overflow: hidden !important; }
+/* Kaydırılabilir olduğunu belli et: sağ kenarda hafif gölge (yalnız taşma varken anlamlı; zararsız) */
+@media (max-width: 1199px) {
+    .ui-jqgrid .ui-jqgrid-bdiv {
+        background:
+            linear-gradient(to left, #fff 30%, rgba(255,255,255,0)) right / 24px 100% no-repeat local,
+            radial-gradient(farthest-side at 100% 50%, rgba(16,24,40,.12), rgba(16,24,40,0)) right / 10px 100% no-repeat scroll;
+    }
+}
+.ui-jqgrid tr.jqgrow { background: #fff; transition: background-color .12s ease; }
+.ui-jqgrid tr.jqgrow:hover, .ui-jqgrid tr.jqgrow.ui-state-hover { background: var(--sm-hover) !important; }
+.ui-jqgrid tr.jqgrow.ui-state-highlight, .ui-jqgrid tr.jqgrow.success {
+    background: #EAF2FB !important;
+    box-shadow: inset 3px 0 0 var(--sm-primary-2);
+}
+.ui-jqgrid tr.jqgrow.ui-state-highlight td { color: var(--sm-text); }
+.ui-jqgrid tr.jqgfirstrow td { border: 0 !important; }
+/* Alt çubuk (sayfalama) */
+.ui-jqgrid .ui-jqgrid-pager {
+    background: #FAFBFD !important;
+    border: 0 !important;
+    border-top: 1px solid var(--sm-line) !important;
+    height: 40px;
+}
+.ui-jqgrid .ui-pg-table td { font-size: 12px; color: var(--sm-muted); }
+/* Telefonda sayfalama çubuğu kartın dışına taşmasın: kendi içinde kayar, "Görünen 1-4 / 4" yazısı gizlenir */
+.ui-jqgrid .ui-jqgrid-pager .ui-pager-control { overflow-x: auto; overflow-y: hidden; }
+@media (max-width: 575px) {
+    .ui-jqgrid .ui-jqgrid-pager [id$="_right"] { display: none; }
+    .ui-jqgrid .ui-jqgrid-pager [id$="_left"] { display: none; }
+}
+.ui-jqgrid .ui-pg-input, .ui-jqgrid .ui-pg-selbox {
+    border: 1px solid var(--sm-line-strong);
+    border-radius: 8px;
+    height: 26px;
+    padding: 0 6px;
+}
+.ui-jqgrid .ui-pg-button { border-radius: 8px; }
+.ui-jqgrid .ui-pg-button:hover { background: var(--sm-head) !important; border-color: transparent !important; }
+.ui-jqgrid .ui-jqgrid-titlebar { background: #fff; border: 0; }
+
+/* ---------- Durum rozetleri: hap (pill) biçimi, yumuşak renk ---------- */
+.st-badge, .tk-badge, .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: .01em;
+}
+/* Önündeki küçük nokta (duruma göre renk) */
+.st-badge::before, .tk-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .85;
+}
+.st-NEW,        .tk-NEW        { background: #F1F3F6; color: #4B5563; }
+.st-ASSIGNED,   .tk-ASSIGNED   { background: #E6F0FB; color: #1D4F91; }
+.st-ON_THE_WAY, .tk-ON_THE_WAY { background: #FFF2DB; color: #96590A; }
+.st-ON_SITE,    .tk-ON_SITE    { background: #EFEAFD; color: #5B2BB5; }
+.st-DONE                       { background: #E5F5EB; color: #1E6B3A; }
+.st-CANCELLED                  { background: #FDECEC; color: #A61E23; text-decoration: none; }
+.st-CANCELLED::after { content: ''; }
+
+/* ---------- Bildirimler (noty) ---------- */
+.noty_bar {
+    border-radius: 12px !important;
+    box-shadow: var(--sm-shadow-hover) !important;
+    overflow: hidden;
+    border: 1px solid var(--sm-line) !important;
+}
+.noty_bar .noty_message { padding: 12px 14px !important; font-size: 13px; }
+.noty_bar .noty_buttons { padding: 8px 12px !important; background: #FAFBFD; border-top: 1px solid var(--sm-line) !important; }
+.noty_type_success .noty_bar, .noty_bar.noty_type_success { background: #ECF8F1 !important; color: #17552E !important; }
+.noty_type_error .noty_bar, .noty_bar.noty_type_error { background: #FDF0F0 !important; color: #8F1D21 !important; }
+.noty_type_warning .noty_bar, .noty_bar.noty_type_warning { background: #FFF7E8 !important; color: #7A4B00 !important; }
+.noty_type_information .noty_bar, .noty_bar.noty_type_information { background: #EEF5FC !important; color: #1D4F91 !important; }
+
+/* ---------- Kaydırma çubuğu (ince) ---------- */
+* { scrollbar-width: thin; scrollbar-color: #C9D1DD transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #C9D1DD; border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- Hareket azaltma tercihi ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .card, .btn, .ui-jqgrid tr.jqgrow { transition: none; }
+}

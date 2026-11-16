@@ -1,0 +1,30 @@
+{
+    "PAGE_TITLE":"Mesailer",
+    "LIST_TITLE":"Mesailer",
+    "LIST_INFO":"Mesailer mobil uygulamadaki Mesaiye Başla / Mesaiyi Bitir ile oluşur. Saatler telefonun saatidir; internet yokken başlatılan mesai sonradan gelse de doğru saatte görünür.",
+
+    "DATE_FROM":"Başlangıç tarihi",
+    "DATE_TO":"Bitiş tarihi",
+    "FILTER_PERSONEL":"Personel",
+    "FILTER_ALL_PERSONEL":"Bütün personel",
+    "FILTER_STATUS":"Durum",
+    "STATUS_ALL":"Hepsi",
+    "STATUS_OPEN":"Açık (mesaide)",
+    "STATUS_CLOSED":"Kapalı",
+
+    "PERSONEL_CODE":"Kod",
+    "FULL_NAME":"Ad soyad",
+    "STARTED_AT":"Başlangıç",
+    "ENDED_AT":"Bitiş",
+    "DURATION":"Süre",
+    "STATE":"Durum",
+    "BADGE_OPEN":"Mesaide",
+    "BADGE_CLOSED":"Bitti",
+    "REASON_REPLACED":"Kapatılmadan yeni mesai başladı",
+    "REASON_AUTO":"Otomatik kapandı",
+    "BTN_ROUTE":"Rota",
+    "TOTAL":"Toplam",
+    "HOUR_SHORT":"sa",
+    "MIN_SHORT":"dk",
+    "AUTO_REFRESH":"Her 30 sn yenilenir"
+}

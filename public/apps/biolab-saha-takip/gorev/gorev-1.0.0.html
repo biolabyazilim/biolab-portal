@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Görevler</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+    <style>
+        .st-info { margin-bottom: 8px; font-size: 12px; color: #667085; }
+        .st-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .st-NEW        { background: #eceff3; color: #475467; }
+        .st-ASSIGNED   { background: #e0ecfb; color: #1d4f91; }
+        .st-ON_THE_WAY { background: #fff1d6; color: #9a6200; }
+        .st-ON_SITE    { background: #e9e2fb; color: #5b2bb5; }
+        .st-DONE       { background: #e3f4e9; color: #1e6b3a; }
+        .st-CANCELLED  { background: #fde8e8; color: #9b1c1c; text-decoration: line-through; }
+        .st-steps { font-size: 11.5px; white-space: nowrap; }
+        .st-warn { color: #b54708; }
+        .st-filters .form-group { margin-bottom: 6px; }
+        .st-filters label { font-size: 12px; margin-bottom: 2px; }
+        @media (max-width: 991px){ .st-col-form{ margin-top: 16px; } }
+        .st-early { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 4px; font-size: 10.5px; font-weight: 600;
+            background: #fff1d6; color: #9a6200; cursor: help; }
+        .st-cancel-info { display: block; font-size: 10.5px; color: #9b1c1c; white-space: nowrap; margin-top: 1px; }
+        /* Görev geçmişi: zaman çizelgesi */
+        .th-list { list-style: none; margin: 0; padding: 6px 12px; max-height: 320px; overflow-y: auto; }
+        .th-list li { position: relative; padding: 6px 0 6px 18px; border-left: 2px solid #e4e7ec; margin-left: 5px; font-size: 12.5px; }
+        .th-list li:before { content: ''; position: absolute; left: -6px; top: 10px; width: 10px; height: 10px; border-radius: 50%;
+            background: #98a2b3; border: 2px solid #fff; }
+        .th-list li.th-CANCELLED:before { background: #d92d20; }
+        .th-list li.th-DONE:before { background: #16a34a; }
+        .th-list li.th-CREATED:before, .th-list li.th-ASSIGNED:before, .th-list li.th-REASSIGNED:before { background: #1f6f9f; }
+        .th-act { font-weight: 600; }
+        .th-CANCELLED .th-act { color: #b42318; }
+        .th-meta { color: #667085; font-size: 11.5px; }
+        .th-note { color: #344054; font-size: 11.5px; }
+        .th-empty { color: #98a2b3; font-size: 12px; padding: 8px 0; }
+    </style>
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+    <!-- Modern görünüm katmanı (yalnız tasarım; HTML / JS değişmez): en son yüklenir -->
+    <link rel="stylesheet" href="../common/sht-modern.css?v=1.2.3">
+</head>
+
+<body class="frame-block">
+<input type="hidden" id="clientId" name="clientId"/>
+<div class="autoheight">
+    <div class="container-fluid pt-3">
+        <div class="row">
+
+            <!-- Sol: görev listesi -->
+            <div class="col-lg-8 col-sm-12">
+                <div class="card">
+                    <div class="card-header" style="background-color: #a5ccdfba">
+                        <h3 class="card-title" data-tr="LIST_TITLE">Görevler</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row st-filters">
+                            <div class="col-md-2 col-6"><div class="form-group">
+                                <label for="DATE_FROM" data-tr="DATE_FROM"></label>
+                                <input type="date" id="DATE_FROM" class="form-control form-control-sm">
+                            </div></div>
+                            <div class="col-md-2 col-6"><div class="form-group">
+                                <label for="DATE_TO" data-tr="DATE_TO"></label>
+                                <input type="date" id="DATE_TO" class="form-control form-control-sm">
+                            </div></div>
+                            <div class="col-md-3 col-6"><div class="form-group">
+                                <label for="FILTER_PERSONEL_ID" data-tr="FILTER_PERSONEL"></label>
+                                <select id="FILTER_PERSONEL_ID" class="form-control form-control-sm"></select>
+                            </div></div>
+                            <div class="col-md-2 col-6"><div class="form-group">
+                                <label for="FILTER_STATUS" data-tr="FILTER_STATUS"></label>
+                                <select id="FILTER_STATUS" class="form-control form-control-sm base">
+                                    <option value="ALL" data-tr="STATUS_ALL" selected></option>
+                                    <option value="OPEN" data-tr="STATUS_OPEN_ALL"></option>
+                                    <option value="NEW" data-tr="ST_NEW"></option>
+                                    <option value="ASSIGNED" data-tr="ST_ASSIGNED"></option>
+                                    <option value="ON_THE_WAY" data-tr="ST_ON_THE_WAY"></option>
+                                    <option value="ON_SITE" data-tr="ST_ON_SITE"></option>
+                                    <option value="DONE" data-tr="ST_DONE"></option>
+                                    <option value="CANCELLED" data-tr="ST_CANCELLED"></option>
+                                </select>
+                            </div></div>
+                            <div class="col-md-3 col-12"><div class="form-group">
+                                <label for="gridSearchField">&nbsp;</label>
+                                <input type="text" id="gridSearchField" class="form-control form-control-sm" data-trph="PH_GRID_SEARCH_FIELD" placeholder="" autocomplete="off">
+                            </div></div>
+                        </div>
+                        <table id="jqGrid"></table>
+                        <div id="jqGridPager"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ: görev formu -->
+            <div class="col-lg-4 col-sm-12 st-col-form">
+                <div class="card">
+                    <div class="card-header" style="background-color: #c53cb61f">
+                        <h3 class="card-title" data-tr="FORM_TITLE">Görev bilgisi</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning py-1 px-2 small" id="notEditable" data-tr="NOT_EDITABLE_INFO" hidden></div>
+                        <!-- İptal edilmiş görev: kim, ne zaman -->
+                        <div class="alert alert-danger py-1 px-2 small" id="cancelledInfo" hidden></div>
+                        <form id="editFormGorev" class="form-horizontal" method="post" action="javascript:" autocomplete="off" novalidate>
+                            <input type="hidden" id="TASK_ID" name="TASK_ID"/>
+
+                            <div class="form-group">
+                                <label for="CUSTOMER_ID" data-tr="CUSTOMER_ID" class="col-form-label-sm"></label>
+                                <select id="CUSTOMER_ID" name="CUSTOMER_ID" class="form-control form-control-sm"></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="TITLE" data-tr="TITLE" class="col-form-label-sm"></label>
+                                <input type="text" id="TITLE" name="TITLE" class="form-control form-control-sm" maxlength="200" data-trph="PH_TITLE" placeholder=""/>
+                            </div>
+                            <!-- Gün + firmada kalınacak saat aralığı (ikisi de zorunlu) -->
+                            <div class="row">
+                                <div class="col-12"><div class="form-group">
+                                    <label for="PLANNED_DATE" data-tr="PLANNED_DATE" class="col-form-label-sm"></label>
+                                    <input type="date" id="PLANNED_DATE" name="PLANNED_DATE" class="form-control form-control-sm"/>
+                                </div></div>
+                                <div class="col-6"><div class="form-group">
+                                    <label for="PLANNED_TIME" data-tr="PLANNED_TIME" class="col-form-label-sm"></label>
+                                    <input type="time" id="PLANNED_TIME" name="PLANNED_TIME" class="form-control form-control-sm"/>
+                                </div></div>
+                                <div class="col-6"><div class="form-group">
+                                    <label for="PLANNED_END_TIME" data-tr="PLANNED_END_TIME" class="col-form-label-sm"></label>
+                                    <input type="time" id="PLANNED_END_TIME" name="PLANNED_END_TIME" class="form-control form-control-sm"/>
+                                </div></div>
+                                <div class="col-12"><small class="form-text text-muted mt-n2 mb-2" data-tr="TIME_WINDOW_INFO"></small></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="PERSONEL_ID" data-tr="PERSONEL_ID" class="col-form-label-sm"></label>
+                                <select id="PERSONEL_ID" name="PERSONEL_ID" class="form-control form-control-sm"></select>
+                                <small class="form-text text-muted" data-tr="PERSONEL_INFO"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="DESCRIPTION" data-tr="DESCRIPTION" class="col-form-label-sm"></label>
+                                <textarea id="DESCRIPTION" name="DESCRIPTION" class="form-control form-control-sm" rows="3" maxlength="1000"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-right">
+                        <button type="button" class="btn btn-sm btn-warning float-left" id="btnCancelTask"><i class="fas fa-times-circle"></i> <span data-tr="BTN_CANCEL_TASK">Görevi iptal et</span></button>
+                        <button type="button" class="btn btn-sm btn-success" id="btnNew"><i class="fas fa-file"></i> <span data-tr="BTN_NEW_TEXT">Yeni</span></button>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-primary" id="btnSave"><i class="fas fa-save"></i> <span data-tr="BTN_SAVE_TEXT">Kaydet</span></button>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="btnAddToggle">
+                                    <span class="caret"></span><span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="javascript:">
+                                        <button class="btn btn-sm btn-primary" type="button" id="btnAdd"><i class="fas fa-plus"></i> <span data-tr="BTN_ADD_TEXT">Ekle</span></button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Görev geçmişi (sht_task_log): seçili görevde her işlem — kim, ne zaman, nereden -->
+                <div class="card mt-3" id="historyCard" hidden>
+                    <div class="card-header py-2" style="background-color: #eef2f6">
+                        <h3 class="card-title"><i class="fas fa-history"></i> <span data-tr="HISTORY_TITLE">Görev geçmişi</span></h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="th-list" id="historyList"></ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/datetimepicker-4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/dataTables-1.10.20/datatables.min.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="../common/sht-common.js?v=1.0.0"></script>
+<script src="js/gorev-1.0.0.js?v=1.2.0"></script>
+</body>
+</html>

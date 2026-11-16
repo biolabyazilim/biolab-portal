@@ -30,11 +30,12 @@ $.DLNFrame = {
         searchTimer: null,
         study: null,        // getGridList → resObject.study
         detail: null,       // açık testin ayrıntısı
-        lines: []           // düzenlenen reçete: { materialId, materialName, unitName, quantity, unitCost }
+        lines: [],          // düzenlenen reçete: { materialId, materialName, unitName, quantity, unitCost }
+        companions: []      // kitle birlikte gelenler (salt okunur): { kitId, materialName, unitCost, perTest }
     },
     opt: {
         storeKey: 'mlyt.material.studyId',   // malzeme ekranıyla aynı: son seçilen çalışma
-        defaultLabUnit: 'PATHOLOGY'          // açılışta patoloji testleri (ilk maliyetlendirilen grup)
+        defaultLabUnit: ''                   // açılışta tüm birimler; kullanıcı isterse Biolab / Patoloji seçer
     },
 
     init: function () {
@@ -126,7 +127,7 @@ $.DLNFrame = {
             select2:{ placeholder:'Tüm birimler', allowClear:true, minimumResultsForSearch:-1 },
             ajax:{ url:proxyPath + modulePath + 'getLAB_UNIT' },
             event:{
-                // Açılışta patoloji; değer change tetiklemeden verilir (ilk liste çalışma seçilince gelir)
+                // Açılışta tüm birimler (boş); değer change tetiklemeden verilir (ilk liste çalışma seçilince gelir)
                 afterLoad:function (el) { $(el).val($t.opt.defaultLabUnit).trigger('change.select2'); $t.togglePathologyExcel(); }
             }
         });
@@ -287,6 +288,15 @@ $.DLNFrame = {
                 return { materialId: l.materialId, materialName: l.materialName, unitName: l.unitName,
                          quantity: $t.qty(l.quantity), unitCost: l.unitCost, reason: l.reason };
             });
+            // Kitle birlikte gelenler (COMPANION): kaydedilmez; test başı adet = satır miktarı ÷ kitin kayıtlı miktarı
+            $d.companions = [];
+            (d.lines || []).forEach(function (l) {
+                if (l.type !== 'COMPANION') { return; }
+                const kit = (d.lines || []).filter(function (k) { return k.type === 'MATERIAL' && String(k.materialId) === String(l.kitId); })[0];
+                const kq = kit ? Number(kit.quantity) : 0;
+                $d.companions.push({ kitId: l.kitId, kitName: l.kitName, materialName: l.materialName, unitName: l.unitName,
+                                     unitCost: l.unitCost, reason: l.reason, perTest: kq > 0 ? Number(l.quantity) / kq : 0 });
+            });
             $t.renderRecipe();
             $('#MATERIAL_ID').val('').change();
             $('#ADD_QTY').val('1');
@@ -332,6 +342,20 @@ $.DLNFrame = {
         if (!$t.data.lines.length) {
             $body.append('<tr><td colspan="6" class="tc-sub">Reçete boş. Aşağıdan malzeme ekleyin.</td></tr>');
         }
+        // Kitle birlikte gelen malzemeler (Malzemeler ekranındaki kit listesi): salt okunur; miktar = kit miktarı × test başı adet.
+        // Kit reçeteden çıkarılırsa satırları da kalkar.
+        ($t.data.companions || []).forEach(function (c, i) {
+            if (!$t.data.lines.some(function (l) { return String(l.materialId) === String(c.kitId); })) { return; }
+            $body.append($('<tr class="tc-companion">').attr('data-c', i).append(
+                $('<td>').append($('<span class="tc-sub">').text('↳ '), document.createTextNode(c.materialName + ' '),
+                    $('<span class="tc-badge tc-s-OK">').text('kitle birlikte').attr('title', c.kitName + ' kitinin listesinden (Malzemeler ekranı)')),
+                $('<td class="text-right tc-mono js-comp-qty">'),
+                $('<td>').text(c.unitName || ''),
+                $('<td class="tc-num">').html(c.unitCost === null || c.unitCost === undefined
+                    ? '<span class="tc-sub">' + $t.esc(c.reason || '—') + '</span>' : $t.esc($t.fmt(c.unitCost, 4))),
+                $('<td class="tc-num js-amount">'),
+                $('<td>')));
+        });
         $t.renderRecipeTotals();
     },
 
@@ -344,6 +368,17 @@ $.DLNFrame = {
             const q = $t.parse(l.quantity);
             const amount = (q !== null && l.unitCost !== null && l.unitCost !== undefined) ? q * l.unitCost : null;
             if (amount === null) { partial = true; } else { total += amount; }
+            $(this).find('.js-amount').text(amount === null ? '—' : $t.fmt(amount, 2));
+        });
+        // Kitle birlikte gelenler: kitin formdaki (değişmiş olabilir) miktarı × test başı adet
+        $('.js-recipe-body tr.tc-companion').each(function () {
+            const c = $t.data.companions[Number($(this).data('c'))];
+            const kit = $t.data.lines.filter(function (l) { return String(l.materialId) === String(c.kitId); })[0];
+            const kq = kit ? $t.parse(kit.quantity) : null;
+            const q = kq !== null ? kq * c.perTest : null;
+            const amount = (q !== null && c.unitCost !== null && c.unitCost !== undefined) ? q * c.unitCost : null;
+            if (amount === null) { partial = true; } else { total += amount; }
+            $(this).find('.js-comp-qty').text(q === null ? '—' : $t.qty(q));
             $(this).find('.js-amount').text(amount === null ? '—' : $t.fmt(amount, 2));
         });
         $('.js-recipe-total').text($t.fmt(total, 2) + (partial ? ' (eksik)' : ''));

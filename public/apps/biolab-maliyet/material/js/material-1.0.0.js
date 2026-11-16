@@ -96,6 +96,9 @@ $.DLNFrame = {
         $('#CURRENCY, #USAGE_UNIT, #SUPPLIER_ID').on('change', $t.preview);
         $('#CATEGORY_ID').on('change', function () { $t.applyKitMode(true); });
         $('#btnTestLink').on('click', $t.linkTest);
+        // Kitle birlikte kullanılan malzemeler: ekle / çıkar hemen kaydedilir
+        $('#btnCompanionAdd').on('click', $t.addCompanion);
+        $('#materialCompanions').on('click', '.btnCompanionRemove', function () { $t.removeCompanion($(this).data('id'), $(this).data('name')); });
         $('#materialTests').on('click', '.btnTestUnlink', function () { $t.unlinkTest($(this).data('id'), $(this).data('code')); });
         $('#TEST_SEARCH').on('input', $t.filterTests);
         $('#modalMaterial input, #modalMaterial select').on('input change', function () { $('#materialMsg').prop('hidden', true); });
@@ -115,6 +118,7 @@ $.DLNFrame = {
         $t.initUSAGE_UNIT();
         $t.initCURRENCY();
         $t.initTEST_ID();
+        $t.initCOMPANION_ID();
     },
 
     // Çalışma: yüklenince istenen (yoksa son seçilen, o da yoksa ilk) çalışma seçilir; change → liste
@@ -283,6 +287,24 @@ $.DLNFrame = {
     },
 
     // Malzemenin (kitin) bağlanacağı test: kod ya da adla aranır
+    // Kitle birlikte kullanılacak malzeme (kit olmayan malzemeler): kısa kod ya da adla aranır
+    initCOMPANION_ID: function () {
+        $('#COMPANION_ID').slb({
+            field:{
+                value:'materialId',
+                text:'materialText',
+                disabledFL:'activeFl'
+            },
+            select2:{
+                placeholder:'Pipet ucu, küvet… yazın',
+                allowClear:true
+            },
+            ajax:{
+                url:proxyPath + modulePath + 'getCOMPANION_ID'
+            }
+        });
+    },
+
     initTEST_ID: function () {
         $('#TEST_ID').slb({
             field:{
@@ -697,6 +719,9 @@ $.DLNFrame = {
         $('#TEST_QUANTITY').val('1');
         $('#TEST_SEARCH').val('');   // başka malzemeden kalan arama temizlenir
         $t.renderTests(m ? (m.tests || []) : []);
+        $('#COMPANION_ID').val('').change();
+        $('#COMPANION_QUANTITY').val('1');
+        $t.renderCompanions(m ? (m.companions || []) : []);
 
         $('#materialMsg').prop('hidden', true).text('');
         $t.applyKitMode(false);
@@ -821,6 +846,96 @@ $.DLNFrame = {
                                     $t.reloadGrid(false);
                                 } else {
                                     $('#materialMsg').text((result && result['resMsg']) || 'Kaldırılamadı.').prop('hidden', false);
+                                }
+                            }
+                        });
+                    }
+                },
+                {
+                    addClass: 'btn btn-danger',
+                    text: 'Vazgeç',
+                    onClick: function ($noty) { $noty.close(); }
+                }
+            ]
+        });
+    },
+
+    /* ---------- Kitle birlikte kullanılan malzemeler (yalnız kit) ---------- */
+
+    // Liste: malzeme, test başı miktar, birim, seçili çalışmadaki birim maliyet ve tutar; altta kitin bir testine eklenen toplam
+    renderCompanions: function (rows) {
+        const $t = $.DLNFrame;
+        const esc = function (v) { return $('<span>').text(v === null || v === undefined ? '' : v).html(); };
+        $('.js-comp-count').text(rows.length);
+        if (!rows.length) {
+            $('#materialCompanions').html('<tr class="mt-empty"><td colspan="6">Kitle birlikte kullanılan malzeme eklenmedi (pipet ucu, küvet…).</td></tr>');
+            $('.js-comp-total').prop('hidden', true);
+            return;
+        }
+        let sum = 0, complete = true;
+        $('#materialCompanions').html(rows.map(function (r) {
+            if (r.amount === null) { complete = false; } else { sum += Number(r.amount); }
+            return '<tr><td>' + (r.shortCode ? '<b class="mt-mono">' + esc(r.shortCode) + '</b> ' : '') + esc(r.materialName) + '</td>'
+                + '<td class="mt-num mt-mono">' + $t.qty(r.quantity) + '</td><td>' + esc(r.usageUnitName) + '</td>'
+                + '<td class="mt-num mt-mono">' + (r.unitCost === null ? '<span class="mt-badge mt-badge-warn">Fiyat yok</span>' : $t.fmt(r.unitCost, 4)) + '</td>'
+                + '<td class="mt-num mt-mono">' + (r.amount === null ? '' : $t.fmt(r.amount, 4)) + '</td>'
+                + '<td class="text-right"><button type="button" class="btn btn-link btn-sm btnCompanionRemove" data-id="' + r.materialCompanionId
+                + '" data-name="' + esc(r.materialName) + '" title="Listeden çıkar"><i class="fas fa-times"></i></button></td></tr>';
+        }).join(''));
+        $('.js-comp-sum').text($t.fmt(sum, 4) + ' TL' + (complete ? '' : ' +'));
+        $('.js-comp-total').prop('hidden', false);
+    },
+
+    // Seçili malzemeyi test başı miktarıyla ekler (hemen kaydedilir); listede varsa miktarı güncellenir
+    addCompanion: function () {
+        const $t = $.DLNFrame;
+        const msg = function (text) { $('#materialMsg').text(text).prop('hidden', false); };
+        const id = $('#COMPANION_ID').val();
+        const qty = $t.parse($('#COMPANION_QUANTITY').val());
+        if (!id) { msg('Eklenecek malzemeyi seçin.'); return; }
+        if (qty === null || qty <= 0) { msg('Test başı miktar sıfırdan büyük olmalı.'); return; }
+
+        $.ajaxq('frame', {
+            url: proxyPath + modulePath + 'setMaterialCompanion',
+            type: 'POST',
+            dataType: 'json',
+            data: { MATERIAL_ID: $('#MATERIAL_ID').val(), COMPANION_ID: id, QUANTITY: $('#COMPANION_QUANTITY').val(), STUDY_ID: $('#STUDY_ID').val() || '' },
+            beforeSend: function () { $('#btnCompanionAdd').prop('disabled', true); },
+            success: function (result) {
+                if (result && result['resCode'] === 0) {
+                    $.fn.ntyi({ type: 'information', layout: 'topRight', text: result['resMsg'] });
+                    $t.renderCompanions((result['resObject'] && result['resObject']['companions']) || []);
+                    $('#COMPANION_ID').val('').change();
+                    $('#COMPANION_QUANTITY').val('1');
+                } else {
+                    msg((result && result['resMsg']) || 'Eklenemedi.');
+                }
+            },
+            complete: function () { $('#btnCompanionAdd').prop('disabled', false); }
+        });
+    },
+
+    removeCompanion: function (companionId, name) {
+        const $t = $.DLNFrame;
+        $.fn.nty({
+            type: 'error',
+            text: '"' + name + '" kitin listesinden çıkarılsın mı? Kitin bağlı olduğu testlerin maliyetinden de düşer.',
+            buttons: [
+                {
+                    text: 'Evet, çıkar',
+                    onClick: function ($noty) {
+                        $noty.close();
+                        $.ajaxq('frame', {
+                            url: proxyPath + modulePath + 'setMaterialCompanionDelete',
+                            type: 'POST',
+                            dataType: 'json',
+                            data: { MATERIAL_ID: $('#MATERIAL_ID').val(), MATERIAL_COMPANION_ID: companionId, STUDY_ID: $('#STUDY_ID').val() || '' },
+                            success: function (result) {
+                                if (result && result['resCode'] === 0) {
+                                    $.fn.ntyi({ type: 'information', layout: 'topRight', text: result['resMsg'] });
+                                    $t.renderCompanions((result['resObject'] && result['resObject']['companions']) || []);
+                                } else {
+                                    $('#materialMsg').text((result && result['resMsg']) || 'Çıkarılamadı.').prop('hidden', false);
                                 }
                             }
                         });

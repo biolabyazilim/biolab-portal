@@ -7,8 +7,8 @@
  *   .pm-layout.is-open      mobilde çekmece açık
  */
 :root {
-    --pm-width: 248px;
-    --pm-width-collapsed: 64px;
+    --pm-width: 208px;              /* kompakt (eski 248) */
+    --pm-width-collapsed: 56px;     /* eski 64 */
     --pm-bg: var(--bl-nav-dark, #1A4A6B);
     --pm-bg-hover: rgba(255, 255, 255, .08);
     --pm-bg-active: rgba(255, 255, 255, .16);
@@ -29,16 +29,17 @@
     transition: width var(--pm-speed) ease, flex-basis var(--pm-speed) ease;
     z-index: 20;
 }
-.pm-nav { list-style: none; margin: 0; padding: 10px 8px; }
+.pm-nav { list-style: none; margin: 0; padding: 6px 8px; }
 .pm-nav ul { list-style: none; margin: 0; padding: 0; }
 
+/* Menü satırı: kompakt (34 px, 13 px yazı; eski 40 px / 14 px) */
 .pm-item,
 .pm-group-btn {
-    display: flex; align-items: center; gap: 12px; width: 100%;
-    min-height: 40px; margin: 2px 0; padding: 0 12px;
-    border: 0; border-radius: 8px;
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    min-height: 34px; margin: 1px 0; padding: 0 10px;
+    border: 0; border-radius: 7px;
     background: transparent; color: var(--pm-text);
-    font: inherit; font-size: 14px; text-align: left; text-decoration: none; white-space: nowrap;
+    font: inherit; font-size: 13px; text-align: left; text-decoration: none; white-space: nowrap;
     cursor: pointer;
     transition: background var(--pm-speed), color var(--pm-speed);
 }
@@ -46,7 +47,7 @@
 .pm-item:focus-visible, .pm-group-btn:focus-visible { background: var(--pm-bg-hover); color: var(--pm-text-strong); text-decoration: none; outline: none; }
 .pm-item:focus-visible, .pm-group-btn:focus-visible { box-shadow: inset 0 0 0 2px var(--pm-accent); }
 
-.pm-icon { flex: 0 0 20px; width: 20px; text-align: center; font-size: 16px; }
+.pm-icon { flex: 0 0 18px; width: 18px; text-align: center; font-size: 14px; }
 .pm-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
 .pm-chevron { font-size: 11px; transition: transform var(--pm-speed); }
 
@@ -62,13 +63,30 @@
 .pm-group.is-expanded > .pm-group-btn .pm-chevron { transform: rotate(90deg); }
 .pm-group > ul { display: none; }
 .pm-group.is-expanded > ul { display: block; }
-.pm-group > ul .pm-item { padding-left: 44px; font-size: 13.5px; min-height: 36px; }
-.pm-group > ul .pm-item .pm-icon { font-size: 14px; }
+.pm-group > ul .pm-item { padding-left: 38px; font-size: 12.5px; min-height: 30px; }
+.pm-group > ul .pm-item .pm-icon { font-size: 12px; }
 .pm-group.has-active > .pm-group-btn { color: var(--pm-text-strong); }
 
-/* Alt kısım: daralt düğmesi */
-.pm-foot { margin-top: auto; padding: 8px; border-top: 1px solid rgba(255, 255, 255, .1); }
-.pm-collapse-btn .pm-icon { transition: transform var(--pm-speed); }
+/* Daralt düğmesi: menünün EN ÜSTÜNDE, sağda küçük ikon (« / »). HTML'de .pm-foot menüden sonra gelir;
+   order ile üste alınır (bütün uygulamaların index.html'i aynı kalır). Yazı gizli; açıklama title ipucunda. */
+.pm-foot {
+    order: -1;
+    position: sticky; top: 0; z-index: 1;          /* menü uzun olup kayarsa da üstte kalsın */
+    display: flex; justify-content: flex-end;
+    padding: 8px 8px 0;
+    background: var(--pm-bg);
+}
+.pm-foot + .pm-nav, .pm-nav { padding-top: 4px; }
+.pm-collapse-btn {
+    width: 32px; min-height: 32px; height: 32px; margin: 0; padding: 0;
+    justify-content: center; gap: 0;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, .6);
+}
+.pm-collapse-btn:hover { color: #fff; background: var(--pm-bg-hover); }
+.pm-collapse-btn:focus:not(:focus-visible) { outline: none; box-shadow: none; }   /* fareyle tıklayınca çerçeve kalmasın; klavyede kalır */
+.pm-collapse-btn .pm-label { display: none; }
+.pm-collapse-btn .pm-icon { flex: 0 0 auto; font-size: 13px; transition: transform var(--pm-speed); }
 
 /* Daraltılmış (yalnızca ikon) */
 .pm-layout.is-collapsed .pm-sidebar { flex-basis: var(--pm-width-collapsed); width: var(--pm-width-collapsed); }
@@ -82,6 +100,8 @@
 .pm-layout.is-collapsed .pm-group + .pm-group,
 .pm-layout.is-collapsed .pm-group:not(:first-child) { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, .1); }
 .pm-layout.is-collapsed .pm-collapse-btn .pm-icon { transform: rotate(180deg); }
+.pm-layout.is-collapsed .pm-foot { justify-content: center; padding: 8px 0 0; }
+.pm-layout.is-collapsed .pm-collapse-btn { width: 38px; }
 
 /* İçerik: yol (breadcrumb) + çerçeve */
 .pm-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
@@ -128,9 +148,9 @@
     /* mobilde daraltma tercihi uygulanmaz */
     .pm-layout.is-collapsed .pm-sidebar { width: var(--pm-width); }
     .pm-layout.is-collapsed .pm-label, .pm-layout.is-collapsed .pm-chevron { display: initial; }
-    .pm-layout.is-collapsed .pm-item, .pm-layout.is-collapsed .pm-group-btn { justify-content: flex-start; padding: 0 12px; }
+    .pm-layout.is-collapsed .pm-item, .pm-layout.is-collapsed .pm-group-btn { justify-content: flex-start; padding: 0 10px; }
     .pm-layout.is-collapsed .pm-group > .pm-group-btn { display: flex; }
-    .pm-layout.is-collapsed .pm-group > ul .pm-item { padding-left: 44px; }
+    .pm-layout.is-collapsed .pm-group > ul .pm-item { padding-left: 38px; }
     .pm-crumbs { padding: 8px 16px; }
 }
 
