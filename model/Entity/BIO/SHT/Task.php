@@ -164,6 +164,22 @@ class Task
         return $i === false ? -1 : $i;
     }
 
+    /**
+     * "Yola çıktım" geri alındı (yanlışlıkla basıldı / yolda vazgeçildi): Atandı'ya döner, yol rotası silinir.
+     * Ne zaman / kim sht_task_log'da (WAY_UNDONE) kalır.
+     */
+    public function undoOnTheWay(): self
+    {
+        $this->status = self::ASSIGNED;
+        $this->onTheWayAt = null;
+        $this->routePolyline = null;
+        $this->routeDistanceM = null;
+        $this->routeDurationS = null;
+        $this->routeAt = null;
+        $this->routeCount = 0;
+        return $this;
+    }
+
     public function markOnTheWay(\DateTimeImmutable $at): self
     {
         $this->status = self::ON_THE_WAY;

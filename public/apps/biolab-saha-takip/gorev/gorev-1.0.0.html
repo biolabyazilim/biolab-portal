@@ -31,6 +31,8 @@
         @media (max-width: 991px){ .st-col-form{ margin-top: 16px; } }
         .st-early { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 4px; font-size: 10.5px; font-weight: 600;
             background: #fff1d6; color: #9a6200; cursor: help; }
+        .st-late { display: inline-block; padding: 0 5px; border-radius: 4px; font-size: 10.5px; font-weight: 600;
+            background: #fde2e2; color: #b42318; cursor: help; }
         .st-cancel-info { display: block; font-size: 10.5px; color: #9b1c1c; white-space: nowrap; margin-top: 1px; }
         /* Görev geçmişi: zaman çizelgesi */
         .th-list { list-style: none; margin: 0; padding: 6px 12px; max-height: 320px; overflow-y: auto; }
@@ -42,6 +44,8 @@
         .th-list li.th-CREATED:before, .th-list li.th-ASSIGNED:before, .th-list li.th-REASSIGNED:before { background: #1f6f9f; }
         .th-act { font-weight: 600; }
         .th-CANCELLED .th-act { color: #b42318; }
+        .th-list li.th-WAY_UNDONE:before { background: #f79009; }
+        .th-WAY_UNDONE .th-act { color: #b54708; }
         .th-meta { color: #667085; font-size: 11.5px; }
         .th-note { color: #344054; font-size: 11.5px; }
         .th-empty { color: #98a2b3; font-size: 12px; padding: 8px 0; }
@@ -198,6 +202,6 @@
 <script src="../../../lib/app/js/lib.js?v=1.1.5"></script>
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
 <script src="../common/sht-common.js?v=1.0.0"></script>
-<script src="js/gorev-1.0.0.js?v=1.2.0"></script>
+<script src="js/gorev-1.0.0.js?v=1.3.0"></script>
 </body>
 </html>

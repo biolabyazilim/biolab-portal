@@ -110,6 +110,7 @@ $.DLNFrame = {
         // İptal edilmişse altında ne zaman · kim ("13.11.2026 14:49 · Sabiha Nur")
         function status(v, o, r) {
             return '<span class="st-badge st-' + v + '">' + $d.lang['ST_' + v] + '</span>'
+                + (r.late === 'Y' ? ' <span class="st-late" title="' + esc($d.lang['LATE_TIP']) + '">' + esc($d.lang['LATE']) + '</span>' : '')
                 + (r.cancelInfo ? '<span class="st-cancel-info" title="' + esc(r.cancelInfo) + '">' + esc(r.cancelInfo) + '</span>' : '');
         }
         function steps(v, o, r) {
@@ -140,7 +141,7 @@ $.DLNFrame = {
                 { label: $d.lang['STATUS'],       name: 'status',       index: 'mt.status',       width: 105, formatter: status },
                 { label: $d.lang['STEPS'],        name: 'steps',        index: 'steps',           width: 130, sortable: false, formatter: steps },
                 { label: $d.lang['VISIT'],        name: 'visitMinutes', index: 'visitMinutes',    width: 95, align: 'right', sortable: false, formatter: visit },
-                { name: 'plannedRange', hidden: true }, { name: 'doneEarly', hidden: true }, { name: 'earlyReason', hidden: true },
+                { name: 'plannedRange', hidden: true }, { name: 'doneEarly', hidden: true }, { name: 'earlyReason', hidden: true }, { name: 'late', hidden: true },
                 { name: 'onTheWayAt', hidden: true }, { name: 'arrivedAt', hidden: true }, { name: 'doneAt', hidden: true },
                 { name: 'arriveWarn', hidden: true }, { name: 'arriveDistanceM', hidden: true }, { name: 'cancelInfo', hidden: true }
             ],
@@ -191,6 +192,7 @@ $.DLNFrame = {
             $('#CUSTOMER_ID, #PLANNED_DATE, #PLANNED_TIME, #PLANNED_END_TIME, #PERSONEL_ID').prop('disabled', !editable);
             $('#notEditable').prop('hidden', editable || r.status === 'DONE' || r.status === 'CANCELLED');
             const finished = r.status === 'DONE' || r.status === 'CANCELLED';
+            $t.data.selectedStatus = r.status;   // iptal onayında "personel şu an firmada" uyarısı için
             $('#btnSave').prop('disabled', !editable);
             $('#btnCancelTask').prop('disabled', finished);
             $('#btnNew').prop('disabled', false);
@@ -257,7 +259,10 @@ $.DLNFrame = {
 
     cancelTask: function () {
         const $t = $.DLNFrame;
-        $.SHT.confirm('warning', $t.data.lang['INF_CANCEL_WARNING'], function () {
+        // Personel firmadaysa (Vardım basılmış) yönetici bunu bilerek iptal etsin
+        const msg = ($t.data.selectedStatus === 'ON_SITE' ? $t.data.lang['INF_CANCEL_ON_SITE'] + ' ' : '')
+            + $t.data.lang['INF_CANCEL_WARNING'];
+        $.SHT.confirm('warning', msg, function () {
             $.SHT.post(modulePath, 'setCancel', { TASK_ID: $('#TASK_ID').val() }, function (result) {
                 $.fn.ntyi({ type: 'information', layout: 'topRight', text: result['resMsg'] });
                 $t.reload();

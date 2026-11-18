@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title data-tr="PAGE_TITLE">Aylık takip · Maliyet</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/plugins/bootstrap/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/font-awesome-5.10.2/css/all.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2.min.css">
+    <link rel="stylesheet" href="../../../lib/plugins/select2-4.0.12/css/select2-theme.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.css">
+    <link rel="stylesheet" href="../../../lib/plugins/jqGrid-4.6.0/css/ui.jqgrid.bootstrap.css">
+    <link rel="stylesheet" href="../../../lib/app/css/plugins.css">
+    <link rel="stylesheet" href="../css/hb.css?v=1.3.1">
+
+    <style>
+        body.mt-page { background: var(--hb-bg); color: var(--hb-text); font-family: var(--hb-font); font-size: 14px; }
+        .mt-wrap { padding: 20px 24px 40px; max-width: 1440px; }
+
+        /* Başlık + dönem çubuğu */
+        .mt-head { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between; margin-bottom: 16px; }
+        .mt-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--hb-navy); }
+        .mt-lead { margin: 4px 0 0; color: var(--hb-muted); font-size: 13px; max-width: 640px; }
+        .mt-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+        .mt-field { display: flex; flex-direction: column; gap: 4px; min-width: 190px; }
+        .mt-field label { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--hb-muted); }
+        .mt-field select { width: 100%; }
+        .mt-bar .btn { height: 34px; font-weight: 600; white-space: nowrap; }
+
+        /* Adımlar */
+        .mt-steps { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 16px; background: #fff; border: 1px solid var(--hb-border); border-radius: 999px; }
+        .mt-step { border: 0; background: transparent; padding: 7px 16px; border-radius: 999px; font-weight: 600; font-size: 13px; color: var(--hb-muted); cursor: pointer; }
+        .mt-step .mt-step-no { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 6px; border-radius: 50%;
+                               background: #eef1f5; color: var(--hb-text); font-size: 11px; }
+        .mt-step.active { background: var(--hb-navy); color: #fff; }
+        .mt-step.active .mt-step-no { background: rgba(255,255,255,.22); color: #fff; }
+
+        .mt-empty { padding: 48px 16px; text-align: center; color: var(--hb-muted); background: #fff; border: 1px dashed var(--hb-border); border-radius: 12px; }
+        .mt-empty i { display: block; font-size: 28px; margin-bottom: 10px; color: var(--hb-navy); opacity: .5; }
+
+        /* Kaynak kartları */
+        .mt-sources { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+        .mt-src { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--hb-border); border-radius: 12px; overflow: hidden; }
+        .mt-src-head { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px 10px; }
+        .mt-src-icon { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: #eef4fb; color: var(--hb-navy); font-size: 16px; }
+        .mt-src-title { margin: 0; font-size: 15px; font-weight: 700; }
+        .mt-src-who { margin: 2px 0 0; font-size: 12px; color: var(--hb-muted); }
+        .mt-src-state { margin-left: auto; }
+        .mt-src-body { padding: 0 16px 12px; flex: 1; }
+        .mt-file { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-top: 8px; background: #f7f9fc; border: 1px solid #e6ebf2; border-radius: 10px; }
+        .mt-file-main { flex: 1; min-width: 0; }
+        .mt-file-name { font-weight: 600; word-break: break-all; }
+        .mt-file-meta { font-size: 12px; color: var(--hb-muted); }
+        .mt-file-warn { margin: 6px 0 0; padding-left: 16px; font-size: 12px; color: #7a4f00; }
+        .mt-file-warn .mt-file-info { color: var(--hb-muted); list-style: none; margin-left: -16px; }
+        .mt-file-warn .mt-file-info::before { content: "\f05a"; font-family: "Font Awesome 5 Free"; font-weight: 900; margin-right: 5px; font-size: 11px; }
+        .mt-file .btn-link { padding: 0 4px; color: var(--hb-danger); }
+        .mt-unit-row { display: flex; gap: 8px; margin-top: 10px; }
+        .mt-unit-row .mt-unit { flex: 1; }
+
+        .mt-drop { margin: 10px 16px 16px; padding: 14px; text-align: center; border: 2px dashed #c9d4e3; border-radius: 10px; color: var(--hb-muted);
+                   font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s; }
+        .mt-drop:hover, .mt-drop.is-over { background: #f2f7fd; border-color: var(--hb-navy); color: var(--hb-navy); }
+        .mt-drop.is-busy { pointer-events: none; opacity: .6; }
+        .mt-drop strong { color: var(--hb-navy); }
+        .mt-drop input[type=file] { display: none; }
+
+        .mt-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .mt-chip-ok   { background: #e3f4e9; color: #1e6b3a; }
+        .mt-chip-wait { background: #eceff3; color: #475467; }
+        .mt-chip-warn { background: #fff1d6; color: #9a6200; }
+
+        /* Özet kutuları */
+        .mt-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px; }
+        .mt-kpi { padding: 14px 16px; background: #fff; border: 1px solid var(--hb-border); border-radius: 12px; }
+        .mt-kpi-label { font-size: 12px; font-weight: 600; color: var(--hb-muted); }
+        .mt-kpi-value { margin-top: 4px; font-size: 24px; font-weight: 700; color: var(--hb-navy); font-variant-numeric: tabular-nums; }
+        .mt-kpi-value small { font-size: 13px; font-weight: 600; color: var(--hb-muted); }
+        .mt-kpi-note { margin-top: 2px; font-size: 12px; color: var(--hb-muted); }
+        .mt-kpi.is-warn { border-color: #e0b25a; background: #fffaf0; }
+        .mt-kpi.is-warn .mt-kpi-value { color: #9a6200; }
+        .mt-kpi.is-main { border-color: var(--hb-navy); box-shadow: inset 4px 0 0 var(--hb-navy); }
+
+        .mt-note { display: flex; gap: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; background: #f2f7fd; border: 1px solid #d5e3f3; border-radius: 10px; }
+        .mt-note i { margin-top: 2px; color: var(--hb-navy); }
+
+        /* Rapor sekmeleri ve filtreler */
+        .mt-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .mt-tab { padding: 7px 14px; border: 1px solid var(--hb-border); border-radius: 999px; background: #fff; color: var(--hb-text);
+                  font-size: 13px; font-weight: 600; cursor: pointer; }
+        .mt-tab .mt-count { margin-left: 4px; font-weight: 700; opacity: .8; }
+        .mt-tab.active { background: var(--hb-navy); border-color: var(--hb-navy); color: #fff; }
+        .mt-tab.mt-tab-warn { background: #fff8ea; border-color: #e0b25a; color: #7a4f00; }
+        .mt-tab.mt-tab-warn.active { background: #9a6200; border-color: #9a6200; color: #fff; }
+        .mt-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+        .mt-tools .mt-search-box { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
+        .mt-search-box .fa-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--hb-muted); font-size: 13px; pointer-events: none; }
+        .mt-search { height: 34px; padding-right: 32px; font-size: 13px; }
+        .mt-search::-webkit-search-cancel-button { display: none; }
+        .mt-tools select { min-width: 220px; }
+
+        .mt-card { background: #fff; border: 1px solid var(--hb-border); border-radius: 12px; overflow: hidden; }
+        .mt-card + .mt-card { margin-top: 14px; }
+        .mt-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #edf0f4; }
+        .mt-card-head h2 { margin: 0; font-size: 15px; font-weight: 700; }
+        .mt-card-head span { font-size: 12px; color: var(--hb-muted); }
+        .mt-card .ui-jqgrid tr.jqgrow td { padding: 6px 8px; vertical-align: middle; white-space: normal; font-size: 13px; }
+        .mt-card .ui-jqgrid tr.jqgrow.mt-row-warn { background: #fffaf0; }
+        .mt-grid-msg { padding: 24px 12px; text-align: center; color: var(--hb-muted); }
+
+        .mt-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; margin-bottom: 14px; }
+        .mt-table { width: 100%; margin: 0; font-size: 13px; }
+        .mt-table th { position: sticky; top: 0; z-index: 1; padding: 8px 12px; background: #f7f9fc; font-size: 12px; font-weight: 700; color: var(--hb-muted);
+                       border-bottom: 1px solid #edf0f4; white-space: nowrap; }
+        .mt-table td { padding: 7px 12px; border-top: 1px solid #f1f3f6; }
+        .mt-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .mt-table tfoot td { font-weight: 700; background: #f7f9fc; border-top: 1px solid #e6ebf2; }
+        .mt-scroll { max-height: 440px; overflow: auto; }
+        .mt-bar-cell { position: relative; }
+        .mt-bar-fill { position: absolute; left: 0; top: 6px; bottom: 6px; background: #e8f0fa; border-radius: 4px; z-index: 0; }
+        .mt-bar-cell span { position: relative; z-index: 1; }
+
+        .mt-type { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #eceff3; color: #475467; white-space: nowrap; }
+        .mt-type-CUSTOMER { background: #fde8e8; color: #9b1c1c; }
+        .mt-type-OSGB     { background: #fff1d6; color: #9a6200; }
+        .mt-type-BRANCH   { background: #e8f1f9; color: #1d4f7c; }
+        .mt-type-LAB      { background: #e3f4e9; color: #1e6b3a; }
+        .mt-mono { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+        .mt-warn-text { font-size: 12px; color: #7a4f00; }
+
+        [hidden] { display: none !important; }
+        @media (max-width: 767px) {
+            .mt-wrap { padding: 12px; }
+            .mt-field { min-width: 100%; }
+            .mt-grid2 { grid-template-columns: 1fr; }
+        }
+    </style>
+    <!-- Biolab ortak tema: en son yüklenir -->
+    <link rel="stylesheet" href="../../../lib/app/css/biolab-theme.css?v=1.0.1">
+</head>
+
+<body class="frame-block mt-page">
+<div class="autoheight">
+    <div class="container-fluid mt-wrap">
+
+        <div class="mt-head">
+            <div>
+                <h1 class="mt-title" data-tr="PAGE_TITLE">Aylık takip</h1>
+                <p class="mt-lead">Fire, kayıp ve tekrar takibi. Her ay Netsis ve LabAsistan dosyalarını yükleyin; rapor bu dosyalardan hesaplanır.
+                    TL karşılığı seçilen maliyet çalışmasının birim maliyetleriyle bulunur.</p>
+            </div>
+            <div class="mt-bar">
+                <div class="mt-field">
+                    <label for="PERIOD_ID">Dönem</label>
+                    <select id="PERIOD_ID" name="PERIOD_ID"></select>
+                </div>
+                <button type="button" id="btnNewPeriod" class="btn btn-outline-primary"><i class="fas fa-plus"></i> Yeni dönem</button>
+                <div class="mt-field">
+                    <label for="STUDY_ID">Maliyet çalışması</label>
+                    <select id="STUDY_ID" name="STUDY_ID"></select>
+                </div>
+                <button type="button" id="btnExcel" class="btn btn-primary" disabled><i class="fas fa-file-excel"></i> Excel</button>
+            </div>
+        </div>
+
+        <div id="noPeriod" class="mt-empty" hidden>
+            <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+            Henüz dönem yok. <strong>Yeni dönem</strong> ile ayı açın, sonra dosyaları yükleyin.
+        </div>
+
+        <div id="periodArea" hidden>
+            <div class="mt-steps" role="tablist">
+                <button type="button" class="mt-step active" data-step="files" role="tab"><span class="mt-step-no">1</span>Dosyalar · <span class="js-file-count">0</span>/5</button>
+                <button type="button" class="mt-step" data-step="report" role="tab"><span class="mt-step-no">2</span>Rapor</button>
+            </div>
+
+            <!-- 1. Dosyalar: kaynak kartları JS ile çizilir (opt.sources) -->
+            <section id="stepFiles">
+                <div class="mt-sources" id="sourceCards"></div>
+            </section>
+
+            <!-- 2. Rapor -->
+            <section id="stepReport" hidden>
+                <div class="mt-kpis" id="kpis"></div>
+                <div class="mt-note"><i class="fas fa-info-circle" aria-hidden="true"></i>
+                    <div>Kayıp (TL) bu aşamada hesaplanmaz: ay sonu stok sayımı yok. Tekrar maliyeti bir <strong>alt sınırdır</strong>; maliyeti
+                        hesaplanmamış testlerin tekrarı tutara girmez. LabAsistan tekrarı parametre bazında sayar (1 hemogram tekrarı ≈ 22 satır).</div>
+                </div>
+
+                <div class="mt-tabs" id="reportTabs">
+                    <button type="button" class="mt-tab active" data-view="repeat">Tekrar</button>
+                    <button type="button" class="mt-tab" data-view="sample">Red ve kabul edilmeyen numune</button>
+                    <button type="button" class="mt-tab" data-view="netsis">Depodan çıkış (Netsis)</button>
+                    <button type="button" class="mt-tab" data-view="fire">Fire / zayi</button>
+                </div>
+
+                <!-- Tekrar -->
+                <div data-panel="repeat">
+                    <div class="mt-tools">
+                        <div class="mt-tabs" id="repeatFilter" style="margin:0">
+                            <button type="button" class="mt-tab active" data-filter="ALL">Tümü <span class="mt-count" data-count="ALL">0</span></button>
+                            <button type="button" class="mt-tab" data-filter="PRESENT">Sunulabilir <span class="mt-count" data-count="PRESENT">0</span></button>
+                            <button type="button" class="mt-tab mt-tab-warn" data-filter="RATE">Oran yüksek <span class="mt-count" data-count="RATE">0</span></button>
+                            <button type="button" class="mt-tab mt-tab-warn" data-filter="PRICE">Fiyat yüksek <span class="mt-count" data-count="PRICE">0</span></button>
+                            <button type="button" class="mt-tab" data-filter="NOCOST">Maliyeti yok <span class="mt-count" data-count="NOCOST">0</span></button>
+                        </div>
+                        <div class="mt-search-box">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input type="search" id="REPEAT_Q" class="form-control mt-search" placeholder="Kod, test veya grup ara" autocomplete="off" aria-label="Tekrar listesinde ara">
+                        </div>
+                    </div>
+                    <div class="mt-card">
+                        <table id="gridRepeat"></table>
+                        <div id="gridRepeatPager"></div>
+                        <div id="gridRepeatMsg" class="mt-grid-msg" hidden></div>
+                    </div>
+                </div>
+
+                <!-- Numune -->
+                <div data-panel="sample" hidden>
+                    <div class="mt-grid2">
+                        <div class="mt-card">
+                            <div class="mt-card-head"><h2>Geliş tipine göre</h2><span>LabAsistan "Durum"</span></div>
+                            <div class="mt-scroll"><table class="mt-table" id="tblArrival"></table></div>
+                        </div>
+                        <div class="mt-card">
+                            <div class="mt-card-head"><h2>LabAsistan birimine göre</h2><span>yüklenen listeler</span></div>
+                            <div class="mt-scroll"><table class="mt-table" id="tblUnit"></table></div>
+                        </div>
+                    </div>
+                    <div class="mt-card">
+                        <div class="mt-card-head"><h2>Kuruma göre</h2>
+                            <div class="mt-search-box" style="min-width:220px">
+                                <i class="fas fa-search" aria-hidden="true"></i>
+                                <input type="search" id="INST_Q" class="form-control mt-search" placeholder="Kurum ara" autocomplete="off" aria-label="Kurum ara">
+                            </div>
+                        </div>
+                        <div class="mt-scroll"><table class="mt-table" id="tblInstitution"></table></div>
+                    </div>
+                </div>
+
+                <!-- Netsis -->
+                <div data-panel="netsis" hidden>
+                    <div class="mt-card">
+                        <div class="mt-card-head"><h2>Birime göre çıkış</h2><span class="js-netsis-range"></span></div>
+                        <div class="mt-scroll"><table class="mt-table" id="tblDepot"></table></div>
+                    </div>
+                    <div class="mt-card">
+                        <div class="mt-card-head"><h2>Malzemeye göre çıkış</h2><span>miktar 1. ölçü biriminde (ör. AD)</span></div>
+                        <div class="mt-tools" style="padding:10px 16px 0">
+                            <select id="DEPOT_TYPE" name="DEPOT_TYPE" aria-label="Gittiği yer"></select>
+                            <div class="mt-search-box">
+                                <i class="fas fa-search" aria-hidden="true"></i>
+                                <input type="search" id="NETSIS_Q" class="form-control mt-search" placeholder="Stok kodu veya adı ara" autocomplete="off" aria-label="Malzeme ara">
+                            </div>
+                        </div>
+                        <table id="gridNetsis"></table>
+                        <div id="gridNetsisPager"></div>
+                    </div>
+                </div>
+
+                <!-- Fire / zayi -->
+                <div data-panel="fire" hidden>
+                    <div class="mt-note"><i class="fas fa-info-circle" aria-hidden="true"></i>
+                        <div><strong>Fire</strong> işin doğasındaki beklenen kayıptır (açık kit stabilitesi). <strong>Zayi</strong> malzemenin kullanılamaz hale gelip atılmasıdır
+                            (kırılma, soğuk zincir, son kullanma, PCR'da kontaminasyon / geçersiz run). <strong>Tedarikçi kaynaklı</strong> kusurlu kittir; lot no ile iade / değişim takip edilir.
+                            Kategori formdaki sebepten kendiliğinden belirlenir. TL karşılığı, malzeme adı uygulamadaki malzemeyle eşleşen ve ölçüsü test / adet / ml olan satırlarda hesaplanır.</div>
+                    </div>
+                    <div class="mt-card" style="margin-bottom:14px">
+                        <div class="mt-card-head"><h2>Bildirim dosyaları</h2><span>şubeler ve PCR</span></div>
+                        <div class="chips" id="fireUnits" style="display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px"></div>
+                    </div>
+                    <div class="mt-grid2">
+                        <div class="mt-card">
+                            <div class="mt-card-head"><h2>Birime göre</h2></div>
+                            <div class="mt-scroll"><table class="mt-table" id="tblFireUnit"></table></div>
+                        </div>
+                        <div class="mt-card">
+                            <div class="mt-card-head"><h2>Sebebe göre</h2></div>
+                            <div class="mt-scroll"><table class="mt-table" id="tblFireReason"></table></div>
+                        </div>
+                    </div>
+                    <div class="mt-tools">
+                        <div class="mt-tabs" id="fireFilter" style="margin:0">
+                            <button type="button" class="mt-tab active" data-filter="ALL">Tümü <span class="mt-count" data-count="ALL">0</span></button>
+                            <button type="button" class="mt-tab" data-filter="FIRE">Fire <span class="mt-count" data-count="FIRE">0</span></button>
+                            <button type="button" class="mt-tab mt-tab-warn" data-filter="ZAYI">Zayi <span class="mt-count" data-count="ZAYI">0</span></button>
+                            <button type="button" class="mt-tab" data-filter="SUPPLIER">Tedarikçi kaynaklı <span class="mt-count" data-count="SUPPLIER">0</span></button>
+                            <button type="button" class="mt-tab" data-filter="OTHER">Diğer <span class="mt-count" data-count="OTHER">0</span></button>
+                        </div>
+                        <div class="mt-search-box">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input type="search" id="FIRE_Q" class="form-control mt-search" placeholder="Birim, malzeme, sebep veya lot ara" autocomplete="off" aria-label="Fire / zayi listesinde ara">
+                        </div>
+                    </div>
+                    <div class="mt-card">
+                        <table id="gridFire"></table>
+                        <div id="gridFirePager"></div>
+                        <div id="gridFireMsg" class="mt-grid-msg" hidden></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Yeni dönem -->
+<div class="modal fade" id="modalPeriod" tabindex="-1" role="dialog" aria-labelledby="modalPeriodTitle">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form id="formPeriod" autocomplete="off">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPeriodTitle">Yeni dönem</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Kapat"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="PERIOD_YM">Ay</label>
+                        <input type="month" id="PERIOD_YM" name="PERIOD_YM" class="form-control" required>
+                        <small class="form-text text-muted">Dosyalar bu ayın 1'i ile son günü arasına göre okunur; dışındaki satırlar alınmaz.</small>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label for="NEW_STUDY_ID">Maliyet çalışması</label>
+                        <select id="NEW_STUDY_ID" name="STUDY_ID"></select>
+                        <small class="form-text text-muted">TL karşılığı için birim maliyetler bu çalışmadan alınır. Sonradan değiştirilebilir.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-primary" id="btnSavePeriod"><i class="fas fa-check"></i> Dönemi aç</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="../../../lib/plugins/jquery-3.1.1/jquery-3.1.1.min.js"></script>
+<script src="../../../lib/plugins/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="../../../lib/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/moment.min.js"></script>
+<script src="../../../lib/plugins/moment-2.24.0/min/locales.min.js"></script>
+<script src="../../../lib/plugins/select2-4.0.12/js/select2.full.js"></script>
+<script src="../../../lib/plugins/jquery-validation-1.19.1/js/jquery.validate.js"></script>
+<script src="../../../lib/plugins/noty-2.4.0/jquery.noty.packaged.js"></script>
+<script src="../../../lib/app/js/lib.js?v=1.1.8"></script>
+<script src="../../../lib/app/js/zippedPlugins.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
+<script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
+<script src="js/monthly-1.0.0.js?v=1.0.4"></script>
+</body>
+</html>

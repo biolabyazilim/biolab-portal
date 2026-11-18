@@ -180,6 +180,7 @@ switch ($query) {
 
             $hm = function (?\DateTimeImmutable $t) { return $t?->format("H:i"); };
             $dtResponse = array();
+            $nowDt = new \DateTimeImmutable();
             foreach ($list as $r) {
                 $dtResponse[] = array(
                     "taskId"       => $r["taskId"],
@@ -192,6 +193,9 @@ switch ($query) {
                     "personel"     => $r["fullName"] ? $r["fullName"] . " (" . $r["personelCode"] . ")" : null,
                     "personelId"   => $r["personelId"],
                     "status"       => $r["status"],
+                    // Gecikti: bitiş saati geçti, personel hâlâ varmadı (kayıt değişmez, yalnız etiket)
+                    "late"         => in_array($r["status"], array(Task::NEW, Task::ASSIGNED, Task::ON_THE_WAY), true)
+                                      && $r["plannedEndAt"] !== null && $r["plannedEndAt"] < $nowDt ? "Y" : "N",
                     "onTheWayAt"   => $hm($r["onTheWayAt"]),
                     "arrivedAt"    => $hm($r["arrivedAt"]),
                     "arriveDistanceM" => $r["arriveDistanceM"],
