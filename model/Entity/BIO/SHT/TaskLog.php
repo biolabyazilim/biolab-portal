@@ -30,6 +30,7 @@ class TaskLog
     public const UNASSIGNED = 'UNASSIGNED';   // kişi kaldırıldı
     public const UPDATED    = 'UPDATED';      // görev adı / gün / firma / açıklama değişti (NOTE: hangileri)
     public const ON_THE_WAY = 'ON_THE_WAY';   // telefondan "Yola çıktım"
+    public const WAY_UNDONE = 'WAY_UNDONE';   // telefondan "Yola çıktım" geri alındı (Yolda → Atandı)
     public const ON_SITE    = 'ON_SITE';      // telefondan "Vardım"
     public const DONE       = 'DONE';         // telefondan "Tamamladım" (NOTE: personelin notu)
     public const CANCELLED  = 'CANCELLED';    // iptal edildi

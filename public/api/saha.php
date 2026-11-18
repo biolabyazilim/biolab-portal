@@ -14,8 +14,14 @@ declare(strict_types=1);
  *        Personelin bitmemiş görevleri + bugün tamamladıkları (firma adı, adres, telefon, konum ile)
  *   POST ?action=taskStatus  { taskId, status: ON_THE_WAY|ON_SITE|DONE, at(unix sn), lat?, lon?, note?, earlyReason? } → { ok, task }
  *        Aynı adım tekrar gelirse değişiklik yapmadan ok döner (kuyruk). İptal edilmiş görev → 409 (telefon bırakır).
- *        Saat aralığı (plannedAt–plannedEndAt) olan görevde: ON_SITE başlangıçtan önce → 409; DONE bitişten önce
+ *        Saat aralığı (plannedAt–plannedEndAt) olan görevde: ON_SITE serbest (erken varış kaydedilir); DONE bitişten önce
  *        yalnız earlyReason (en az 5 karakter) ile → erken bitti olarak kaydedilir, yoksa 409. 2 dk tolerans.
+ *        Akış kuralları (shtCheckFlowRules, docs/kurallar.md): açık mesai şart, Yola çıktım görev gününden önce
+ *        olmaz, aynı anda tek aktif görev → aksi 409. ON_SITE (shtCheckArrival): konum (lat, lon, acc) zorunlu,
+ *        firmaya en fazla 300 m (GPS payı en fazla 100 m); firma konumu yoksa da 409. Başlangıçtan sonra varış geçmişe "Geç vardı" diye yazılır.
+ *        Mesai bitişi portalda reddedilmez (kuyruktan gelir; reddedilse mesai açık kalırdı) — kilit telefonda.
+ *   POST ?action=taskUndoWay { taskId, at } → { ok, task }
+ *        "Yola çıktım" geri al: yalnız Yolda görevde → Atandı (yol rotası silinir), geçmişe WAY_UNDONE. Değilse 409.
  *   POST ?action=pushToken   { pushToken }  → { ok }
  *        Telefonun Firebase bildirim adresi bu oturuma kaydedilir (boş → bildirim kapalı). Görev atanınca buraya
  *        bildirim gider (Biolab\Core\Sht\PushService). Aynı adres başka (eski) oturumlarda varsa oradan silinir.
@@ -33,6 +39,8 @@ use BIO\SHT\DeviceToken;
 use BIO\SHT\Personel;
 
 const SHT_APP_CODE = 'biolab-saha-takip';
+const SHT_ARRIVE_MAX_M = 300;  // "Vardım" firmaya en fazla bu uzaklıkta (telefon: TaskService.arriveMaxM, harita: AWAY_FROM_SITE_M)
+const SHT_WAY_LEAD_MIN = 60;   // "Yola çıktım" görev başlangıcından en erken bu kadar dk önce (telefon: FieldTask.wayLead)
 
 $root = dirname(__DIR__, 2);   // public/api → proje kökü
 require $root . '/vendor/autoload.php';
@@ -162,6 +170,81 @@ function shtTaskList(\Doctrine\ORM\EntityManagerInterface $em, Personel $p): arr
     return array_map('shtTaskInfo', $tasks);
 }
 
+/**
+ * Görev adımı akış kuralları (docs/kurallar.md). Uymazsa 409 ile durur; telefon mesajı personele gösterir.
+ *   1) Adımın anında personelin açık mesaisi olmalı (2 dk tolerans; mesai olayı kuyrukta adımdan önce gelir)
+ *   2) "Yola çıktım" başlangıçtan en erken 1 sa önce (yalnız günlü eski görevde görev günü); geçmiş serbest
+ *   3) Aynı anda tek aktif görev: başka görev Yolda / Firmada iken yeni görevde Yola çıktım / Vardım olmaz
+ */
+function shtCheckFlowRules(\Doctrine\ORM\EntityManagerInterface $em, \BIO\SHT\Task $task, string $new, \DateTimeImmutable $at): void
+{
+    $p = $task->getPersonel();
+    $grace = new \DateInterval('PT2M');
+
+    $open = (int) $em->createQuery("
+        SELECT COUNT(s) FROM BIO\SHT\Shift s
+         WHERE s.personel = :P AND s.recordFl > 0 AND s.startedAt <= :LATE
+           AND (s.endedAt IS NULL OR s.endedAt >= :EARLY)
+    ")->setParameters(['P' => $p, 'LATE' => $at->add($grace), 'EARLY' => $at->sub($grace)])->getSingleScalarResult();
+    if ($open === 0) {
+        JsonResponse::send(['ok' => false, 'message' => 'Görev adımı için önce Ana Sayfa\'dan mesaiye başlayın.'], 409);
+    }
+
+    // Saat aralığı varsa başlangıçtan 1 sa önce açılır (yol payı); eski, yalnız günlü görevde görev günü
+    $planned = $task->getPlannedAt();
+    if ($new === \BIO\SHT\Task::ON_THE_WAY && $planned !== null) {
+        $opens = $task->hasTimeWindow() ? $planned->sub(new \DateInterval('PT' . SHT_WAY_LEAD_MIN . 'M')) : $planned->setTime(0, 0);
+        if ($at < $opens->sub($grace)) {
+            JsonResponse::send(['ok' => false, 'message' => 'Görev ' . $planned->format('d.m.Y H:i')
+                . '. "Yola çıktım" ' . $opens->format('d.m.Y H:i') . ' itibarıyla açılır.'], 409);
+        }
+    }
+
+    if (in_array($new, [\BIO\SHT\Task::ON_THE_WAY, \BIO\SHT\Task::ON_SITE], true)) {
+        $other = $em->createQuery("
+            SELECT t, c FROM BIO\SHT\Task t JOIN t.customer c
+             WHERE t.personel = :P AND t.recordFl > 0 AND t.status IN ('ON_THE_WAY', 'ON_SITE') AND t <> :T
+        ")->setParameters(['P' => $p, 'T' => $task])->setMaxResults(1)->getOneOrNullResult();
+        if ($other !== null) {
+            JsonResponse::send(['ok' => false, 'message' => 'Önce "' . $other->getCustomer()->getCustomerName()
+                . ' · ' . $other->getTitle() . '" görevini tamamlayın. Aynı anda tek görev yürütülür.'], 409);
+        }
+    }
+}
+
+/**
+ * Kural 8: "Vardım" yalnız firmaya SHT_ARRIVE_MAX_M içinde. GPS doğruluğu (acc) kadar pay, en fazla 100 m.
+ * Firma konumu yoksa ya da telefon konum göndermediyse de kabul edilmez (doğrulanamayan varış). Aksi 409.
+ */
+function shtCheckArrival(\BIO\SHT\Task $task, ?float $lat, ?float $lon, float $acc): void
+{
+    $c = $task->getCustomer();
+    if ($c->getLat() === null || $c->getLon() === null) {
+        JsonResponse::send(['ok' => false, 'message' => 'Firmanın konumu girilmemiş; "Vardım" doğrulanamıyor. Yöneticinize bildirin.'], 409);
+    }
+    if ($lat === null || $lon === null) {
+        JsonResponse::send(['ok' => false, 'message' => 'Konum alınamadı. GPS\'i açıp açık alanda tekrar deneyin.'], 409);
+    }
+    $m = shtDistanceM($lat, $lon, (float) $c->getLat(), (float) $c->getLon());
+    if ($m - min(max($acc, 0.0), 100.0) > SHT_ARRIVE_MAX_M) {
+        JsonResponse::send(['ok' => false, 'message' => 'Firmaya ' . ($m < 1000 ? round($m) . ' m' : str_replace('.', ',', (string) round($m / 1000, 1)) . ' km')
+            . ' uzaktasınız. "Vardım" firmaya ' . SHT_ARRIVE_MAX_M . ' m yaklaşınca basılabilir.'], 409);
+    }
+}
+
+/** Başlangıç saatinden sonra varış: "Geç vardı: başlangıç 10:00, +40 dk" (2 dk tolerans); değilse null */
+function shtLateText(\BIO\SHT\Task $task, \DateTimeImmutable $at): ?string
+{
+    $start = $task->getPlannedAt();
+    if (!$task->hasTimeWindow() || $at->getTimestamp() <= $start->getTimestamp() + 120) {
+        return null;
+    }
+    $min = intdiv($at->getTimestamp() - $start->getTimestamp(), 60);
+    return 'Geç vardı: başlangıç ' . $start->format('H:i') . ', +'
+        . ($min >= 60 ? intdiv($min, 60) . ' sa ' . ($min % 60) . ' dk' : $min . ' dk')
+        . ($at > $task->getPlannedEndAt() ? ' (bitiş saatinden sonra)' : '');
+}
+
 /** İki nokta arası kuş uçuşu mesafe (metre) */
 function shtDistanceM(float $lat1, float $lon1, float $lat2, float $lon2): float
 {
@@ -223,6 +306,7 @@ try {
         case 'shiftEnd':
         case 'taskList':
         case 'taskStatus':
+        case 'taskUndoWay':
         case 'pushToken':
             $token = $tokens->authenticate(DeviceTokenService::bearerFromRequest());
             if ($token === null) {
@@ -263,6 +347,26 @@ try {
                 JsonResponse::send(['ok' => true]);
             }
 
+            // --- "Yola çıktım" geri al (Yolda → Atandı). Telefon yalnız internet varken ve adım portala ulaşmışken sunar.
+            if ($action === 'taskUndoWay') {
+                $task = $em->getRepository(\BIO\SHT\Task::class)->find((int) ($_POST['taskId'] ?? 0));
+                if ($task === null || $task->isDeleted() || $task->getPersonel() !== $token->getPersonel()) {
+                    JsonResponse::send(['ok' => false, 'message' => 'Görev bulunamadı ya da size atanmamış.'], 404);
+                }
+                if ($task->getStatus() !== \BIO\SHT\Task::ON_THE_WAY) {
+                    JsonResponse::send(['ok' => false, 'message' => $task->getStatus() === \BIO\SHT\Task::CANCELLED
+                        ? 'Bu görev iptal edildi.' : 'Görev yolda değil; geri alınacak bir şey yok.'], 409);
+                }
+                $at = shtTime($_POST['at'] ?? null) ?? new \DateTimeImmutable();
+                $wayAt = $task->getOnTheWayAt();
+                $task->undoOnTheWay();
+                \Biolab\Core\Sht\TaskHistory::record($em, $task, \BIO\SHT\TaskLog::WAY_UNDONE, \BIO\SHT\TaskLog::SRC_MOBILE,
+                    \BIO\SHT\Task::ON_THE_WAY, $task->getPersonel(), $at,
+                    $wayAt !== null ? 'Yola çıkış ' . $wayAt->format('H:i') . ' geri alındı' : null);
+                $em->flush();
+                JsonResponse::send(['ok' => true, 'task' => shtTaskInfo($task)]);
+            }
+
             // --- Görev adımı (Yola çıktım / Vardım / Tamamladım) ---
             if ($action === 'taskStatus') {
                 $task = $em->getRepository(\BIO\SHT\Task::class)->find((int) ($_POST['taskId'] ?? 0));
@@ -285,10 +389,7 @@ try {
                     $earlyReason = null;
                     if ($task->hasTimeWindow()) {
                         $grace = new \DateInterval('PT2M');
-                        if ($new === \BIO\SHT\Task::ON_SITE && $at < $task->getPlannedAt()->sub($grace)) {
-                            JsonResponse::send(['ok' => false, 'message' => 'Görev saati gelmedi. "Vardım" '
-                                . $task->getPlannedAt()->format('d.m.Y H:i') . ' itibarıyla açılır.'], 409);
-                        }
+                        // "Vardım" saatle kilitlenmez (erken varış gerçek saatiyle kaydedilir; kural 2 erken yola çıkışı keser)
                         if ($new === \BIO\SHT\Task::DONE && $at < $task->getPlannedEndAt()->sub($grace)) {
                             $reason = trim((string) ($_POST['earlyReason'] ?? ''));
                             if (mb_strlen($reason) < 5) {
@@ -298,8 +399,14 @@ try {
                             $earlyReason = $reason;
                         }
                     }
+                    // Akış kuralları (docs/kurallar.md) — telefon düğmeyi kilitler; burada eski sürüm / kuyruk için
+                    shtCheckFlowRules($em, $task, $new, $at);
+
                     $lat = shtCoord($_POST['lat'] ?? null, 90);
                     $lon = shtCoord($_POST['lon'] ?? null, 180);
+                    if ($new === \BIO\SHT\Task::ON_SITE) {
+                        shtCheckArrival($task, $lat, $lon, isset($_POST['acc']) && is_numeric($_POST['acc']) ? (float) $_POST['acc'] : 0.0);
+                    }
                     $fromStatus = $task->getStatus();
                     if ($new === \BIO\SHT\Task::ON_THE_WAY) {
                         $task->markOnTheWay($at);
@@ -312,8 +419,11 @@ try {
                         $task->markDone($at, $lat, $lon, isset($_POST['note']) ? trim((string) $_POST['note']) : null, $earlyReason);
                     }
                     // Görev geçmişi: olayın telefondaki zamanı (kuyruktan geç gelse de), kim = personelin kullanıcısı
-                    $logNote = $new === \BIO\SHT\Task::ON_SITE && $task->getArriveDistanceM() !== null
-                        ? 'Firmaya uzaklık: ' . $task->getArriveDistanceM() . ' m'
+                    $logNote = $new === \BIO\SHT\Task::ON_SITE
+                        ? (implode(' · ', array_filter([
+                            shtLateText($task, $at),
+                            $task->getArriveDistanceM() !== null ? 'Firmaya uzaklık: ' . $task->getArriveDistanceM() . ' m' : null,
+                        ])) ?: null)
                         : ($new === \BIO\SHT\Task::DONE
                             ? implode(' · ', array_filter([
                                 $earlyReason !== null ? 'ERKEN BİTİRDİ (bitiş ' . $task->getPlannedEndAt()->format('H:i') . '): ' . $earlyReason : null,

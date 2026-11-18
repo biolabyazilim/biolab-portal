@@ -23,6 +23,7 @@ const ARROW_COLOR = '#ea7a0c';         // "Yolda" rengi (görev listesindeki "Yo
 // Yoldaki her kişiye kendi rota rengi: birbirinden ve harita durum renklerinden (yeşil / gri / mor) ayırt edilebilir 8 renk
 const ROUTE_PALETTE = ['#ea7a0c', '#0284c7', '#db2777', '#0d9488', '#b45309', '#dc2626', '#1e3a8a', '#4d7c0f'];
 const OFFROUTE_M = 300;                // rotaya bundan uzaksa "rotadan çıktı" (sunucu da bu sınırda yeniden hesaplar)
+const AWAY_FROM_SITE_M = 300;         // "Firmada" görünen personel firmadan bundan uzaksa ⚠ firmada değil (telefondaki Vardım uyarısıyla aynı)
 
 $(document).ready(function () {
     $.DLNFrame.init();
@@ -244,6 +245,18 @@ $.DLNFrame = {
         return $d.customers.find(function (c) { return c.customerId === $d.selectedFirmId; }) || null;
     },
 
+    /**
+     * "Firmada" görünen personel canlı konumuna göre firmadan uzaksa uzaklık (m), değilse null.
+     * Her konum güncellemesinde bakılır: Vardım deyip hiç gitmeyen de, vardıktan sonra ayrılan da yakalanır.
+     * GPS doğruluğu kadar pay bırakılır (en fazla 100 m). Sınır telefonla aynı: 300 m.
+     */
+    awayFromSiteM: function (p) {
+        const k = p.activeTask;
+        if (!k || k.status !== 'ON_SITE' || k.lat == null || p.lat == null) { return null; }
+        const m = $.DLNFrame.distanceM(p.lat, p.lon, k.lat, k.lon);
+        return m - Math.min(p.accuracy || 0, 100) > AWAY_FROM_SITE_M ? m : null;   // GPS payı en fazla 100 m (telefon / portal ile aynı)
+    },
+
     /** Personelin seçili firmaya uzaklığı (firma ya da personel konumu yoksa null) */
     distanceToFirm: function (p, firm) {
         if (!firm || firm.lat == null || p.lat == null) { return null; }
@@ -460,6 +473,12 @@ $.DLNFrame = {
      * bildirim gider ve görev telefondaki listeden kalkar; haritada firma rengi / rozet güncellenir.
      * task: { taskId, title, customerName, personel }
      */
+    /** Gecikti: bitiş saati geçti, personel henüz varmadı (kayıt değişmez, yalnız etiket). k.plannedEndAt "YYYY-MM-DD HH:mm" */
+    isLate: function (k) {
+        return ['NEW', 'ASSIGNED', 'ON_THE_WAY'].indexOf(k.status) >= 0 && !!k.plannedEndAt
+            && moment(k.plannedEndAt, 'YYYY-MM-DD HH:mm').isBefore(moment());
+    },
+
     cancelTask: function (task) {
         const $t = $.DLNFrame;
         const L_ = $t.data.lang;
@@ -467,7 +486,9 @@ $.DLNFrame = {
         const who = [task.customerName, task.personel].filter(Boolean).map(esc).join(' · ');
         $.fn.nty({
             type: 'warning',
-            text: L_['CONFIRM_CANCEL_TASK'].replace('%s', esc(task.title)).replace('%s', who),
+            // Personel firmadaysa (Vardım basılmış) yönetici bunu bilerek iptal etsin
+            text: (task.status === 'ON_SITE' ? L_['CANCEL_ON_SITE'] + '<br>' : '')
+                + L_['CONFIRM_CANCEL_TASK'].replace('%s', esc(task.title)).replace('%s', who),
             buttons: [
                 {
                     addClass: 'btn btn-danger', text: L_['BTN_YES_TEXT'] || 'Evet',
@@ -642,6 +663,7 @@ $.DLNFrame = {
                   + (k.plannedEndAt ? '–' + k.plannedEndAt.slice(11) : '');
             const $row = $('<div class="fm-row">')
                 .append($('<span class="tk-badge">').addClass('tk-' + k.status).text(L_['ST_' + k.status] || k.status))
+                .append($t.isLate(k) ? $('<span class="tk-late">').attr('title', L_['LATE_TIP']).text(L_['LATE']) : null)
                 .append($('<span>').text(k.title))
                 .append($('<span class="mp-sub ml-auto">').text([when, k.personel || L_['UNASSIGNED']].filter(Boolean).join(' · ')));
             // Atanmamış görev: seçili personele tek tıkla ata
@@ -656,7 +678,7 @@ $.DLNFrame = {
             $('<button type="button" class="btn btn-outline-danger btn-xs-cancel">')
                 .attr({ title: L_['TITLE_CANCEL_TASK'], 'aria-label': L_['TITLE_CANCEL_TASK'] })
                 .html('<i class="fas fa-times"></i>')
-                .on('click', function () { $t.cancelTask({ taskId: k.taskId, title: k.title, customerName: c.customerName, personel: k.personel }); })
+                .on('click', function () { $t.cancelTask({ taskId: k.taskId, title: k.title, customerName: c.customerName, personel: k.personel, status: k.status }); })
                 .appendTo($row);
             $row.appendTo($tasks);
         });
@@ -729,6 +751,11 @@ $.DLNFrame = {
             $info.append($('<div class="mp-task">')
                 .css(onSite ? {} : { color: $t.routeColor(p), fontWeight: 600 })   // yoldaysa haritadaki rota rengi
                 .text((onSite ? L_['TASK_ON_SITE'] : L_['TASK_ON_THE_WAY']).replace('%s', p.activeTask.customerName)));
+            const away = $t.awayFromSiteM(p);
+            if (away != null) {
+                $info.append($('<div class="mp-away">').attr('title', L_['AWAY_FROM_SITE_TIP'])
+                    .text('⚠ ' + L_['AWAY_FROM_SITE'].replace('%s', $t.kmText(away))));
+            }
         }
         $info.append($('<div class="mp-sub">').text(sub));
         const $row = $('<div class="mp-item">')
@@ -791,8 +818,11 @@ $.DLNFrame = {
         const task = !k ? '' : '<span style="color:' + (k.status === 'ON_SITE' ? '#5b2bb5' : $.DLNFrame.routeColor(p)) + ';font-weight:600">'
             + esc(k.status === 'ON_SITE' ? L_['TASK_ON_SITE'].replace('%s', k.customerName) : $.DLNFrame.taskLeftText(p) + ' ' + L_['LEFT'])
             + '</span><br>' + esc(k.title) + '<br>';
+        const away = $.DLNFrame.awayFromSiteM(p);
+        const awayHtml = away == null ? ''
+            : '<span class="mp-away">⚠ ' + esc(L_['AWAY_FROM_SITE'].replace('%s', $.DLNFrame.kmText(away))) + '</span><br>';
         return '<b>' + esc(p.fullName) + '</b> (' + esc(p.personelCode) + ')<br>'
-            + esc($.DLNFrame.shiftText(p)) + '<br>' + task
+            + esc($.DLNFrame.shiftText(p)) + '<br>' + task + awayHtml
             + (p.jobType ? esc(p.jobType) + '<br>' : '')
             + L_['LAST_POSITION'] + ': ' + moment(p.fixTime, 'YYYY-MM-DD HH:mm:ss').format('DD.MM.YYYY HH:mm')
             + ' (' + esc($.DLNFrame.statusText(p)) + ')<br>'
@@ -812,12 +842,14 @@ $.DLNFrame = {
         // Yoldaysa ad etiketinin altında rota rengi: çizgi ile kişi birbirine bağlansın
         const going = p.activeTask && p.activeTask.status === 'ON_THE_WAY';
         const lblStyle = going ? ' style="border-bottom:3px solid ' + $.DLNFrame.routeColor(p) + '"' : '';
+        // "Firmada" ama firmadan uzakta: etiketin başında turuncu ⚠ (ayrıntı listede ve pencerede)
+        const away = $.DLNFrame.awayFromSiteM(p) != null ? '<span class="mp-away-ic">⚠</span> ' : '';
         return L.divIcon({
             className: '',
             html: '<div class="mp-mk st-' + $.DLNFrame.state(p) + (p.personelId === $d.selectedId ? ' sel' : '') + '">'
                 + (going ? '<div class="mp-pulse"></div>' : '')   // yolda: hafif yeşil nabız
                 + '<div class="mp-drop"><i class="fas fa-user"></i></div>' + dir
-                + '<div class="mp-lbl"' + lblStyle + '>' + esc(p.personelCode) + ' · ' + esc(firstName) + '</div></div>',
+                + '<div class="mp-lbl"' + lblStyle + '>' + away + esc(p.personelCode) + ' · ' + esc(firstName) + '</div></div>',
             iconSize: [120, 72],
             iconAnchor: [60, 50],   // iğnenin ucu konumda
             popupAnchor: [0, -44]
