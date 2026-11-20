@@ -271,11 +271,13 @@
                 <small class="mt-sub d-block mt-2">Fiyatı bu çalışmadan kaldırmak için ambalaj içeriği ve fiyatı boş bırakın.</small>
                 </div>
 
-                <!-- Kullanıldığı testler: reçete satırları (hasta başı). Bağla / kaldır hemen kaydedilir; Kaydet beklenmez. -->
-                <div class="mt-section mt-3">Kullanıldığı testler · <span class="js-test-count">0</span></div>
-                <div class="js-tests-new mt-sub mb-2">Test bağlamak için önce malzemeyi kaydedin.</div>
+                <!-- Kullanıldığı testler: yalnız liste. Reçete tek yerden, Test maliyetleri penceresinden değişir ("Reçeteyi aç"). -->
+                <div class="mt-section mt-3">Kullanıldığı testler · <span class="js-test-count">0</span>
+                    <span class="mt-section-hint">Reçeteyi değiştirmek için satırdaki "Reçeteyi aç" (Test maliyetleri)</span></div>
+                <div class="js-tests-new mt-sub mb-2">Malzeme kaydedilince kullanıldığı testler burada listelenir.</div>
                 <div class="js-tests-edit">
-                    <div class="form-row mt-tests-add">
+                    <!-- Eski "Teste bağla" (yön karışıklığı yaşattı): gizli; malzeme reçeteye Test maliyetleri penceresinden eklenir -->
+                    <div class="form-row mt-tests-add" hidden>
                         <div class="form-group col-md-7 mb-2">
                             <label for="TEST_ID">Test</label>
                             <select id="TEST_ID" name="TEST_ID" class="form-control" style="width:100%"></select>
@@ -288,7 +290,6 @@
                             <button type="button" id="btnTestLink" class="btn mt-btn"><i class="fas fa-link"></i> Teste bağla</button>
                         </div>
                     </div>
-                    <small class="mt-sub d-block">Bağlama ve kaldırma hemen kaydedilir. Aynı test yeniden bağlanırsa miktarı güncellenir.</small>
                     <!-- Bağlı testler: çerçeveli kutu, 5 satırdan sonra kaydırma; kod / ada göre arama (yalnız ekranda süzer) -->
                     <div class="mt-tests-box mt-2">
                         <div class="mt-tests-search">
@@ -304,20 +305,30 @@
                     </div>
                 </div>
 
-                <!-- Yalnız kit: kitle birlikte kullanılan malzemeler (pipet ucu, küvet…). Kitin bağlı olduğu testlerin maliyetine
-                     kit miktarı × adet olarak kendiliğinden eklenir; reçeteye yazılmaz. Ekle / çıkar hemen kaydedilir. -->
+                <!-- Yalnız kit: eski "kitle birlikte kullanılan malzemeler" listesi. Artık yeni satır eklenmez (her şey testin reçetesinde,
+                     Test maliyetleri); kayıtlar mlyt-companion-move.php ile reçetelere taşınır. Taşınana kadar kalan satırlar hesaba
+                     girmeye devam eder; gizli kalmasın diye liste doluysa görünür (renderCompanions). -->
                 <div class="js-kit-only" hidden>
+                  <div class="js-comp-section" hidden>
                     <div class="mt-section mt-3">Kitle birlikte kullanılan malzemeler · <span class="js-comp-count">0</span>
-                        <span class="mt-section-hint">Kitin bir testi başına; bağlı testlerin maliyetine kendiliğinden eklenir</span></div>
-                    <div class="js-tests-new mt-sub mb-2">Malzeme eklemek için önce kiti kaydedin.</div>
+                        <span class="mt-section-hint">Eski liste: reçetelere taşınacak. Yeni malzemeyi testin reçetesine ekleyin (Reçeteyi aç).</span></div>
                     <div class="js-tests-edit">
-                        <div class="form-row mt-tests-add">
+                        <div class="form-row mt-tests-add" hidden>
                             <div class="form-group col-md-7 mb-2">
                                 <label for="COMPANION_ID">Malzeme</label>
                                 <select id="COMPANION_ID" name="COMPANION_ID" class="form-control" style="width:100%"></select>
                             </div>
+                            <!-- Kalibratör / kontrol "kit başına" artık testin reçetesinde (Test maliyetleri) yazılır; burada yalnız test başı.
+                                 Seçim gizli tutulur: önceden kit başına eklenmiş satırlar hesaplanmaya ve listede görünmeye devam eder. -->
+                            <div class="form-group col-md-2 mb-2" hidden>
+                                <label for="COMPANION_BASIS">Miktar türü</label>
+                                <select id="COMPANION_BASIS" class="form-control">
+                                    <option value="TEST">Test başı</option>
+                                    <option value="KIT">Kit başına (kutu)</option>
+                                </select>
+                            </div>
                             <div class="form-group col-md-2 mb-2">
-                                <label for="COMPANION_QUANTITY">Test başı</label>
+                                <label for="COMPANION_QUANTITY" class="js-comp-qty-label">Test başı</label>
                                 <input type="text" id="COMPANION_QUANTITY" class="form-control mt-mono" inputmode="decimal" value="1">
                             </div>
                             <div class="form-group col-md-3 mb-2">
@@ -327,13 +338,14 @@
                         <div class="mt-tests-box mt-2">
                             <div class="mt-tests-scroll">
                                 <table class="mt-tests">
-                                    <thead><tr><th>Malzeme</th><th class="mt-num">Test başı</th><th>Birim</th><th class="mt-num">Birim maliyet</th><th class="mt-num">Tutar</th><th></th></tr></thead>
+                                    <thead><tr><th>Malzeme</th><th class="mt-num">Miktar</th><th class="mt-num">Test başı</th><th>Birim</th><th class="mt-num">Birim maliyet</th><th class="mt-num">Tutar / test</th><th></th></tr></thead>
                                     <tbody id="materialCompanions"></tbody>
-                                    <tfoot><tr class="js-comp-total" hidden><td colspan="4" class="text-right mt-sub">Kitin bir testine eklenen</td><td class="mt-num mt-mono js-comp-sum"></td><td></td></tr></tfoot>
+                                    <tfoot><tr class="js-comp-total" hidden><td colspan="5" class="text-right mt-sub">Kitin bir testine eklenen</td><td class="mt-num mt-mono js-comp-sum"></td><td></td></tr></tfoot>
                                 </table>
                             </div>
                         </div>
                     </div>
+                  </div>
                 </div>
 
                 <div id="materialMsg" class="alert alert-danger mt-3 mb-0" hidden></div>
@@ -421,6 +433,6 @@
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
-<script src="js/material-1.0.0.js?v=1.6.3"></script>
+<script src="js/material-1.0.0.js?v=1.6.11"></script>
 </body>
 </html>

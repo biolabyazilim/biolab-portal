@@ -153,17 +153,17 @@ switch ($query) {
         break;
 
     // Bağlanabilecek testler: aktif, hesaplamalı olmayan (hesaplamalının maliyeti bileşenlerinden gelir)
-    // Kitle birlikte kullanılabilecek malzemeler (kit penceresindeki seçim kutusu): kit olmayan, silinmemiş malzemeler
+    // Kitle birlikte kullanılabilecek malzemeler (kit penceresindeki seçim kutusu): silinmemiş malzemeler.
+    // Kalibratör / kontrol de "Kit" kategorisinde tanımlı olabildiği için kitler de listelenir (kitin kendisi sunucuda reddedilir).
     case "getCOMPANION_ID":
         $execType = ET_DEFAULT;
         try{
             $rows = $db->createQuery("
                 SELECT m.materialId, m.materialName, m.shortCode, m.activeFl
                   FROM BIO\MLYT\Material m
-                  JOIN m.category c
-                 WHERE IDENTITY(m.company) = :COMPANY_ID AND m.recordFl > 0 AND c.categoryCode <> :KIT
+                 WHERE IDENTITY(m.company) = :COMPANY_ID AND m.recordFl > 0
                  ORDER BY m.materialName
-            ")->setParameters(array("COMPANY_ID" => $companyId, "KIT" => MaterialCategory::CODE_KIT))->getArrayResult();
+            ")->setParameters(array("COMPANY_ID" => $companyId))->getArrayResult();
             foreach ($rows as &$r) {
                 $r["materialText"] = ($r["shortCode"] ? $r["shortCode"] . " · " : "") . $r["materialName"];
             }
@@ -681,7 +681,8 @@ switch ($query) {
         break;
 
     // Kitle birlikte kullanılan malzeme ekler (hemen kaydedilir); aynı malzeme zaten listedeyse miktarı güncellenir.
-    //   MATERIAL_ID: kit · COMPANION_ID: birlikte kullanılan malzeme · QUANTITY: kitin bir testi başına · resObject.companions
+    //   MATERIAL_ID: kit · COMPANION_ID: birlikte kullanılan malzeme · QUANTITY · BASIS: TEST (kitin bir testi başına) /
+    //   KIT (kitin bir kutusu başına ambalaj adedi: kalibratör, kontrol) · resObject.companions
     case "setMaterialCompanion":
         $execType = ET_CUSTOM;
         try{
@@ -690,9 +691,24 @@ switch ($query) {
             if ($kit->getCategory()->getCategoryCode() !== MaterialCategory::CODE_KIT) { $resCode = 30; $resMsg = "Birlikte kullanılan malzeme yalnız kitlere eklenir."; break; }
             $comp = mtFindMaterial($db, (int) ($_POST["COMPANION_ID"] ?? 0), $companyId);
             if ($comp === null) { $resCode = 10; $resMsg = "Eklenecek malzemeyi seçin."; break; }
-            if ($comp === $kit || $comp->getCategory()->getCategoryCode() === MaterialCategory::CODE_KIT) {
-                $resCode = 10; $resMsg = "Kit, başka bir kitin yanına eklenemez."; break;
+            if ($comp === $kit) { $resCode = 10; $resMsg = "Kit kendi listesine eklenemez."; break; }
+            // Ters yön koruması: eklenen malzeme bir testin reçetesindeki kitse (Vitamin C kiti) kalibratörün listesine eklenemez;
+            // kalibratör / kontrol ana kitin listesine eklenir. Kalibratör hâlâ bir reçetede duruyorsa iki kez sayılmasın.
+            if ($comp->getCategory()->getCategoryCode() === MaterialCategory::CODE_KIT) {
+                $codes = array_column($db->createQuery("
+                    SELECT t.testCode FROM BIO\MLYT\RecipeItem ri JOIN ri.test t
+                     WHERE ri.material = :MATERIAL AND ri.recordFl > 0 AND t.recordFl > 0
+                     ORDER BY t.testCode
+                ")->setParameter("MATERIAL", $comp)->setMaxResults(5)->getArrayResult(), "testCode");
+                if ($codes) {
+                    $resCode = 10;
+                    $resMsg = $comp->getMaterialName() . " bir testin reçetesinde (" . implode(", ", $codes) . "). "
+                        . "Yön ters olabilir: kalibratör / kontrol, ana kitin (ör. VİTAMİN C) listesine eklenir; kalibratörün listesine kit eklenmez. "
+                        . "Kalibratörü bir ana kite ekliyorsanız önce bu testlerin reçetesinden çıkarın, yoksa iki kez sayılır.";
+                    break;
+                }
             }
+            $basis = in_array($_POST["BASIS"] ?? "", MaterialCompanion::BASES, true) ? $_POST["BASIS"] : MaterialCompanion::BASIS_TEST;
             $qty = mtDecimal($_POST["QUANTITY"] ?? "1");
             if ($qty === null || (float) $qty <= 0) { $resCode = 10; $resMsg = "Miktar sıfırdan büyük olmalı."; break; }
 
@@ -701,11 +717,11 @@ switch ($query) {
                 if ($row !== null) { $db->remove($row); $db->flush(); }   // silinmiş kayıt tekil indeksi tutmasın
                 $maxSort = (int) $db->createQuery("SELECT MAX(mc.sortNo) FROM BIO\MLYT\MaterialCompanion mc WHERE mc.kit = :KIT")
                     ->setParameter("KIT", $kit)->getSingleScalarResult();
-                $db->persist(new MaterialCompanion($kit, $comp, $qty, $maxSort + 10));
+                $db->persist(new MaterialCompanion($kit, $comp, $qty, $maxSort + 10, $basis));
                 $resMsg = $comp->getMaterialName() . " eklendi";
             } else {
-                $row->setQuantity($qty);
-                $resMsg = $comp->getMaterialName() . " miktarı güncellendi";
+                $row->setQuantity($qty)->setBasis($basis);
+                $resMsg = $comp->getMaterialName() . " güncellendi";
             }
             $db->flush();
 
@@ -830,7 +846,7 @@ function mtDecimal($v): ?string
 /** Malzemenin bağlı olduğu testler (reçete satırları): test kodu, adı, miktar, tüketim */
 function mtMaterialTests($db, Material $m, string $lang): array
 {
-    $consumption = array(RecipeItem::PER_PATIENT => array("hasta başı", "per patient"), RecipeItem::PER_RUN => array("çalışma başı", "per run"),
+    $consumption = array(RecipeItem::PER_PATIENT => array("hasta başı", "per patient"), RecipeItem::PER_KIT => array("kit başına (kutu)", "per kit (box)"), RecipeItem::PER_RUN => array("çalışma başı", "per run"),
                          RecipeItem::PER_DAY => array("gün başı", "per day"), RecipeItem::PER_WEEK => array("hafta başı", "per week"),
                          RecipeItem::PER_MONTH => array("ay başı", "per month"));
     $rows = $db->createQuery("
@@ -854,7 +870,7 @@ function mtMaterialTests($db, Material $m, string $lang): array
 function mtMaterialCompanions($db, Material $kit, ?Study $study, int $companyId, string $lang): array
 {
     $rows = $db->createQuery("
-        SELECT mc.materialCompanionId, mc.quantity, m.materialId, m.materialName, m.shortCode, m.usageUnit
+        SELECT mc.materialCompanionId, mc.quantity, mc.basis, m.materialId, m.materialName, m.shortCode, m.usageUnit
           FROM BIO\MLYT\MaterialCompanion mc
           JOIN mc.material m
          WHERE mc.kit = :KIT AND mc.recordFl > 0 AND mc.activeFl = 'Y'
@@ -863,9 +879,14 @@ function mtMaterialCompanions($db, Material $kit, ?Study $study, int $companyId,
     $calc = $rows ? new \Biolab\Core\Mlyt\CostCalculator($db, $companyId, $study?->getStudyId(), $lang) : null;
     foreach ($rows as &$r) {
         $unitCost = $calc?->unitCost((int) $r["materialId"]);
+        // Kit başına satır: kitin bir testine düşen miktar (adet × ambalaj içeriği ÷ kitin test sayısı); bilinmiyorsa null
+        $perTest = $r["basis"] === MaterialCompanion::BASIS_KIT
+            ? $calc?->perKitToPerTest($kit->getMaterialId(), (int) $r["materialId"], (float) $r["quantity"])
+            : (float) $r["quantity"];
         $r["usageUnitName"] = MT_UNIT_NAMES[$r["usageUnit"]][$lang === "en" ? 1 : 0] ?? $r["usageUnit"];
+        $r["perTest"] = $perTest !== null ? round($perTest, 4) : null;
         $r["unitCost"] = $unitCost !== null ? round($unitCost, 4) : null;
-        $r["amount"] = $unitCost !== null ? round($unitCost * (float) $r["quantity"], 4) : null;
+        $r["amount"] = $unitCost !== null && $perTest !== null ? round($unitCost * $perTest, 4) : null;
     }
     unset($r);
     return $rows;

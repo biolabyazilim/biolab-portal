@@ -1,16 +1,12 @@
 {
-    "BOX_TITLE":"¥mng_role",
-    "PAGE_TITLE":"¥mng_role",
-    "ROLE_ID":"¥ROLE_ID",
-    "ROLE_NAME":"¥ROLE_NAME",
-    "ROLE_NAME_EN":"¥ROLE_NAME_EN",
-    "C_BY":"¥C_BY",
-    "C_AT":"¥C_AT",
-    "U_BY":"¥U_BY",
-    "U_AT":"¥U_AT",
-    "D_BY":"¥D_BY",
-    "D_AT":"¥D_AT",
-    "ACTIVE_FL":"¥ACTIVE_FL",
-    "RECORD_FL":"¥RECORD_FL"
+    "BOX_TITLE":"Rol Tanımlama",
+    "PAGE_TITLE":"Rol Tanımlama",
+    "ROLE_ID":"Id",
+    "ROLE_CODE":"Rol Kodu",
+    "ROLE_NAME":"Rol Adı",
+    "ROLE_NAME_EN":"Rol Adı (İng.)",
+    "APP_CODE":"Uygulama",
+    "FORM_COUNT":"Ekran",
+    "USER_COUNT":"Kullanıcı",
+    "PH_ROLE_CODE":"Ör. KVKK_READER"
 }
-            

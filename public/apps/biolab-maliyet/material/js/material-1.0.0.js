@@ -98,8 +98,20 @@ $.DLNFrame = {
         $('#btnTestLink').on('click', $t.linkTest);
         // Kitle birlikte kullanılan malzemeler: ekle / çıkar hemen kaydedilir
         $('#btnCompanionAdd').on('click', $t.addCompanion);
+        // Miktar türü: kit başına = kitin bir kutusu için kaç ambalaj (3 kalibratör); test başı = kitin bir testi için
+        $('#COMPANION_BASIS').on('change', function () {
+            $('.js-comp-qty-label').text($(this).val() === 'KIT' ? 'Kutu adedi (1 kit için)' : 'Test başı');
+            $('#COMPANION_QUANTITY').attr('title', $(this).val() === 'KIT'
+                ? 'Bu kitin bir kutusu için kaç kutu kalibratör / kontrol harcanıyor (ör. 3). Test sayısı yazılmaz; bölmeyi uygulama yapar.' : '');
+        });
         $('#materialCompanions').on('click', '.btnCompanionRemove', function () { $t.removeCompanion($(this).data('id'), $(this).data('name')); });
         $('#materialTests').on('click', '.btnTestUnlink', function () { $t.unlinkTest($(this).data('id'), $(this).data('code')); });
+        // Reçeteyi aç: YENİ SEKMEDE menülü uygulama, Test maliyetleri o testin penceresiyle açılır (app.js #page=);
+        // Malzemeler ekranı bu sekmede açık kalır
+        $('#materialTests').on('click', '.btnOpenRecipe', function () {
+            const url = './test_cost/testCost-1.0.0.html?TEST_ID=' + Number($(this).data('test'));
+            window.open('../index.html#page=' + encodeURIComponent(url), '_blank', 'noopener');
+        });
         $('#TEST_SEARCH').on('input', $t.filterTests);
         $('#modalMaterial input, #modalMaterial select').on('input change', function () { $('#materialMsg').prop('hidden', true); });
         $('#modalStudy').on('input change', 'input, select', function () { $('#studyMsg').prop('hidden', true); });
@@ -770,8 +782,9 @@ $.DLNFrame = {
             return '<tr class="js-test-row" data-search="' + esc((r.testCode + ' ' + r.testName).toLocaleLowerCase('tr-TR')) + '"><td class="mt-mono">' + esc(r.testCode) + '</td><td>' + esc(r.testName)
                 + (r.activeFl === 'N' ? ' <span class="mt-badge mt-badge-wait">pasif</span>' : '') + '</td>'
                 + '<td class="mt-num mt-mono">' + $t.qty(r.quantity) + '</td><td>' + esc(r.consumptionName) + '</td>'
-                + '<td class="text-right"><button type="button" class="btn btn-link btn-sm btnTestUnlink" data-id="' + r.recipeItemId
-                + '" data-code="' + esc(r.testCode) + '" title="Bağlantıyı kaldır"><i class="fas fa-unlink"></i></button></td></tr>';
+                // Reçete tek yerden değişir: Test maliyetleri'nde o testin penceresi açılır
+                + '<td class="text-right"><button type="button" class="btn btn-link btn-sm btnOpenRecipe" data-test="' + Number(r.testId)
+                + '" title="Test maliyetleri\'nde bu testin reçetesini yeni sekmede aç" style="white-space:nowrap"><i class="fas fa-external-link-alt"></i> Reçeteyi aç</button></td></tr>';
         }).join(''));
         $t.filterTests();   // bağla / kaldır sonrası arama korunur
     },
@@ -803,6 +816,25 @@ $.DLNFrame = {
         if (!testId) { msg('Bağlanacak testi seçin.'); return; }
         if (qty === null || qty <= 0) { msg('Miktar sıfırdan büyük olmalı.'); return; }
 
+        // Yön karışmasın: bu MALZEME seçilen TESTİN reçetesine eklenir; maliyeti artan seçilen testtir.
+        // (Bir testin maliyetine başka bir testin kitini eklemek için o kitin kaydını açıp bu testi bağlayın.)
+        const esc = function (s) { return $('<div>').text(s).html(); };   // bildirim HTML gösterir
+        const testText = esc($('#TEST_ID option:selected').text() || testId);
+        const materialName = esc($.trim($('#MATERIAL_NAME').val()) || 'Bu malzeme');
+        $.fn.nty({
+            type: 'warning',
+            text: '"' + materialName + '" malzemesi ' + testText + ' testinin reçetesine eklenecek ve bu testin maliyeti artacak. ' +
+                  'Bu malzemenin maliyetine başka bir test eklemek istiyorsanız Vazgeç deyin: o testin kitini açıp bu malzemenin testini bağlayın.',
+            buttons: [
+                { text: 'Evet, bağla', onClick: function ($noty) { $noty.close(); $t.saveLinkTest(testId); } },
+                { addClass: 'btn btn-danger', text: 'Vazgeç', onClick: function ($noty) { $noty.close(); } }
+            ]
+        });
+    },
+
+    saveLinkTest: function (testId) {
+        const $t = $.DLNFrame;
+        const msg = function (text) { $('#materialMsg').text(text).prop('hidden', false); };
         $.ajaxq('frame', {
             url: proxyPath + modulePath + 'setMaterialTest',
             type: 'POST',
@@ -867,8 +899,10 @@ $.DLNFrame = {
         const $t = $.DLNFrame;
         const esc = function (v) { return $('<span>').text(v === null || v === undefined ? '' : v).html(); };
         $('.js-comp-count').text(rows.length);
+        // Eski liste: yalnız kayıt varsa görünür (taşınana kadar hesaba giriyor, gizli kalmasın); yeni satır eklenmez
+        $('.js-comp-section').prop('hidden', !rows.length);
         if (!rows.length) {
-            $('#materialCompanions').html('<tr class="mt-empty"><td colspan="6">Kitle birlikte kullanılan malzeme eklenmedi (pipet ucu, küvet…).</td></tr>');
+            $('#materialCompanions').html('<tr class="mt-empty"><td colspan="7">Kitle birlikte kullanılan malzeme eklenmedi (pipet ucu, küvet; kit başına kalibratör, kontrol…).</td></tr>');
             $('.js-comp-total').prop('hidden', true);
             return;
         }
@@ -876,7 +910,10 @@ $.DLNFrame = {
         $('#materialCompanions').html(rows.map(function (r) {
             if (r.amount === null) { complete = false; } else { sum += Number(r.amount); }
             return '<tr><td>' + (r.shortCode ? '<b class="mt-mono">' + esc(r.shortCode) + '</b> ' : '') + esc(r.materialName) + '</td>'
-                + '<td class="mt-num mt-mono">' + $t.qty(r.quantity) + '</td><td>' + esc(r.usageUnitName) + '</td>'
+                // Miktar: yazıldığı gibi (kit başına / test başı); Test başı: kitin bir testine düşen (kit başına satırda hesaplanır)
+                + '<td class="mt-num mt-mono">' + $t.qty(r.quantity) + ' <span class="mt-sub">' + (r.basis === 'KIT' ? 'kit başına' : 'test başı') + '</span></td>'
+                + '<td class="mt-num mt-mono">' + (r.perTest === null ? '<span class="mt-badge mt-badge-warn" title="Kitin ya da malzemenin ambalaj içeriği bu çalışmada yok">?</span>' : $t.qty(r.perTest)) + '</td>'
+                + '<td>' + esc(r.usageUnitName) + '</td>'
                 + '<td class="mt-num mt-mono">' + (r.unitCost === null ? '<span class="mt-badge mt-badge-warn">Fiyat yok</span>' : $t.fmt(r.unitCost, 4)) + '</td>'
                 + '<td class="mt-num mt-mono">' + (r.amount === null ? '' : $t.fmt(r.amount, 4)) + '</td>'
                 + '<td class="text-right"><button type="button" class="btn btn-link btn-sm btnCompanionRemove" data-id="' + r.materialCompanionId
@@ -893,13 +930,46 @@ $.DLNFrame = {
         const id = $('#COMPANION_ID').val();
         const qty = $t.parse($('#COMPANION_QUANTITY').val());
         if (!id) { msg('Eklenecek malzemeyi seçin.'); return; }
-        if (qty === null || qty <= 0) { msg('Test başı miktar sıfırdan büyük olmalı.'); return; }
+        if (qty === null || qty <= 0) { msg('Miktar sıfırdan büyük olmalı.'); return; }
 
+        // Açık kit hiçbir teste bağlı değilse listesi hiçbir maliyete girmez (çoğunlukla kalibratör açılmıştır: yön ters)
+        // Kit başına alanına test sayısı (200, 250) yazılmasın: bir kit için genelde birkaç kutu harcanır
+        if ($('#COMPANION_BASIS').val() === 'KIT' && qty > 20) {
+            $.fn.nty({
+                type: 'warning',
+                text: 'Bir kit kutusu için ' + qty + ' kutu mu harcanıyor? Buraya test sayısı değil, bir kit için kullanılan kutu adedi yazılır '
+                    + '(ör. Vitamin C: kalibratör 3, kontrol 2). Bölmeyi kitin test sayısına uygulama yapar.',
+                buttons: [
+                    { text: 'Evet, ' + qty + ' kutu', onClick: function ($noty) { $noty.close(); $t.saveCompanion(id); } },
+                    { addClass: 'btn btn-danger', text: 'Düzelt', onClick: function ($noty) { $noty.close(); $('#COMPANION_QUANTITY').focus().select(); } }
+                ]
+            });
+            return;
+        }
+        if (Number($('.js-test-count').text()) === 0) {
+            $.fn.nty({
+                type: 'warning',
+                text: 'Bu kit hiçbir teste bağlı değil; listesine eklenen malzeme hiçbir test maliyetine girmez. '
+                    + 'Kalibratör / kontrol eklemek istiyorsanız Vazgeç deyin, ana kiti (ör. VİTAMİN C) açıp kalibratörü onun listesine "Kit başına" ekleyin.',
+                buttons: [
+                    { text: 'Yine de ekle', onClick: function ($noty) { $noty.close(); $t.saveCompanion(id); } },
+                    { addClass: 'btn btn-danger', text: 'Vazgeç', onClick: function ($noty) { $noty.close(); } }
+                ]
+            });
+            return;
+        }
+        $t.saveCompanion(id);
+    },
+
+    saveCompanion: function (id) {
+        const $t = $.DLNFrame;
+        const msg = function (text) { $('#materialMsg').text(text).prop('hidden', false); };
         $.ajaxq('frame', {
             url: proxyPath + modulePath + 'setMaterialCompanion',
             type: 'POST',
             dataType: 'json',
-            data: { MATERIAL_ID: $('#MATERIAL_ID').val(), COMPANION_ID: id, QUANTITY: $('#COMPANION_QUANTITY').val(), STUDY_ID: $('#STUDY_ID').val() || '' },
+            data: { MATERIAL_ID: $('#MATERIAL_ID').val(), COMPANION_ID: id, QUANTITY: $('#COMPANION_QUANTITY').val(),
+                    BASIS: $('#COMPANION_BASIS').val() || 'TEST', STUDY_ID: $('#STUDY_ID').val() || '' },
             beforeSend: function () { $('#btnCompanionAdd').prop('disabled', true); },
             success: function (result) {
                 if (result && result['resCode'] === 0) {
@@ -907,6 +977,7 @@ $.DLNFrame = {
                     $t.renderCompanions((result['resObject'] && result['resObject']['companions']) || []);
                     $('#COMPANION_ID').val('').change();
                     $('#COMPANION_QUANTITY').val('1');
+                    $('#COMPANION_BASIS').val('TEST').change();
                 } else {
                     msg((result && result['resMsg']) || 'Eklenemedi.');
                 }

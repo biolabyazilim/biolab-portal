@@ -51,7 +51,7 @@ $.DLNFrame = {
               hint: 'Önce LabAsistan\'da seçtiğiniz birimi seçin; birim boşsa "Tüm birimler".' },
             { code: 'FIRE_REPORT', title: 'Fire / zayi bildirimi', who: 'Şubeler ve PCR · satın alma üzerinden gelen bildirim formu', icon: 'fas fa-trash-alt', perUnit: true,
               unitQuery: 'getFIRE_UNIT', unitPlaceholder: 'Formun birimi (şube ya da PCR)',
-              hint: 'Önce formun birimini seçin; her birim ayrı dosya. Boş form "bu ay bildirim yok" demektir.' }
+              hint: 'Önce formun birimini seçin: tek şube, PCR ya da birleştirilmiş form için "Tüm şubeler". Boş form "bu ay bildirim yok" demektir.' }
         ],
         fireCategories: { FIRE: 'Fire', ZAYI: 'Zayi', SUPPLIER: 'Tedarikçi kaynaklı', OTHER: 'Diğer' },
         typeNames: { CUSTOMER: 'Kurumlar (cari)', OSGB: 'OSGB', BRANCH: 'Şubeler', LAB: 'Kahramanlar lab / kan alma', STORE: 'Ana depo', OTHER: 'Diğer' }
@@ -559,7 +559,9 @@ $.DLNFrame = {
         const got = Object.keys(u.received || {});
         $('#fireUnits').html(
             got.map(function (n) { return '<span class="mt-chip mt-chip-ok"><i class="fas fa-check"></i> ' + esc(n) + (u.received[n] ? ' · ' + u.received[n] : ' · bildirim yok') + '</span>'; }).join(' ')
-            + (u.missing.length ? ' ' + u.missing.map(function (n) { return '<span class="mt-chip mt-chip-wait"><i class="far fa-clock"></i> ' + esc(n) + '</span>'; }).join(' ') : ''));
+            + (u.missing.length ? ' ' + u.missing.map(function (n) { return '<span class="mt-chip mt-chip-wait"><i class="far fa-clock"></i> ' + esc(n) + '</span>'; }).join(' ') : '')
+            + (u.merged ? '<div class="mt-file-meta" style="width:100%">Birleştirilmiş şube formu yüklü: formda satırı olmayan şubeler "gelmedi" görünür; '
+                + 'bildirimi olmadığı için mi yoksa formu gelmediği için mi, satın almadan teyit edin.</div>' : ''));
     },
 
     initGridFire: function () {

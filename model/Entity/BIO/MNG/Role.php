@@ -46,8 +46,11 @@ class Role
 
     public function getRoleId(): ?int            { return $this->roleId; }
     public function getRoleCode(): string        { return $this->roleCode; }
+    public function setRoleCode(string $v): self { $this->roleCode = $v; return $this; }
     public function getRoleName(): string        { return $this->roleName; }
     public function setRoleName(string $v): self { $this->roleName = $v; return $this; }
     public function getRoleNameEn(): ?string     { return $this->roleNameEn; }
+    public function setRoleNameEn(?string $v): self { $this->roleNameEn = $v; return $this; }
     public function getAppCode(): ?string        { return $this->appCode; }
+    public function setAppCode(?string $v): self { $this->appCode = $v; return $this; }
 }

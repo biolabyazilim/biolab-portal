@@ -152,27 +152,53 @@
             if (typeof opt.onOpen === 'function') { opt.onOpen(url); }
         }
 
-        function closeDrawer() {
-            opt.layout.classList.remove('is-open');
-            if (opt.toggle) { opt.toggle.setAttribute('aria-expanded', 'false'); }
+        // Üst bardaki menü düğmesi (logonun solunda) tek düğmedir: masaüstünde menüyü daraltır / genişletir,
+        // dar ekranda (portal-menu.css ile aynı sınır: 992px) çekmeceyi açar.
+        const desktopQuery = window.matchMedia ? window.matchMedia('(min-width: 992px)') : null;
+        function isDesktop() { return desktopQuery ? desktopQuery.matches : window.innerWidth >= 992; }
+
+        function syncToggle() {
+            if (!opt.toggle) { return; }
+            if (isDesktop()) {
+                const c = opt.layout.classList.contains('is-collapsed');
+                opt.toggle.setAttribute('aria-expanded', String(!c));
+                opt.toggle.title = c ? 'Menüyü genişlet' : 'Menüyü daralt';
+            } else {
+                opt.toggle.setAttribute('aria-expanded', String(opt.layout.classList.contains('is-open')));
+                opt.toggle.title = 'Menü';
+            }
         }
 
-        // Mobil çekmece
+        function setCollapsed(c) {
+            opt.layout.classList.toggle('is-collapsed', c);
+            storeSet(prefix + 'collapsed', c ? '1' : '0');
+            syncToggle();
+        }
+
+        function closeDrawer() {
+            opt.layout.classList.remove('is-open');
+            syncToggle();
+        }
+
         if (opt.toggle) {
             opt.toggle.addEventListener('click', function () {
-                const isOpen = opt.layout.classList.toggle('is-open');
-                opt.toggle.setAttribute('aria-expanded', String(isOpen));
+                if (isDesktop()) { setCollapsed(!opt.layout.classList.contains('is-collapsed')); return; }
+                opt.layout.classList.toggle('is-open');
+                syncToggle();
             });
+            // Pencere genişliği sınırı geçince düğmenin anlamı değişir: açık çekmece kapanır, etiket güncellenir
+            if (desktopQuery) {
+                const onChange = function () { opt.layout.classList.remove('is-open'); syncToggle(); };
+                if (desktopQuery.addEventListener) { desktopQuery.addEventListener('change', onChange); } else if (desktopQuery.addListener) { desktopQuery.addListener(onChange); }
+            }
+            syncToggle();
         }
         if (opt.backdrop) { opt.backdrop.addEventListener('click', closeDrawer); }
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeDrawer(); } });
 
-        // Masaüstü: yalnızca ikon görünümü
+        // Eski « düğmesi (menünün içinde) varsa aynı işi yapar; artık CSS ile gizli, index.html'ler değişmeden çalışsın diye bağlı kalır
         if (opt.collapseBtn) {
-            opt.collapseBtn.addEventListener('click', function () {
-                const c = opt.layout.classList.toggle('is-collapsed');
-                storeSet(prefix + 'collapsed', c ? '1' : '0');
-            });
+            opt.collapseBtn.addEventListener('click', function () { setCollapsed(!opt.layout.classList.contains('is-collapsed')); });
         }
 
         function load() {

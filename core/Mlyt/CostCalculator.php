@@ -5,6 +5,7 @@ namespace Biolab\Core\Mlyt;
 
 use BIO\MLYT\Material;
 use BIO\MLYT\MaterialCategory;
+use BIO\MLYT\MaterialCompanion;
 use BIO\MLYT\RecipeItem;
 use BIO\MLYT\Test;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,7 +21,8 @@ use Doctrine\ORM\EntityManagerInterface;
  *                            bedelli malzeme (kategori BILLABLE, bedeli girilmiş): sabit bedel (TL / birim), çalışmadan bağımsız
  *   reçeteli / kitli test  = Σ miktar × birim maliyet                    (mlyt_recipe_item, hasta başına; kit de bir reçete satırıdır)
  *                            kitle birlikte kullanılan malzemeler (mlyt_material_companion: pipet ucu, küvet…) kit satırının
- *                            altına eklenir: miktar = kit miktarı × listedeki adet (satır türü COMPANION; reçetede yazılı değil)
+ *                            altına eklenir: miktar = kit miktarı × listedeki adet (satır türü COMPANION; reçetede yazılı değil);
+ *                            kit başına yazılanda (kalibratör, kontrol) adet × ambalaj içeriği ÷ kitin test sayısı
  *   hesaplamalı test       = Σ bileşen maliyeti × adet × oran ÷ 100     (mlyt_test_component; bileşenler iç içe)
  *
  * Eksik parça varsa maliyet kısmi hesaplanır ve durum ile eksikler döner:
@@ -126,11 +128,62 @@ final class CostCalculator
                 $missing[] = 'Bileşen tanımlı değil';
             }
         } else {
+            // Testin kiti: reçetedeki hasta başı kitlerden test başı maliyeti en yüksek olan (asıl reaktif kiti; insert vial gibi
+            // "Kit" kategorisindeki sarflar seçilmesin). Kit başına satırlar (kalibratör, kontrol) bu kitin test sayısına bölünür.
+            $mainKitId = null;
+            $mainKitCost = -1.0;
             foreach ($this->items[$testId] ?? [] as $i) {
+                $mi = $this->materials[$i['materialId']] ?? null;
+                if ($i['consumption'] === RecipeItem::PER_PATIENT && ($mi['isKit'] ?? false) && $mi['divisor'] !== null
+                    && ($mi['unitCost'] ?? 0.0) > $mainKitCost) {
+                    $mainKitId = $i['materialId'];
+                    $mainKitCost = $mi['unitCost'] ?? 0.0;
+                }
+            }
+            foreach ($this->items[$testId] ?? [] as $i) {
+                if ($i['consumption'] === RecipeItem::PER_KIT) {
+                    // Reçetede kit başına satır: kutu adedi × malzemenin ambalaj içeriği ÷ testin kitinin test sayısı
+                    $m = $this->materials[$i['materialId']] ?? ['name' => '?', 'unit' => Material::UNIT_PIECE, 'unitCost' => null, 'reason' => 'Malzeme yok'];
+                    $perTest = $mainKitId !== null ? $this->perKitToPerTest($mainKitId, $i['materialId'], $i['quantity']) : null;
+                    $amount = null;
+                    if ($m['unitCost'] === null) {
+                        $flags[] = self::MISSING_PRICE;
+                        $missing[] = $m['name'] . ': ' . $m['reason'];
+                    } elseif ($mainKitId === null) {
+                        $flags[] = self::MISSING_PRICE;
+                        $missing[] = $m['name'] . ': kit başına satır için reçetede hasta başı bir kit yok';
+                    } elseif ($perTest === null) {
+                        $flags[] = self::MISSING_PRICE;
+                        $missing[] = $m['name'] . ': kitin test sayısı yok (' . ($this->materials[$mainKitId]['name'] ?? '?') . ')';
+                    } else {
+                        $amount = $m['unitCost'] * $perTest;
+                        $cost += $amount;
+                    }
+                    $lines[] = [
+                        'type'         => 'MATERIAL',
+                        'materialId'   => $i['materialId'],
+                        'materialName' => $m['name'],
+                        'unitName'     => self::UNIT_NAMES[$m['unit']][$this->lang === 'en' ? 1 : 0] ?? $m['unit'],
+                        'quantity'     => $perTest,          // testin bir hastasına düşen (hesaplanan)
+                        'consumption'  => RecipeItem::PER_KIT,
+                        'unitCost'     => $m['unitCost'],
+                        'amount'       => $amount,
+                        'reason'       => $m['reason'],
+                        'kitId'        => null,
+                        'kitName'      => null,
+                        'basis'        => null,
+                        'perKit'       => $i['quantity'],    // reçetede yazılan: bir kit için kutu adedi
+                        'divKitName'   => $mainKitId !== null ? ($this->materials[$mainKitId]['name'] ?? '') : null,
+                    ];
+                    continue;
+                }
                 // Reçete satırı; ardından kitle birlikte kullanılan malzemeler (kit miktarı × listedeki adet), aynı tüketim türüyle
-                $rows = [['type' => 'MATERIAL', 'materialId' => $i['materialId'], 'quantity' => $i['quantity'], 'kitId' => null]];
+                $rows = [['type' => 'MATERIAL', 'materialId' => $i['materialId'], 'quantity' => $i['quantity'], 'kitId' => null, 'basis' => null, 'perKit' => null]];
                 foreach ($this->companions[$i['materialId']] ?? [] as $c) {
-                    $rows[] = ['type' => 'COMPANION', 'materialId' => $c['materialId'], 'quantity' => $i['quantity'] * $c['quantity'], 'kitId' => $i['materialId']];
+                    // Kit başına (KIT): ambalaj adedi × malzemenin ambalaj içeriği ÷ kitin test sayısı → kitin bir testi başına
+                    $perTest = $c['basis'] === MaterialCompanion::BASIS_KIT ? $this->perKitToPerTest($i['materialId'], $c['materialId'], $c['quantity']) : $c['quantity'];
+                    $rows[] = ['type' => 'COMPANION', 'materialId' => $c['materialId'], 'quantity' => $perTest === null ? null : $i['quantity'] * $perTest,
+                               'kitId' => $i['materialId'], 'basis' => $c['basis'], 'perKit' => $c['basis'] === MaterialCompanion::BASIS_KIT ? $c['quantity'] : null];
                 }
                 foreach ($rows as $row) {
                     $m = $this->materials[$row['materialId']] ?? ['name' => '?', 'unit' => Material::UNIT_PIECE, 'unitCost' => null, 'reason' => 'Malzeme yok'];
@@ -141,6 +194,10 @@ final class CostCalculator
                     } elseif ($m['unitCost'] === null) {
                         $flags[] = self::MISSING_PRICE;
                         $missing[] = $m['name'] . ': ' . $m['reason'];
+                    } elseif ($row['quantity'] === null) {
+                        // Kit başına satır: kitin test sayısı bu çalışmada bilinmiyor (kitin fiyatı / ambalajı girilmemiş)
+                        $flags[] = self::MISSING_PRICE;
+                        $missing[] = $m['name'] . ': kitin test sayısı yok (' . ($this->materials[$row['kitId']]['name'] ?? '?') . ')';
                     } else {
                         $amount = $m['unitCost'] * $row['quantity'];
                         $cost += $amount;
@@ -157,6 +214,8 @@ final class CostCalculator
                         'reason'       => $m['reason'],
                         'kitId'        => $row['kitId'],
                         'kitName'      => $row['kitId'] !== null ? ($this->materials[$row['kitId']]['name'] ?? '') : null,
+                        'basis'        => $row['basis'],    // COMPANION: TEST (test başı) / KIT (kit başına)
+                        'perKit'       => $row['perKit'],   // KIT: kit başına ambalaj adedi
                     ];
                 }
             }
@@ -179,6 +238,19 @@ final class CostCalculator
             'missing' => array_values(array_unique($missing)),
             'lines'   => $lines,
         ];
+    }
+
+    /**
+     * Kit başına ambalaj adedini kitin bir testi başına kullanım miktarına çevirir:
+     *   adet × malzemenin bir ambalajındaki kullanım birimi ÷ kitin bir kutusundaki test (hasta) sayısı
+     * Örnek: Vitamin C kiti 250 test, kalibratör 350 birimlik; kit başına 3 kalibratör → 3 × 350 ÷ 250 = 4,2 birim / test.
+     * İkisinden biri bu çalışmada bilinmiyorsa null.
+     */
+    public function perKitToPerTest(int $kitMaterialId, int $materialId, float $perKit): ?float
+    {
+        $kitTests = $this->materials[$kitMaterialId]['divisor'] ?? null;
+        $units    = $this->materials[$materialId]['divisor'] ?? null;
+        return $kitTests && $units ? $perKit * $units / $kitTests : null;
     }
 
     /** Malzemenin seçili çalışmadaki birim maliyeti (TL / kullanım birimi); yoksa null */
@@ -227,8 +299,10 @@ final class CostCalculator
         foreach ($rows as $r) {
             $unitCost = null;
             $reason = null;
+            $divisor = null;   // bir ambalajdaki kullanım birimi (kitte: test / hasta sayısı); kit başına satırlar için
             if ($r['categoryCode'] === MaterialCategory::CODE_BILLABLE && $r['billablePrice'] !== null) {
                 $unitCost = (float) $r['billablePrice'];   // bedelli malzeme: sabit bedel
+                $divisor = 1.0;
             } elseif ($this->studyId === null) {
                 $reason = 'Maliyet çalışması seçilmedi';
             } elseif ($r['packagePrice'] === null) {
@@ -242,8 +316,14 @@ final class CostCalculator
                 $divisor = (float) $r['patientQty'] > 0 ? (float) $r['patientQty'] : (float) $r['packageQty'];
                 $unitCost = (float) $r['packagePrice'] * $rate / $divisor;
             }
+            if ($divisor === null && $r['packagePrice'] !== null) {
+                // Kur eksik olsa da ambalaj içeriği bilinir (kit başına çevirme fiyattan bağımsız)
+                $d = (float) $r['patientQty'] > 0 ? (float) $r['patientQty'] : (float) $r['packageQty'];
+                $divisor = $d > 0 ? $d : null;
+            }
             $this->materials[(int) $r['materialId']] = [
                 'name' => $r['materialName'], 'unit' => $r['usageUnit'], 'unitCost' => $unitCost, 'reason' => $reason,
+                'divisor' => $divisor, 'isKit' => $r['categoryCode'] === MaterialCategory::CODE_KIT,
             ];
         }
 
@@ -280,13 +360,13 @@ final class CostCalculator
 
         // Kitle birlikte kullanılan malzemeler (pipet ucu, küvet…): kit → [malzeme, kitin testi başına miktar]
         foreach ($this->em->createQuery("
-            SELECT IDENTITY(mc.kit) AS kitId, IDENTITY(mc.material) AS materialId, mc.quantity
+            SELECT IDENTITY(mc.kit) AS kitId, IDENTITY(mc.material) AS materialId, mc.quantity, mc.basis
               FROM BIO\MLYT\MaterialCompanion mc
               JOIN mc.kit k
              WHERE IDENTITY(k.company) = :COMPANY_ID AND mc.recordFl > 0 AND mc.activeFl = 'Y'
              ORDER BY mc.sortNo, mc.materialCompanionId
         ")->setParameters($cid)->getArrayResult() as $c) {
-            $this->companions[(int) $c['kitId']][] = ['materialId' => (int) $c['materialId'], 'quantity' => (float) $c['quantity']];
+            $this->companions[(int) $c['kitId']][] = ['materialId' => (int) $c['materialId'], 'quantity' => (float) $c['quantity'], 'basis' => $c['basis']];
         }
     }
 

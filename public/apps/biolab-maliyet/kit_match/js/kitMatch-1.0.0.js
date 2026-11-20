@@ -26,7 +26,7 @@ $(document).ready(function () {
 $.DLNFrame = {
     data: {
         lang: null,
-        tab: 'HIGH',
+        tab: 'LINKED',      // açılışta bağlı kitler görünür (sekme HTML'de de active)
         searchTimer: null,
         kits: []            // bütün kitler (getGridList → resObject.kits); satırdaki "Tüm kitler" grubu
     },

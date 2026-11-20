@@ -134,7 +134,8 @@ switch ($query) {
     case "getFIRE_UNIT":
         $execType = ET_DEFAULT;
         try{
-            $dtResponse = array();
+            // İlk seçenek: satın almanın birleştirdiği şube formu (şube her satırın "Şube / birim" kolonundan okunur)
+            $dtResponse = array(array("unitName" => MonthlyReport::FIRE_UNIT_ALL, "unitText" => "Tüm şubeler (birleştirilmiş şube formu)", "activeFl" => "Y"));
             foreach (mtFireUnits($db, $companyId) as $u) { $dtResponse[] = array("unitName" => $u, "unitText" => $u, "activeFl" => "Y"); }
             $resCode = 0;
             $resMsg = "Ok";
@@ -246,7 +247,26 @@ switch ($query) {
             $unit = "-";
             if ($source === PeriodFile::FIRE_REPORT) {
                 $unit = trim((string) ($_POST["UNIT_NAME"] ?? ""));
-                if (!in_array($unit, mtFireUnits($db, $companyId), true)) { $resCode = 10; $resMsg = "Formun ait olduğu birimi seçin (şube ya da PCR)."; break; }
+                $all = MonthlyReport::FIRE_UNIT_ALL;
+                if ($unit !== $all && !in_array($unit, mtFireUnits($db, $companyId), true)) {
+                    $resCode = 10; $resMsg = "Formun ait olduğu birimi seçin (şube, PCR ya da birleştirilmiş form için \"Tüm şubeler\")."; break;
+                }
+                // Birleştirilmiş şube formu ile tek şube formları aynı dönemde karışmaz (aynı satır iki kez sayılır). PCR ayrıdır.
+                if ($unit !== MonthlyReport::FIRE_UNIT_PCR) {
+                    $other = $db->createQuery("
+                        SELECT f.unitName FROM BIO\MLYT\PeriodFile f
+                         WHERE f.period = :PERIOD AND f.sourceCode = :SRC AND f.recordFl > 0 AND f.unitName <> :PCR AND "
+                         . ($unit === $all ? "f.unitName <> :ALL" : "f.unitName = :ALL")
+                    )->setParameter("PERIOD", $period)->setParameter("SRC", PeriodFile::FIRE_REPORT)->setParameter("PCR", MonthlyReport::FIRE_UNIT_PCR)
+                     ->setParameter("ALL", $all)->setMaxResults(1)->getOneOrNullResult();
+                    if ($other !== null) {
+                        $resCode = 10;
+                        $resMsg = $unit === $all
+                            ? "Bu dönemde şube şube yüklenmiş formlar var (" . $other["unitName"] . "…). Birleştirilmiş formu yüklemek için önce onları silin."
+                            : "Bu dönemde \"Tüm şubeler\" birleştirilmiş formu var; tek şube formu yüklemek için önce onu silin.";
+                        break;
+                    }
+                }
             } elseif (in_array($source, PeriodFile::PER_UNIT, true)) {
                 $unit = trim((string) ($_POST["UNIT_NAME"] ?? ""));
                 if ($unit !== MT_ALL_UNITS && !in_array($unit, MT_UNITS, true)) {

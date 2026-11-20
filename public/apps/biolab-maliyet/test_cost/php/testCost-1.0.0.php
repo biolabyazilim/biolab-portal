@@ -20,6 +20,8 @@ global $db, $dbm, $lm, $query, $execType, $resCode, $resMsg, $dtResponse, $resOb
 
 use Biolab\Core\Mlyt\CostCalculator;
 use BIO\MLYT\Material;
+use BIO\MLYT\MaterialCategory;
+use BIO\MLYT\MaterialPrice;
 use BIO\MLYT\RecipeItem;
 use BIO\MLYT\Study;
 use BIO\MLYT\Test;
@@ -46,6 +48,8 @@ const TC_MATERIAL_UNITS = array(
     Material::UNIT_PIECE => array("adet", "piece"), Material::UNIT_TEST => array("test", "test"),
     Material::UNIT_ML    => array("ml", "ml"),      Material::UNIT_GR   => array("gr", "g"),
 );
+
+const TC_PRICE_CURRENCIES = array("TRY", "USD", "EUR", "GBP");   // Malzemeler ekranıyla aynı (MT_PRICE_CURRENCIES)
 
 $companyId = (int) $_SESSION["COMPANY_ID"];
 $sessionLang = (string) ($_SESSION["lang"] ?? "tr");
@@ -266,8 +270,11 @@ switch ($query) {
             $items = json_decode((string) ($_POST["ITEMS"] ?? "[]"), true);
             if (!is_array($items)) { $resCode = 10; $resMsg = "Reçete okunamadı."; break; }
 
+            // Formdaki satırların türü: hasta başı (PATIENT) ya da kit başına (KIT: kalibratör, kontrol; kutu adedi)
+            $editable = array(RecipeItem::PER_PATIENT, RecipeItem::PER_KIT);
             $errors = array();
             $wanted = array();   // materialId → miktar
+            $cons = array();     // materialId → tüketim türü
             foreach ($items as $i => $it) {
                 $mid = (int) ($it["materialId"] ?? 0);
                 $qty = tcDecimal($it["quantity"] ?? null);
@@ -275,6 +282,7 @@ switch ($query) {
                 if ($qty === null || (float) $qty <= 0) { $errors[] = "Satır " . ($i + 1) . ": miktar sıfırdan büyük olmalı."; continue; }
                 if (isset($wanted[$mid])) { $errors[] = "Aynı malzeme iki kez eklenmiş."; continue; }
                 $wanted[$mid] = $qty;
+                $cons[$mid] = in_array($it["consumption"] ?? "", $editable, true) ? $it["consumption"] : RecipeItem::PER_PATIENT;
             }
             if ($errors) { $resCode = 10; $resMsg = implode(" ", array_unique($errors)); break; }
 
@@ -286,28 +294,115 @@ switch ($query) {
             }
             if ($errors) { $resCode = 10; $resMsg = implode(" ", $errors); break; }
 
-            // Mevcut satırlar: aynı malzeme güncellenir, listede olmayan silinir, yeni olan eklenir
+            // Mevcut satırlar (malzeme + tür): aynısı güncellenir, listede olmayan silinir, yeni olan eklenir.
+            // Türü değişen satır (hasta başı → kit başına) eskisi silinip yenisi eklenir.
             $existing = array();
-            foreach ($db->getRepository(RecipeItem::class)->findBy(array("test" => $test, "consumption" => RecipeItem::PER_PATIENT)) as $ri) {
-                $existing[$ri->getMaterial()->getMaterialId()] = $ri;
+            foreach ($db->getRepository(RecipeItem::class)->findBy(array("test" => $test, "consumption" => $editable)) as $ri) {
+                $existing[$ri->getMaterial()->getMaterialId() . "|" . $ri->getConsumption()] = $ri;
             }
             $sort = 0;
+            $new = array();
             foreach ($wanted as $mid => $qty) {
                 $sort += 10;
-                if (isset($existing[$mid])) {
-                    $existing[$mid]->setQuantity($qty)->setSortNo($sort);
-                    unset($existing[$mid]);
+                $key = $mid . "|" . $cons[$mid];
+                if (isset($existing[$key])) {
+                    $existing[$key]->setQuantity($qty)->setSortNo($sort);
+                    unset($existing[$key]);
                 } else {
-                    $db->persist(new RecipeItem($test, $materials[$mid], $qty, RecipeItem::PER_PATIENT, $sort));
+                    $new[] = new RecipeItem($test, $materials[$mid], $qty, $cons[$mid], $sort);
                 }
             }
             foreach ($existing as $ri) { $db->remove($ri); }
+            $db->flush();   // önce silinenler (tekil indeks: test + malzeme + tür)
+            foreach ($new as $ri) { $db->persist($ri); }
             $db->flush();
 
             $study = tcFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
             $resObject = tcDetail($db, $test, $study, $companyId, $sessionLang, $li);
             $resCode = 0;
             $resMsg = "Reçete kaydedildi";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
+    /* ---------- Reçete penceresinden fiyat (Malzemeler ekranına gitmeden) ---------- */
+
+    // MATERIAL_ID, STUDY_ID → malzemenin bu çalışmadaki fiyatı + kaç testte kullanıldığı (fiyat hepsine yansır)
+    case "getMaterialPrice":
+        $execType = ET_DEFAULT;
+        try{
+            $material = $db->getRepository(Material::class)->findOneBy(array("materialId" => (int) ($_POST["MATERIAL_ID"] ?? 0), "company" => $companyId));
+            if ($material === null || $material->isDeleted()) { $resCode = 20; $resMsg = "Malzeme bulunamadı."; break; }
+            $study = tcFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
+            if ($study === null) { $resCode = 20; $resMsg = "Önce bir maliyet çalışması seçin."; break; }
+            $p = $db->getRepository(MaterialPrice::class)->findOneBy(array("study" => $study, "material" => $material));
+            $dtResponse = array(
+                "materialId"   => $material->getMaterialId(),
+                "materialName" => $material->getMaterialName(),
+                "unitName"     => TC_MATERIAL_UNITS[$material->getUsageUnit()][$li] ?? $material->getUsageUnit(),
+                "isKit"        => $material->getCategory()->getCategoryCode() === MaterialCategory::CODE_KIT,
+                "billable"     => $material->getCategory()->getCategoryCode() === MaterialCategory::CODE_BILLABLE,
+                "packageQty"   => $p?->getPackageQty(),
+                "packagePrice" => $p?->getPackagePrice(),
+                "currency"     => $p?->getCurrency() ?? "EUR",
+                "patientQty"   => $p?->getPatientQty(),
+                "studyName"    => $study->getStudyName(),
+                "editable"     => $study->isEditable(),
+                "testCount"    => (int) $db->createQuery("
+                    SELECT COUNT(DISTINCT IDENTITY(ri.test)) FROM BIO\MLYT\RecipeItem ri
+                     WHERE ri.material = :M AND ri.recordFl > 0
+                ")->setParameter("M", $material)->getSingleScalarResult(),
+            );
+            $resCode = 0;
+            $resMsg = "Ok";
+        }catch(Exception $exMain){
+            $resCode = 100;
+            $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
+        }
+        break;
+
+    // Fiyatı kaydeder (yalnız çalışma fiyatı: ambalaj içeriği, fiyat, para birimi, hasta sayısı; malzemenin diğer bilgileri
+    // değişmez). Kayıttan sonra açık test yeniden hesaplanır: resObject = testin ayrıntısı (TEST_ID verilirse)
+    case "setMaterialPrice":
+        $execType = ET_CUSTOM;
+        try{
+            $material = $db->getRepository(Material::class)->findOneBy(array("materialId" => (int) ($_POST["MATERIAL_ID"] ?? 0), "company" => $companyId));
+            if ($material === null || $material->isDeleted()) { $resCode = 20; $resMsg = "Malzeme bulunamadı."; break; }
+            if ($material->getCategory()->getCategoryCode() === MaterialCategory::CODE_BILLABLE) {
+                $resCode = 30; $resMsg = "Bedelli malzemenin bedeli Malzemeler ekranında girilir."; break;
+            }
+            $study = tcFindStudy($db, (int) ($_POST["STUDY_ID"] ?? 0), $companyId);
+            if ($study === null) { $resCode = 20; $resMsg = "Önce bir maliyet çalışması seçin."; break; }
+            if (!$study->isEditable()) { $resCode = 30; $resMsg = "Onaylanmış çalışmanın fiyatları değiştirilemez."; break; }
+
+            $pkgQty     = tcDecimal($_POST["PACKAGE_QTY"] ?? null);
+            $pkgPrice   = tcDecimal($_POST["PACKAGE_PRICE"] ?? null);
+            $patientQty = tcDecimal($_POST["PATIENT_QTY"] ?? null);
+            $currency   = (string) ($_POST["CURRENCY"] ?? "");
+            $errors = array();
+            if ($pkgPrice === null || (float) $pkgPrice < 0) { $errors[] = "Fiyatı girin."; }
+            if ($pkgQty === null || (float) $pkgQty <= 0) { $errors[] = "Ambalaj içeriği (kitteki test sayısı) sıfırdan büyük olmalı."; }
+            if ($patientQty !== null && (float) $patientQty <= 0) { $errors[] = "Hasta sayısı sıfırdan büyük olmalı."; }
+            if (!in_array($currency, TC_PRICE_CURRENCIES, true)) { $errors[] = "Para birimi seçin."; }
+            if ($errors) { $resCode = 10; $resMsg = implode(" ", $errors); break; }
+
+            // Var olan fiyat güncellenir (ambalaj açıklaması, KDV bilgisi korunur); yoksa eklenir
+            $price = $db->getRepository(MaterialPrice::class)->findOneBy(array("study" => $study, "material" => $material));
+            if ($price === null) {
+                $price = new MaterialPrice($study, $material, $pkgQty, $currency, $pkgPrice);
+                $db->persist($price);
+            } else {
+                $price->setPackageQty($pkgQty)->setCurrency($currency)->setPackagePrice($pkgPrice);
+            }
+            $price->setPatientQty($patientQty);
+            $db->flush();
+
+            $test = tcFindTest($db, (int) ($_POST["TEST_ID"] ?? 0), $companyId);
+            $resObject = $test !== null ? tcDetail($db, $test, $study, $companyId, $sessionLang, $li) : null;
+            $resCode = 0;
+            $resMsg = $material->getMaterialName() . " fiyatı kaydedildi";
         }catch(Exception $exMain){
             $resCode = 100;
             $resMsg = $exMain->getCode()." Line=".$exMain->getLine()." " . $exMain->getMessage();
