@@ -1,16 +1,12 @@
 {
-    "BOX_TITLE":"Management Role",
-    "PAGE_TITLE":"Management Role",
-    "ROLE_ID":"Role Id",
+    "BOX_TITLE":"Role Definition",
+    "PAGE_TITLE":"Role Definition",
+    "ROLE_ID":"Id",
+    "ROLE_CODE":"Role Code",
     "ROLE_NAME":"Role Name",
-    "ROLE_NAME_EN":"Role Name En",
-    "C_BY":"C By",
-    "C_AT":"C At",
-    "U_BY":"U By",
-    "U_AT":"U At",
-    "D_BY":"D By",
-    "D_AT":"D At",
-    "ACTIVE_FL":"Active FL",
-    "RECORD_FL":"Record FL"
+    "ROLE_NAME_EN":"Role Name (En)",
+    "APP_CODE":"Application",
+    "FORM_COUNT":"Screens",
+    "USER_COUNT":"Users",
+    "PH_ROLE_CODE":"E.g. KVKK_READER"
 }
-            

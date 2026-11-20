@@ -79,6 +79,10 @@
         .tc-source b { color: var(--hb-text); font-weight: 600; }
         .tc-costnote { padding: 8px 12px; border-radius: 6px; background: #fff8ea; border: 1px solid #f0d9a8; font-size: 12px; color: #7a4f00; white-space: pre-line; }
         .tc-costnote b { font-weight: 700; }
+        .tc-price { margin-top: 12px; padding: 12px; border: 1px solid #c9d8e8; border-radius: 8px; background: #f4f8fc; }
+        .tc-price-head { margin-bottom: 8px; font-size: 13px; }
+        .tc-price label { font-size: 12px; margin-bottom: 2px; }
+        .tc-price-link { padding: 0 0 0 6px; font-size: 12px; vertical-align: baseline; }
 
         @media (max-width: 767px) { .tc-wrap { padding: 12px; } }
     </style>
@@ -164,16 +168,52 @@
                 <div class="js-recipe" hidden>
                     <div class="tc-section">Reçete · hasta başına</div>
                     <table class="tc-lines">
-                        <thead><tr><th>Malzeme</th><th class="text-right">Miktar</th><th>Birim</th><th class="text-right">Birim maliyet (TL)</th><th class="text-right">Tutar (TL)</th><th></th></tr></thead>
+                        <thead><tr><th>Malzeme</th><th class="text-right">Miktar</th><th>Tür</th><th>Birim</th><th class="text-right">Birim maliyet (TL)</th><th class="text-right">Tutar (TL)</th><th></th></tr></thead>
                         <tbody class="js-recipe-body"></tbody>
-                        <tfoot><tr><td colspan="4" class="text-right">Toplam</td><td class="tc-num js-recipe-total">—</td><td></td></tr></tfoot>
+                        <tfoot><tr><td colspan="5" class="text-right">Toplam</td><td class="tc-num js-recipe-total">—</td><td></td></tr></tfoot>
                     </table>
                     <div class="tc-add">
                         <select id="MATERIAL_ID" name="MATERIAL_ID" class="form-control" style="width:100%"></select>
                         <input type="text" id="ADD_QTY" class="form-control tc-mono tc-qty" inputmode="decimal" placeholder="Miktar" value="1">
+                        <select id="ADD_CONS" class="form-control" style="width:auto" aria-label="Miktar türü">
+                            <option value="PATIENT">Hasta başı</option>
+                            <option value="KIT">Kit başına (kutu)</option>
+                        </select>
                         <button type="button" id="btnAddLine" class="btn btn-outline-secondary" style="white-space:nowrap"><i class="fas fa-plus"></i> Ekle</button>
                     </div>
-                    <small class="tc-sub d-block mt-1">Yeni eklenen malzemenin tutarı kaydedince hesaplanır. Miktar malzemenin birimindedir (0,5 adet, 1,5 ml...).</small>
+                    <small class="tc-sub d-block mt-1">Hasta başı: bir hasta için kullanılan miktar (malzemenin biriminde: 4 adet pipet ucu, 1,5 ml).
+                        Kit başına: testin kitinin bir kutusu için kaç kutu harcandığı (kalibratör 3, kontrol 2); uygulama kitin test sayısına böler.
+                        Yeni satırın tutarı kaydedince hesaplanır.</small>
+
+                    <!-- Fiyatı gir / düzelt: Malzemeler ekranına gitmeden, seçili çalışmanın fiyatı (setMaterialPrice) -->
+                    <div class="tc-price js-price" hidden>
+                        <div class="tc-price-head"><i class="fas fa-tag"></i> <b class="js-price-name"></b> · <span class="js-price-study tc-sub"></span></div>
+                        <div class="form-row">
+                            <div class="form-group col-sm-3 mb-2">
+                                <label for="P_PACKAGE_PRICE" class="js-price-label-price">Kutu fiyatı</label>
+                                <input type="text" id="P_PACKAGE_PRICE" class="form-control tc-mono" inputmode="decimal">
+                            </div>
+                            <div class="form-group col-sm-2 mb-2">
+                                <label for="P_CURRENCY">Para birimi</label>
+                                <select id="P_CURRENCY" class="form-control">
+                                    <option value="EUR">EUR</option><option value="USD">USD</option><option value="TRY">TRY</option><option value="GBP">GBP</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-sm-3 mb-2">
+                                <label for="P_PACKAGE_QTY" class="js-price-label-qty">Kutudaki miktar</label>
+                                <input type="text" id="P_PACKAGE_QTY" class="form-control tc-mono" inputmode="decimal">
+                            </div>
+                            <div class="form-group col-sm-4 mb-2 js-price-patient">
+                                <label for="P_PATIENT_QTY">Kitten çıkan hasta sayısı <span class="tc-sub">(isteğe bağlı)</span></label>
+                                <input type="text" id="P_PATIENT_QTY" class="form-control tc-mono" inputmode="decimal">
+                            </div>
+                        </div>
+                        <div class="tc-sub js-price-info"></div>
+                        <div class="text-right mt-2">
+                            <button type="button" class="btn btn-light btn-sm" id="btnPriceCancel">Vazgeç</button>
+                            <button type="button" class="btn btn-primary btn-sm" id="btnPriceSave"><i class="fas fa-save"></i> Fiyatı kaydet</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Bileşenler (hesaplamalı / birleşik testler) -->
@@ -209,6 +249,6 @@
 <script src="../../../lib/app/js/zippedPlugins.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/i18n/grid.locale-tr.js"></script>
 <script src="../../../lib/plugins/jqGrid-4.6.0/js/jquery.jqGrid.min.js"></script>
-<script src="js/testCost-1.0.0.js?v=1.1.10"></script>
+<script src="js/testCost-1.0.0.js?v=1.1.13"></script>
 </body>
 </html>

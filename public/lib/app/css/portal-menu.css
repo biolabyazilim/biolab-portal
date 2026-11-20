@@ -67,8 +67,9 @@
 .pm-group > ul .pm-item .pm-icon { font-size: 12px; }
 .pm-group.has-active > .pm-group-btn { color: var(--pm-text-strong); }
 
-/* Daralt düğmesi: menünün EN ÜSTÜNDE, sağda küçük ikon (« / »). HTML'de .pm-foot menüden sonra gelir;
-   order ile üste alınır (bütün uygulamaların index.html'i aynı kalır). Yazı gizli; açıklama title ipucunda. */
+/* Eski daralt düğmesi (menünün içinde «): daraltma artık üst bardaki ☰ düğmesinde (logonun solunda).
+   index.html'lerde duruyor ama gösterilmez; aşağıdaki kurallar geri açılırsa diye korunur. */
+.pm-foot { display: none !important; }
 .pm-foot {
     order: -1;
     position: sticky; top: 0; z-index: 1;          /* menü uzun olup kayarsa da üstte kalsın */
@@ -115,14 +116,21 @@
 .pm-crumbs .pm-crumb-sep { font-size: 10px; opacity: .7; }
 .pm-crumbs .pm-crumb-current { color: var(--bl-text, #1F2937); font-weight: 600; }
 
-/* Üst bardaki menü düğmesi (mobilde çekmeceyi açar) */
+/* Üst bardaki menü düğmesi (logonun solunda): masaüstünde menüyü daraltır / genişletir, mobilde çekmeceyi açar */
 .pm-toggle {
-    display: none; align-items: center; justify-content: center;
+    display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
     width: 38px; height: 38px; margin-right: 6px;
     border: 1px solid rgba(255, 255, 255, .35); border-radius: 8px;
     background: transparent; color: #fff; font-size: 16px; cursor: pointer;
 }
 .pm-toggle:hover { background: rgba(255, 255, 255, .12); }
+.pm-toggle:focus:not(:focus-visible) { outline: none; box-shadow: none; }   /* fareyle tıklayınca çerçeve kalmasın; klavyede kalır */
+
+/* Üst bar: logo sola yaslı, menü düğmesi hemen sağında (kenar çubuğunun üstüne hizalı).
+   body öneki: uygulamaların kendi hb.css'indeki .hb-header kuralını yüklenme sırasından bağımsız geçsin. */
+body .hb-header { padding-left: 14px; }
+body .hb-header .hb-logo { margin-right: 8px; }
+body .hb-header .pm-toggle { margin: 0 10px 0 0; }
 
 .pm-backdrop { display: none; }
 

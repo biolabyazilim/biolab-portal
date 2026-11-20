@@ -94,7 +94,14 @@
                     'Maliyet rolünüz var ama rolünüze bağlı bir ekran tanımlı değil. Sistem yöneticisine başvurun.', true);
                 return;
             }
-            openPage(res.first);
+            // Başka ekrandan yeni sekmede açıldıysa (index.html#page=./test_cost/testCost-1.0.0.html?TEST_ID=12) o ekran açılır.
+            // Yalnız kullanıcının menüsündeki (yetkili) ekranlar; adres çubuğundan başka bir sayfa çerçeveye yüklenemez.
+            const m = /[#&]page=([^&]+)/.exec(window.location.hash);
+            const wanted = m ? decodeURIComponent(m[1]) : null;
+            if (m && window.history && window.history.replaceState) {
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);   // yenileyince son ekran
+            }
+            openPage(wanted && /^\.\/[\w\-\/.]+\.html(\?[\w=&]*)?$/.test(wanted) && menu.has(wanted) ? wanted : res.first);
         }).catch(showServerError);
     }
 

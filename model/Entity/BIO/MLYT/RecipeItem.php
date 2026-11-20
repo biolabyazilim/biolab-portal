@@ -12,7 +12,8 @@ use Biolab\Model\Common\AuditTrait;
  * (Biolab\Core\Mlyt\CostCalculator). Miktar malzemenin kullanım biriminde (USAGE_UNIT) yazılır.
  *
  * CONSUMPTION — miktar neye göre:
- *   PATIENT → hasta başına (şimdilik hesaplanan tek tip)
+ *   PATIENT → hasta başına
+ *   KIT     → kit başına: bir kit kutusu için kaç kutu (kalibratör, kontrol); testin kitinin test sayısına bölünerek hesaplanır
  *   RUN / DAY / WEEK / MONTH → çalışma / gün / hafta / ay başına (kontrol, kalibratör); test hacmi gelince hesaplanacak
  */
 #[ORM\Entity]
@@ -27,6 +28,8 @@ class RecipeItem
     public const PER_DAY     = 'DAY';
     public const PER_WEEK    = 'WEEK';
     public const PER_MONTH   = 'MONTH';
+    // Kit başına: QUANTITY bir kit kutusu için kaç kutu (kalibratör 3); testin kitinin test sayısına bölünür (CostCalculator)
+    public const PER_KIT     = 'KIT';
 
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]

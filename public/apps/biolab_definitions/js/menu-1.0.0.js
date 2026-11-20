@@ -45,8 +45,10 @@ $.DLNFrame = {
                 text:'menuName',
                 disabledFL:'activeFL'
             },
+            // Üst menü isteğe bağlı: temizlenebilir; boş bırakılırsa ana menü olarak kaydedilir
             select2:{
-                placeholder:'',
+                placeholder:'Üst menü yok (ana menü)',
+                allowClear:true,
                 minimumResultsForSearch:0
             },
             ajax:{

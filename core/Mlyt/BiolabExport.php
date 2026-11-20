@@ -32,7 +32,7 @@ final class BiolabExport
         Test::METHOD_KIT => 'KİT / CİHAZ', Test::METHOD_RECIPE => 'REÇETE', Test::METHOD_SERVICE => 'HİZMET ALIMI',
         Test::METHOD_CALCULATED => 'HESAPLAMALI', Test::METHOD_UNDEFINED => 'BELİRSİZ',
     ];
-    private const CONSUMPTION = [RecipeItem::PER_PATIENT => 'hasta başı', RecipeItem::PER_RUN => 'çalışma başı',
+    private const CONSUMPTION = [RecipeItem::PER_PATIENT => 'hasta başı', RecipeItem::PER_KIT => 'kit başına (hastaya düşen)', RecipeItem::PER_RUN => 'çalışma başı',
         RecipeItem::PER_DAY => 'gün', RecipeItem::PER_WEEK => 'hafta', RecipeItem::PER_MONTH => 'ay'];
 
     public function __construct(private EntityManagerInterface $em, private int $companyId, private Study $study) {}
@@ -80,7 +80,7 @@ final class BiolabExport
             foreach ($results[$t['testId']]['lines'] as $l) {
                 if ($l['type'] !== 'MATERIAL' && $l['type'] !== 'COMPANION') { continue; }
                 $r = $lastRecipeRow + 1;
-                $perPatient = $l['consumption'] === RecipeItem::PER_PATIENT;
+                $perPatient = $l['consumption'] === RecipeItem::PER_PATIENT || $l['consumption'] === RecipeItem::PER_KIT;   // kit başına: miktar hastaya düşen
                 $recipe->row([
                     ['v' => $t['testCode'], 's' => XlsxWriter::TEXT],
                     ['v' => $t['testName'], 's' => XlsxWriter::TEXT],

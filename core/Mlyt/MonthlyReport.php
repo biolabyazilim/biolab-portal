@@ -297,6 +297,8 @@ final class MonthlyReport
 
     /** Fire bildirimi gelmesi beklenen birimler: şubeler + PCR */
     public const FIRE_UNIT_PCR = 'PCR';
+    /** Satın almanın birleştirdiği şube formu: şube her satırın "Şube / birim" kolonundan okunur */
+    public const FIRE_UNIT_ALL = 'TÜM ŞUBELER';
 
     private ?array $fires = null;
 
@@ -431,7 +433,18 @@ final class MonthlyReport
              WHERE f.period = :PERIOD AND f.sourceCode = :SRC AND f.recordFl > 0
         ")->setParameter('PERIOD', $this->period)->setParameter('SRC', PeriodFile::FIRE_REPORT)->getArrayResult();
         $received = array_column($got, 'rowCount', 'unitName');
-        return ['expected' => $expected, 'received' => $received, 'missing' => array_values(array_diff($expected, array_keys($received)))];
+        // Birleştirilmiş form: satırlarında geçen şubeler "geldi" sayılır (bildirimi olmayan şube formda görünmez → eksik kalır)
+        $merged = isset($received[self::FIRE_UNIT_ALL]);
+        if ($merged) {
+            unset($received[self::FIRE_UNIT_ALL]);
+            foreach ($this->em->createQuery("
+                SELECT r.unitName, COUNT(r.fireId) AS n FROM BIO\MLYT\FireReport r JOIN r.file f
+                 WHERE f.period = :PERIOD AND f.unitName = :ALL AND f.recordFl > 0 GROUP BY r.unitName
+            ")->setParameter('PERIOD', $this->period)->setParameter('ALL', self::FIRE_UNIT_ALL)->getArrayResult() as $u) {
+                $received[$u['unitName']] = ($received[$u['unitName']] ?? 0) + (int) $u['n'];
+            }
+        }
+        return ['expected' => $expected, 'received' => $received, 'missing' => array_values(array_diff($expected, array_keys($received))), 'merged' => $merged];
     }
 
     /* ---------- Özet ---------- */

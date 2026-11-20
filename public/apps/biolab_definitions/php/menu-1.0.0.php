@@ -202,12 +202,13 @@ switch ($query){
                 $resMsg = "Menü adı zorunludur.";
                 break;
             }
-            if ($parent === null) {
+            // Üst menü isteğe bağlı: boşsa kayıt en üst düzeyde (ana menü) olur
+            if ($parentId > 0 && $parent === null) {
                 $resCode = 22;
-                $resMsg = "Üst menü seçilmelidir.";
+                $resMsg = "Seçilen üst menü bulunamadı.";
                 break;
             }
-            if ($rs !== null && $parent->getMenuId() === $rs->getMenuId()) {
+            if ($rs !== null && $parent !== null && $parent->getMenuId() === $rs->getMenuId()) {
                 $resCode = 22;
                 $resMsg = "Bir menü kendi altına bağlanamaz.";
                 break;

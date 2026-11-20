@@ -224,8 +224,12 @@ final class MonthlyImport
             }
             if ($date < $from || $date > $to) { $skipped++; continue; }
 
-            $unit = $cell($r, 'unit') ?: $file->getUnitName();
-            if ($unit !== $file->getUnitName()) { $otherUnits[$unit] = true; }
+            // Birleştirilmiş formda şube satırdan gelir ve zorunludur; tek birim formunda boşsa dosyanın birimi
+            $merged = $file->getUnitName() === MonthlyReport::FIRE_UNIT_ALL;
+            $unit = $cell($r, 'unit');
+            if ($merged && $unit === '') { $bad[] = $no; continue; }
+            $unit = $unit ?: $file->getUnitName();
+            if (!$merged && $unit !== $file->getUnitName()) { $otherUnits[$unit] = true; }
             $depot = self::leadingInt($unit);
             // Stok kodu: kolondan (formül sonucu ya da elle) ya da "S737 – BESİYERLİ SWAB" biçiminden
             $stock = mb_strtoupper($cell($r, 'stock'));
@@ -242,7 +246,7 @@ final class MonthlyImport
         $w = [];
         if ($n === 0 && !$bad) { $w[] = self::INFO . 'Bu ay bildirim yok (form boş).'; }
         if ($skipped) { $w[] = self::INFO . $skipped . ' satır dönem dışında olduğu için alınmadı.'; }
-        if ($bad) { $w[] = count($bad) . ' satır eksik ya da hatalı olduğu için alınmadı (tarih, malzeme, miktar, sebep zorunlu): Excel satır ' . implode(', ', array_slice($bad, 0, 10)) . (count($bad) > 10 ? '…' : '') . '.'; }
+        if ($bad) { $w[] = count($bad) . ' satır eksik ya da hatalı olduğu için alınmadı (tarih, malzeme, miktar, sebep' . ($file->getUnitName() === MonthlyReport::FIRE_UNIT_ALL ? ', şube' : '') . ' zorunlu): Excel satır ' . implode(', ', array_slice($bad, 0, 10)) . (count($bad) > 10 ? '…' : '') . '.'; }
         if ($otherUnits) { $w[] = 'Dosyada seçilen birimden (' . $file->getUnitName() . ') farklı birimler var: ' . implode(', ', array_keys($otherUnits)) . '.'; }
         return ['rows' => $n, 'skipped' => $skipped, 'warnings' => $w];
     }

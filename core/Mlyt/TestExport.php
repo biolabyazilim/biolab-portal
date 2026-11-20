@@ -29,7 +29,7 @@ final class TestExport
         Test::METHOD_CALCULATED => 'Hesaplamalı', Test::METHOD_UNDEFINED => 'Belirsiz',
     ];
     public const UNIT_NAMES = [Test::UNIT_BIOLAB => 'Biolab', Test::UNIT_PATHOLOGY => 'Patoloji'];
-    private const CONSUMPTION = [RecipeItem::PER_RUN => 'çalışma', RecipeItem::PER_DAY => 'gün', RecipeItem::PER_WEEK => 'hafta', RecipeItem::PER_MONTH => 'ay'];
+    private const CONSUMPTION = [RecipeItem::PER_KIT => 'kit başına', RecipeItem::PER_RUN => 'çalışma', RecipeItem::PER_DAY => 'gün', RecipeItem::PER_WEEK => 'hafta', RecipeItem::PER_MONTH => 'ay'];
 
     /** @param array{tab?:string, serviceGroupId?:int, costMethod?:string, labUnit?:string, supplierId?:int, q?:string} $filters  supplierId -1 = tedarikçisi olmayanlar */
     public function __construct(

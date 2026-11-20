@@ -74,14 +74,29 @@ $.DLNFrame = {
             $d.searchTimer = setTimeout(function () { $t.reloadGrid(true); }, 300);
         });
 
-        // Reçete düzenleme
+        // Reçete düzenleme (dirty: kaydedilmemiş değişiklik var; fiyat penceresi açılmadan önce sorulur)
         $('.js-recipe-body').on('input', '.tc-qty', function () {
             const i = Number($(this).closest('tr').data('i'));
             $d.lines[i].quantity = $(this).val();
+            $d.dirty = true;
             $t.renderRecipeTotals();
+        });
+        // Fiyatı gir / düzelt: satırdaki bağlantı; fiyat paneli bu pencerede açılır
+        $('.js-recipe-body').on('click', '.btnPrice', function () { $t.openPrice(Number($(this).data('mid'))); });
+        $('#btnPriceCancel').on('click', function () { $('.js-price').prop('hidden', true); });
+        $('#btnPriceSave').on('click', $t.savePrice);
+        // Satırın türü: hasta başı / kit başına (kalibratör, kontrol: bir kit için kaç kutu). Tür değişince tutar kaydedince hesaplanır.
+        $('.js-recipe-body').on('change', '.tc-cons', function () {
+            const i = Number($(this).closest('tr').data('i'));
+            $d.lines[i].consumption = $(this).val();
+            $d.lines[i].factor = null;
+            $d.lines[i].isNew = true;
+            $d.dirty = true;
+            $t.renderRecipe();
         });
         $('.js-recipe-body').on('click', '.btnRemoveLine', function () {
             $d.lines.splice(Number($(this).closest('tr').data('i')), 1);
+            $d.dirty = true;
             $t.renderRecipe();
         });
         $('#btnAddLine').on('click', $t.addLine);
@@ -93,6 +108,9 @@ $.DLNFrame = {
 
     start: function () {
         const $t = $.DLNFrame;
+        // Başka ekrandan "Reçeteyi aç" ile gelindiyse (…/testCost-1.0.0.html?TEST_ID=123): liste ilk yüklenince o testin penceresi açılır
+        const m = /[?&]TEST_ID=(\d+)/.exec(window.location.search);
+        $t.data.openTestId = m ? Number(m[1]) : null;
         $t.initGridList();
         $t.initF_LAB_UNIT();
         $t.initF_SERVICE_GROUP_ID();
@@ -218,6 +236,11 @@ $.DLNFrame = {
                     msg = 'Bu filtrede test yok.';
                 }
                 $('#gridMsg').text(msg).prop('hidden', !msg);
+                if ($d.openTestId && $d.study) {
+                    const id = $d.openTestId;
+                    $d.openTestId = null;   // bir kez
+                    $t.getSelectedId(id);
+                }
             },
             loadError: function () {
                 $('#gridMsg').text('Sunucuya ulaşılamadı. Sayfayı yenileyin.').prop('hidden', false);
@@ -266,6 +289,8 @@ $.DLNFrame = {
         const $t = $.DLNFrame;
         const $d = $t.data;
         $d.detail = d;
+        $d.dirty = false;
+        $('.js-price').prop('hidden', true);
 
         $('#TEST_ID').val(d.testId);
         $('#modalCostTitle').text(d.testCode + ' · ' + d.testName);
@@ -284,9 +309,14 @@ $.DLNFrame = {
         $('#btnRecipeSave').prop('hidden', !d.recipeEditable);
 
         if (d.recipeEditable) {
+            // Kit başına satır: formda yazılan kutu adedi (perKit); factor = hastaya düşen ÷ kutu adedi (tutar formda yeniden hesaplansın)
             $d.lines = (d.lines || []).filter(function (l) { return l.type === 'MATERIAL'; }).map(function (l) {
+                const perKit = l.consumption === 'KIT';
                 return { materialId: l.materialId, materialName: l.materialName, unitName: l.unitName,
-                         quantity: $t.qty(l.quantity), unitCost: l.unitCost, reason: l.reason };
+                         consumption: perKit ? 'KIT' : 'PATIENT',
+                         quantity: $t.qty(perKit ? l.perKit : l.quantity),
+                         factor: perKit && l.quantity !== null && Number(l.perKit) > 0 ? Number(l.quantity) / Number(l.perKit) : null,
+                         divKitName: l.divKitName || null, unitCost: l.unitCost, reason: l.reason };
             });
             // Kitle birlikte gelenler (COMPANION): kaydedilmez; test başı adet = satır miktarı ÷ kitin kayıtlı miktarı
             $d.companions = [];
@@ -294,8 +324,10 @@ $.DLNFrame = {
                 if (l.type !== 'COMPANION') { return; }
                 const kit = (d.lines || []).filter(function (k) { return k.type === 'MATERIAL' && String(k.materialId) === String(l.kitId); })[0];
                 const kq = kit ? Number(kit.quantity) : 0;
+                // Kit başına satırda miktar kitin test sayısı bilinmiyorsa boş gelir (null): tutar hesaplanmaz
                 $d.companions.push({ kitId: l.kitId, kitName: l.kitName, materialName: l.materialName, unitName: l.unitName,
-                                     unitCost: l.unitCost, reason: l.reason, perTest: kq > 0 ? Number(l.quantity) / kq : 0 });
+                                     unitCost: l.unitCost, reason: l.reason, basis: l.basis, perKit: l.perKit,
+                                     perTest: l.quantity === null ? null : (kq > 0 ? Number(l.quantity) / kq : 0) });
             });
             $t.renderRecipe();
             $('#MATERIAL_ID').val('').change();
@@ -329,18 +361,30 @@ $.DLNFrame = {
         const $t = $.DLNFrame;
         const $body = $('.js-recipe-body').empty();
         $t.data.lines.forEach(function (l, i) {
+            const perKit = l.consumption === 'KIT';
+            // Kit başına satırın altında: hastaya düşen miktar ve hangi kitin test sayısına bölündüğü
+            const $name = $('<td>').text(l.materialName);
+            if (perKit) {
+                $name.append($('<div class="tc-sub js-perkit-note">'));
+            }
             $body.append($('<tr>').attr('data-i', i).append(
-                $('<td>').text(l.materialName),
-                $('<td class="text-right">').append($('<input type="text" class="form-control form-control-sm tc-mono tc-qty" inputmode="decimal">').val(l.quantity)),
-                $('<td>').text(l.unitName || ''),
-                $('<td class="tc-num">').html(l.unitCost === null || l.unitCost === undefined
+                $name,
+                $('<td class="text-right">').append($('<input type="text" class="form-control form-control-sm tc-mono tc-qty" inputmode="decimal">').val(l.quantity)
+                    .attr('title', perKit ? 'Testin kitinin bir kutusu için kaç kutu harcanıyor (ör. 3)' : 'Bir hasta için kullanılan miktar')),
+                $('<td>').append($('<select class="form-control form-control-sm tc-cons">')
+                    .append(new Option('Hasta başı', 'PATIENT', false, !perKit), new Option('Kit başına (kutu)', 'KIT', false, perKit))),
+                $('<td>').text(perKit ? 'kutu / kit' : (l.unitName || '')),
+                // Birim maliyet: fiyat yoksa "Fiyatı gir", varsa kalem (aynı pencerede fiyat paneli)
+                $('<td class="tc-num">').html((l.unitCost === null || l.unitCost === undefined
                     ? '<span class="tc-sub" title="' + $t.esc(l.reason || '') + '">' + (l.isNew ? 'kaydedince' : $t.esc(l.reason || '—')) + '</span>'
-                    : $t.esc($t.fmt(l.unitCost, 4))),
+                    : $t.esc($t.fmt(l.unitCost, 4)))
+                    + (l.isNew ? '' : '<button type="button" class="btn btn-link btn-sm tc-price-link btnPrice" data-mid="' + Number(l.materialId) + '" title="Fiyatı bu pencerede düzelt">'
+                        + (l.unitCost === null || l.unitCost === undefined ? 'Fiyatı gir' : '<i class="fas fa-pen"></i>') + '</button>')),
                 $('<td class="tc-num js-amount">'),
                 $('<td class="text-right">').append('<button type="button" class="btn btn-sm btn-outline-danger btnRemoveLine" title="Çıkar"><i class="fas fa-times"></i></button>')));
         });
         if (!$t.data.lines.length) {
-            $body.append('<tr><td colspan="6" class="tc-sub">Reçete boş. Aşağıdan malzeme ekleyin.</td></tr>');
+            $body.append('<tr><td colspan="7" class="tc-sub">Reçete boş. Aşağıdan malzeme ekleyin.</td></tr>');
         }
         // Kitle birlikte gelen malzemeler (Malzemeler ekranındaki kit listesi): salt okunur; miktar = kit miktarı × test başı adet.
         // Kit reçeteden çıkarılırsa satırları da kalkar.
@@ -348,7 +392,8 @@ $.DLNFrame = {
             if (!$t.data.lines.some(function (l) { return String(l.materialId) === String(c.kitId); })) { return; }
             $body.append($('<tr class="tc-companion">').attr('data-c', i).append(
                 $('<td>').append($('<span class="tc-sub">').text('↳ '), document.createTextNode(c.materialName + ' '),
-                    $('<span class="tc-badge tc-s-OK">').text('kitle birlikte').attr('title', c.kitName + ' kitinin listesinden (Malzemeler ekranı)')),
+                    $('<span class="tc-badge tc-s-OK">').text(c.basis === 'KIT' ? 'kit başına ' + $t.qty(c.perKit) : 'kitle birlikte')
+                        .attr('title', c.kitName + ' kitinin listesinden (Malzemeler ekranı)' + (c.basis === 'KIT' ? '; miktar kitin test sayısına bölünür' : ''))),
                 $('<td class="text-right tc-mono js-comp-qty">'),
                 $('<td>').text(c.unitName || ''),
                 $('<td class="tc-num">').html(c.unitCost === null || c.unitCost === undefined
@@ -365,17 +410,25 @@ $.DLNFrame = {
         let total = 0, partial = false;
         $('.js-recipe-body tr[data-i]').each(function () {
             const l = $t.data.lines[Number($(this).data('i'))];
-            const q = $t.parse(l.quantity);
+            const perKit = l.consumption === 'KIT';
+            const entered = $t.parse(l.quantity);
+            // Kit başına: kutu adedi × (hastaya düşen ÷ kutu adedi); oran yeni satırda kaydedince gelir
+            const q = entered === null ? null : (perKit ? (l.factor !== null && l.factor !== undefined ? entered * l.factor : null) : entered);
             const amount = (q !== null && l.unitCost !== null && l.unitCost !== undefined) ? q * l.unitCost : null;
             if (amount === null) { partial = true; } else { total += amount; }
-            $(this).find('.js-amount').text(amount === null ? '—' : $t.fmt(amount, 2));
+            $(this).find('.js-amount').text(amount === null ? (perKit && l.isNew ? 'kaydedince' : '—') : $t.fmt(amount, 2));
+            if (perKit) {
+                $(this).find('.js-perkit-note').text(q === null
+                    ? 'Kitin test sayısına bölünür (kaydedince hesaplanır)'
+                    : '≈ ' + $t.qty(q) + ' ' + (l.unitName || '') + ' / hasta' + (l.divKitName ? ' · ' + l.divKitName + ' kitine göre' : ''));
+            }
         });
         // Kitle birlikte gelenler: kitin formdaki (değişmiş olabilir) miktarı × test başı adet
         $('.js-recipe-body tr.tc-companion').each(function () {
             const c = $t.data.companions[Number($(this).data('c'))];
             const kit = $t.data.lines.filter(function (l) { return String(l.materialId) === String(c.kitId); })[0];
             const kq = kit ? $t.parse(kit.quantity) : null;
-            const q = kq !== null ? kq * c.perTest : null;
+            const q = kq !== null && c.perTest !== null ? kq * c.perTest : null;
             const amount = (q !== null && c.unitCost !== null && c.unitCost !== undefined) ? q * c.unitCost : null;
             if (amount === null) { partial = true; } else { total += amount; }
             $(this).find('.js-comp-qty').text(q === null ? '—' : $t.qty(q));
@@ -397,19 +450,27 @@ $.DLNFrame = {
         const text = $('#MATERIAL_ID option:selected').text();
         const m = text.match(/^(.*)\s\(([^()]*)\)$/);
         $t.data.lines.push({ materialId: mid, materialName: m ? m[1] : text, unitName: m ? m[2] : '',
+                             consumption: $('#ADD_CONS').val() || 'PATIENT', factor: null,
                              quantity: $('#ADD_QTY').val(), unitCost: null, isNew: true });
         $('#costMsg').prop('hidden', true);
         $('#MATERIAL_ID').val('').change();
         $('#ADD_QTY').val('1');
+        $('#ADD_CONS').val('PATIENT');
+        $t.data.dirty = true;
         $t.renderRecipe();
     },
 
     saveRecipe: function () {
         const $t = $.DLNFrame;
-        const items = $t.data.lines.map(function (l) { return { materialId: l.materialId, quantity: l.quantity }; });
+        const items = $t.data.lines.map(function (l) { return { materialId: l.materialId, quantity: l.quantity, consumption: l.consumption || 'PATIENT' }; });
         for (let i = 0; i < items.length; i++) {
             const q = $t.parse(items[i].quantity);
             if (q === null || q <= 0) { $('#costMsg').text((i + 1) + '. satır: miktar sıfırdan büyük olmalı.').prop('hidden', false); return; }
+        }
+        // Kit başına satır, bölünecek bir kit ister: reçetede hasta başı bir kit olmalı (sunucu da işaretler; burada erken uyarı)
+        const kitLines = $t.data.lines.filter(function (l) { return l.consumption === 'KIT'; });
+        if (kitLines.length && kitLines.length === $t.data.lines.length) {
+            $('#costMsg').text('Kit başına satırlar testin kitinin test sayısına bölünür; reçeteye kiti hasta başı olarak da ekleyin.').prop('hidden', false); return;
         }
         $.ajaxq('frame', {
             url: proxyPath + modulePath + 'setRecipe',
@@ -427,6 +488,73 @@ $.DLNFrame = {
                 }
             },
             complete: function () { $('#btnRecipeSave').prop('disabled', false); }
+        });
+    },
+
+    /* ---------- Fiyat (reçete penceresinde) ---------- */
+
+    // Malzemenin seçili çalışmadaki fiyatını panele doldurur. Kaydedilmemiş reçete değişikliği varsa önce kaydetmek istenir
+    // (fiyat kaydı testi yeniden yükler; değişiklik kaybolmasın).
+    openPrice: function (materialId) {
+        const $t = $.DLNFrame;
+        if ($t.data.dirty) {
+            $('#costMsg').text('Reçetede kaydedilmemiş değişiklik var. Önce "Reçeteyi kaydet"e basın, sonra fiyatı girin.').prop('hidden', false);
+            return;
+        }
+        $.ajaxq('frame', {
+            url: proxyPath + modulePath + 'getMaterialPrice',
+            type: 'POST',
+            dataType: 'json',
+            data: { MATERIAL_ID: materialId, STUDY_ID: $('#STUDY_ID').val() || '' },
+            success: function (result) {
+                const p = result && result['records'];
+                if (!result || result['resCode'] !== 0 || !p) {
+                    $('#costMsg').text((result && result['resMsg']) || 'Fiyat alınamadı.').prop('hidden', false); return;
+                }
+                if (p.billable) {
+                    $('#costMsg').text('Bedelli malzemenin bedeli Malzemeler ekranında girilir.').prop('hidden', false); return;
+                }
+                $t.data.priceMaterialId = p.materialId;
+                $('.js-price-name').text(p.materialName);
+                $('.js-price-study').text(p.studyName + (p.editable ? '' : ' · onaylı, değiştirilemez'));
+                // Kitte: kit fiyatı / kitteki test sayısı; diğerlerinde: kutu fiyatı / kutudaki miktar (malzemenin biriminde)
+                $('.js-price-label-price').text(p.isKit ? 'Kit fiyatı' : 'Kutu fiyatı');
+                $('.js-price-label-qty').text(p.isKit ? 'Kitteki test sayısı' : 'Kutudaki miktar (' + p.unitName + ')');
+                $('.js-price-patient').prop('hidden', !p.isKit);
+                $('#P_PACKAGE_PRICE').val(p.packagePrice === null ? '' : $t.qty(p.packagePrice));
+                $('#P_PACKAGE_QTY').val(p.packageQty === null ? '' : $t.qty(p.packageQty));
+                $('#P_PATIENT_QTY').val(p.patientQty === null ? '' : $t.qty(p.patientQty));
+                $('#P_CURRENCY').val(p.currency || 'EUR');
+                $('.js-price-info').text(p.testCount > 1
+                    ? 'Bu fiyat malzemeyi kullanan ' + p.testCount + ' testin hepsine yansır.' : 'Bu fiyat yalnız bu malzemenin fiyatıdır.');
+                $('#btnPriceSave').prop('disabled', !p.editable);
+                $('#costMsg').prop('hidden', true);
+                $('.js-price').prop('hidden', false);
+                $('#P_PACKAGE_PRICE').focus();
+            }
+        });
+    },
+
+    savePrice: function () {
+        const $t = $.DLNFrame;
+        $.ajaxq('frame', {
+            url: proxyPath + modulePath + 'setMaterialPrice',
+            type: 'POST',
+            dataType: 'json',
+            data: { MATERIAL_ID: $t.data.priceMaterialId, STUDY_ID: $('#STUDY_ID').val() || '', TEST_ID: $('#TEST_ID').val(),
+                    PACKAGE_PRICE: $('#P_PACKAGE_PRICE').val(), CURRENCY: $('#P_CURRENCY').val(),
+                    PACKAGE_QTY: $('#P_PACKAGE_QTY').val(), PATIENT_QTY: $('.js-price-patient').prop('hidden') ? '' : $('#P_PATIENT_QTY').val() },
+            beforeSend: function () { $('#btnPriceSave').prop('disabled', true); },
+            success: function (result) {
+                if (result && result['resCode'] === 0) {
+                    $.fn.ntyi({ type: 'information', layout: 'topRight', text: result['resMsg'] });
+                    if (result['resObject']) { $t.openDetail(result['resObject']); }   // yeniden hesaplanmış test
+                    $t.reloadGrid(false);
+                } else {
+                    $('#costMsg').text((result && result['resMsg']) || 'Fiyat kaydedilemedi.').prop('hidden', false);
+                }
+            },
+            complete: function () { $('#btnPriceSave').prop('disabled', false); }
         });
     },
 
